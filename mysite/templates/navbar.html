@@ -16,7 +16,7 @@
         <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarCollapse">
-        <ul>
+        <!-- <ul>
             <li class="nav-link">
                 <a href="/">Home</a>
             </li>
@@ -27,7 +27,7 @@
                     </li>
                 {% endfor %}
             {% endif %}
-        </ul>
+        </ul> -->
         <form class="form-inline ml-auto">
             {% if request.user.is_authenticated %}
             <span class="text-white">Hola, {{ request.user.username }}.</span>
