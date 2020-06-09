@@ -8,6 +8,16 @@ SECRET_KEY = env['SECRET_KEY']
 
 DEBUG = False
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+COMPRESS_OFFLINE = True
+
+COMPRESS_CSS_FILTERS = [
+    'compressor.filters.css_default.CssAbsoluteFilter',
+    'compressor.filters.cssmin.CSSMinFilter',
+]
+
+
 #Parse databse configuration from $DATABASE_URL
 DATABASES['default'] = dj_database_url.config()
 

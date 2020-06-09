@@ -79,6 +79,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
 
+    'whitenoise.middleware.SecurityMiddleware',
+
     'wagtail.contrib.redirects.middleware.RedirectMiddleware',
     
 ]
