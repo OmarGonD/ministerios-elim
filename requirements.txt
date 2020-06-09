@@ -15,6 +15,7 @@ django-tailwind==0.7.1
 django-treebeard==4.3.1
 djangorestframework==3.11.0
 draftjs-exporter==2.1.7
+gunicorn==20.0.4
 html5lib==1.0.1
 idna==2.9
 l18n==2018.5
