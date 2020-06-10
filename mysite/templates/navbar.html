@@ -4,32 +4,33 @@
 
 <header>
     <!--MENU SUPERIOR-->
-<!-- Fixed navbar -->
-<nav class="navbar navbar-expand-md navbar-light fixed-top" style="height: 70px; padding-top: 0%; padding-bottom: 0%;" id="top-navbar">
-    <div class="container">
-    <a class="navbar-brand" href="/" style="margin: 0%; padding: 0%">
-       <img src="{% static 'img/logos/elim-palmera-la-central-fondo-blanco.png' %}" alt="" width="40px"
-            height="40px"/>
-    </a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
-        aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarCollapse">
-        <ul>
-            <li class="nav-link">
-                <a href="/">Home</a>
-            </li>
-            {% if navigation %}
-                {% for item in navigation.menu_items.all %}
-                    <li>
-                        <a href="{{ item.link }}" class="nav-link" {% if item.open_in_new_tab %} target="_blank" {% endif %}>{{ item.title }}</a>
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-expand-md navbar-light fixed-top"
+        style="height: 70px; padding-top: 0%; padding-bottom: 0%;" id="top-navbar">
+        <div class="container">
+            <a class="navbar-brand" href="/" style="margin: 0%; padding: 0%">
+                <img src="{% static 'img/logos/elim-palmera-la-central-fondo-blanco.png' %}" alt="" width="40px"
+                    height="40px" />
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul>
+                    <li class="nav-link">
+                        <a href="/">Home</a>
                     </li>
-                {% endfor %}
-            {% endif %}
-        </ul> 
-        <form class="form-inline ml-auto">
-            <!--
+                    {% for item in navigation.menu_items.all %}
+                    <li>
+                        <a href="{{ item.link }}" class="nav-link" {% if item.open_in_new_tab %} target="_blank"
+                            {% endif %}>{{ item.title }}</a>
+                    </li>
+                    {% endfor %}
+
+                </ul>
+                <form class="form-inline ml-auto">
+                    <!--
             {% if request.user.is_authenticated %}
             <span class="text-white">Hola, {{ request.user.username }}.</span>
                 <a href="{% url 'account_logout' %}" class="btn btn-primary ml-2">Salir</a>
@@ -39,8 +40,8 @@
                 <a href="{% url 'registration' %}" class="btn btn-primary ml-2">Registro</a>
             {% endif %}
             -->
-        </form>
-    </div>
-</div>
-</nav>
+                </form>
+            </div>
+        </div>
+    </nav>
 </header>
