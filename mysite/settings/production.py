@@ -8,6 +8,7 @@ SECRET_KEY = env['SECRET_KEY']
 
 DEBUG = False
 
+
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 COMPRESS_OFFLINE = True
@@ -26,8 +27,14 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWAREDED_PROTO', 'http')
 
 ALLOWED_HOSTS = ['*']
 
+MEDIA_URL = "https://%s/" % AWS_S3_CUSTOM_DOMAIN
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
 
 try:
     from .local import *
 except ImportError:
     pass
+
+
+
