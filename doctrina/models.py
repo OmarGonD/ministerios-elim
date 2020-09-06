@@ -98,11 +98,6 @@ class DoctrinaPage(Page):
 
 class DoctrinaLevelPage(Page):
 
-    '''
-    1) Para cada uno de los niveles de doctrina.
-    2) Debe mostrar los temas por nivel.    
-    '''
-
     template = 'doctrina/doctrina_listing_page.html'
 
     parent_page_types = ['doctrina.DoctrinaPage']
@@ -112,6 +107,15 @@ class DoctrinaLevelPage(Page):
         blank=False,
         null=False,
         help_text='Sobreescribe el título de la entrada'
+    )
+
+    level_image = models.ForeignKey( #imagen del nivel de doctrina: basico, int, avanzado
+        "wagtailimages.Image",
+        blank=False,
+        null=True,
+        related_name="+",
+        on_delete=models.SET_NULL,
+
     )
 
     tema = models.ForeignKey(
@@ -124,9 +128,11 @@ class DoctrinaLevelPage(Page):
 
     content_panels = Page.content_panels + [
         FieldPanel('custom_title'),
+        ImageChooserPanel('level_image'),
     ]
 
     subpage_types = ['doctrina.DoctrinaDetailPage']
+   
 
 
     def get_context(self, request, *args, **kwargs):

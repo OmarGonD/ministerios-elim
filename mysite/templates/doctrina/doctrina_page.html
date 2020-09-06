@@ -12,11 +12,16 @@
     {{ self.subtitle }}
 </h2>
 
+{% for block in page.content %}
+        {% include_block block %}
+    {% endfor %}
 
+<!--
 <div class="card-deck">
     {% if self.link_page_doctrina_basica %}
+    {% image self.link_page_doctrina_basica.specific.level_image max-100x100 as level_image %}
     <div class="card">
-      <img src="..." class="card-img-top" alt="...">
+      <img src="{{ level_image.url }}" class="" alt="...">
       <div class="card-body">
         <h5 class="card-title">{{ self.link_page_doctrina_basica.title }}</h5>
         <p class="card-text">{{ self.link_page_doctrina_basica.body }}</p>
@@ -28,8 +33,10 @@
     </div>
     {% endif %}
     {% if self.link_page_doctrina_intermedia %}
+    {% image self.link_page_doctrina_intermedia.specific.level_image max-100x100 as level_image %}
     <div class="card">
-      <img src="..." class="card-img-top" alt="...">
+      <img src="{{ level_image.url }}" class="" alt="..."
+       width="{{ level_image.width }}" height="{{ level_image.height }}">
       <div class="card-body">
         <h5 class="card-title">{{ self.link_page_doctrina_intermedia.title }}</h5>
         <p class="card-text">{{ self.link_page_doctrina_intermedia.body }}</p>
@@ -37,6 +44,24 @@
     </div>
       <div class="card-footer">
         <small class="text-muted">Last updated 3 mins ago</small>
+      </div>
+    </div>
+    {% endif %}
+    {% if self.link_page_doctrina_intermedia %}
+    {% image self.link_page_doctrina_intermedia.specific.level_image max-100x100 as level_image %}
+    <div class="card mb-3" style="max-width: 540px;">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          <img src="{{ level_image.url }}" class="card-img" alt="...">
+        </div>
+        <div class="col-md-8">
+          <div class="card-body">
+            <h5 class="card-title">{{ self.link_page_doctrina_intermedia.title }}</h5>
+            <p class="card-text">{{ self.link_page_doctrina_intermedia.body }}</p>
+            <a href="{{ self.link_page_doctrina_intermedia.url }}" class="btn btn-primary">Ver más</a>
+            <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+          </div>
+        </div>
       </div>
     </div>
     {% endif %}
@@ -53,15 +78,61 @@
       </div>
     </div>
     {% endif %}
-   
+
   </div>
+-->
+
+    <div class="card-deck">
+      {% if self.link_page_doctrina_basica %}
+      {% image self.link_page_doctrina_basica.specific.level_image max-100x100 as level_image %}
+      <div class="card">
+        <img src="{{ level_image.url }}" class="" alt="...">
+        <div class="card-body">
+          <h5 class="card-title">{{ self.link_page_doctrina_basica.title }}</h5>
+          <p class="card-text">{{ self.link_page_doctrina_basica.body }}</p>
+          <a href="{{ self.link_page_doctrina_basica.url }}" class="btn btn-primary">Ver más</a>
+        </div>
+        <div class="card-footer">
+          <small class="text-muted">Last updated 3 mins ago</small>
+        </div>
+      </div>
+      {% endif %}
+      {% if self.link_page_doctrina_intermedia %}
+      {% image self.link_page_doctrina_intermedia.specific.level_image max-100x100 as level_image %}
+      <div class="card">
+        <img src="{{ level_image.url }}" class="" alt="...">
+        <div class="card-body">
+          <h5 class="card-title">{{ self.link_page_doctrina_intermedia.title }}</h5>
+          <p class="card-text">{{ self.link_page_doctrina_intermedia.body }}</p>
+          <a href="{{ self.link_page_doctrina_intermedia.url }}" class="btn btn-primary">Ver más</a>
+        </div>
+        <div class="card-footer">
+          <small class="text-muted">Last updated 3 mins ago</small>
+        </div>
+      </div>
+      {% endif %}
+      {% if self.link_page_doctrina_avanzada %}
+      {% image self.link_page_doctrina_avanzada.specific.level_image max-100x100 as level_image %}
+      <div class="card">
+        <img src="{{ level_image.url }}" class="" alt="...">
+        <div class="card-body">
+          <h5 class="card-title">{{ self.link_page_doctrina_avanzada.title }}</h5>
+          <p class="card-text">{{ self.link_page_doctrina_avanzada.body }}</p>
+          <a href="{{ self.link_page_doctrina_avanzada.url }}" class="btn btn-primary">Ver más</a>
+        </div>
+        <div class="card-footer">
+          <small class="text-muted">Last updated 3 mins ago</small>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+   
+  
 
 
 
 
-    {% for block in page.content %}
-        {% include_block block %}
-    {% endfor %}
+    
 
 
 {% endblock content %}
