@@ -8,20 +8,23 @@ from django.dispatch import receiver
 
 
 
-
 ### User Profile ###
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    second_name = models.CharField(max_length=50, blank=True, null=True)
+    mother_last_name = models.CharField(max_length=30, blank=True, null=True)
     birthdate = models.DateField(null=True, blank=True)
-    dni = models.CharField(max_length=30, blank=True)
+    dni = models.CharField(max_length=50, blank=True)
+    passport = models.CharField(max_length=50, blank=True, null=True)
     phone_number = models.CharField(max_length=30, blank=True)
     shipping_address1 = models.CharField(max_length=100, blank=False)
     reference = models.CharField(max_length=100, blank=False, null=True)
     shipping_department = models.CharField(max_length=100, blank=False)
     shipping_province = models.CharField(max_length=100, blank=False)
     shipping_district = models.CharField(max_length=100, blank=False)
-    photo = models.ImageField(upload_to='profile_pics', default='profile_pics/default_profile_pic_white.png')
+    photo = models.ImageField(upload_to='profile_pics', default='profile_pics/default_profile_pic.png')
+  
 
     def __str__(self):
         return str(self.user.first_name) + "'s profile"

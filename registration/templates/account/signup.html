@@ -22,7 +22,7 @@
     </style>
 
     <div>
-    {% if not form.is_valid %}
+
 
         <div class="container">
             <br>
@@ -40,7 +40,7 @@
 
                 <div class="col-md-6">
 
-                    <form method="post">
+                    <form enctype="multipart/form-data" method="POST" action="">
                         {% csrf_token %}
                         <table>
                             <tr>
@@ -149,6 +149,13 @@
                             </td>
                         </tr>
                         <tr>
+                            <th>{{ profile_form.photo.label_tag }}</th>
+                            <td>
+                                {{ profile_form.photo.errors }}
+                                {{ profile_form.photo }}
+                            </td>
+                        </tr>
+                        <tr>
                             <th>
                                 <p></p>
                             </th>
@@ -221,29 +228,6 @@
 
         <!-- END of new Javascript -->
 
-    {% else %}
-        <div class="container">
-            <br>
-            <h1 class="my_title text-center">
-                Account
-            </h1>
-            <br>
-            <div>
-                <p>
-                    Estimado cliente,
-                    <br>
-                    <br>
-                    Su cuenta ha sido creada y ya puede ser usada
-
-                    <br>
-                    <a href="">Seguir comprando</a> y disfruta de los mejores cojines
-                </p>
-            </div>
-        </div>
-    {% endif %}
-
-    <br>
-    <br>
 
     <!-- Modal -->
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"

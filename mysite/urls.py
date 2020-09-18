@@ -41,15 +41,8 @@ if settings.DEBUG:
 
 
 urlpatterns = urlpatterns + [
-    # For anything not caught by a more specific rule above, hand over to
-    # Wagtail's page serving mechanism. This should be the last pattern in
-    # the list:
-    #url(r'accounts/', include('allauth.urls')),
-    #url(r'^ingresar/', LoginView.as_view(), name="login"),
-    #url(r'^registrarse/', SignupView.as_view(), name="registration"),
+
     url(r'^registrarse/', signupView, name="registration"),
-    #url(r'confirme-su-correo/', ConfirmEmailView.as_view(),
-     #    name="account_email_verification_sent"),
     url(r'^login/$', auth_views.LoginView.as_view(template_name="account/login.html"), name="login"),
     url(r'^logout/$', auth_views.LogoutView.as_view(template_name="account/logout.html"), name="logout"),
     url(r'^province/', get_province, name='province'),
@@ -57,9 +50,6 @@ urlpatterns = urlpatterns + [
     
     url(r'', include(wagtail_urls)),
 
-    # Alternatively, if you want Wagtail pages to be served from a subpath
-    # of your site, rather than the site root:
-    #    url(r"^pages/", include(wagtail_urls)),
 ]
 
 

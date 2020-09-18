@@ -15,12 +15,12 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarCollapse">
                 <ul>
-                    <li class="nav-link">
-                        <a href="/">Home</a>
+                    <li class="nav-link mt-2">
+                        <a href="/">Inicio</a>
                     </li>
                     {% for item in navigation.menu_items.all %}
                     <li>
-                        <a href="{{ item.link }}" class="nav-link" {% if item.open_in_new_tab %} target="_blank"
+                        <a href="{{ item.link }}" class="nav-link mt-3" {% if item.open_in_new_tab %} target="_blank"
                             {% endif %}>{{ item.title }}</a>
                     </li>
                     {% endfor %}

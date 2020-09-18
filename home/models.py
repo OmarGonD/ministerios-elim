@@ -33,7 +33,8 @@ class HomePage(Page):
     templates = 'home/home_page.html'
     max_count = 1 #Solo puede haber una instancia de home en el sitio
     #Falta añadir una ContactPage
-    subpage_types = ['doctrina.DoctrinaPage', 'flex.FlexPage', 'blog.BlogListingPage']
+    subpage_types = ['doctrina.DoctrinaPage', 'flex.FlexPage', 'blog.BlogListingPage', 
+    'iglesias.IglesiasListingPage', 'ministros.PastorPage']
 
     banner_title = models.CharField(max_length=100, blank=True, null=True)
     banner_subtitle = RichTextField(features=['bold', 'italic'], blank=True, null=True)
@@ -77,5 +78,5 @@ class HomePage(Page):
     ]
 
     class Meta:
-        verbose_name = "OH HELLO WORLD!"
+        verbose_name = "Home Page"
        

@@ -86,8 +86,8 @@ def signupView(request):
             user.save()
             username = user_form.cleaned_data.get('username')
             signup_user = User.objects.get(username=username)
-            customer_group = Group.objects.get(name='Clientes')
-            customer_group.user_set.add(signup_user)
+            #customer_group = Group.objects.get(name='Clientes')
+            #customer_group.user_set.add(signup_user)
             raw_password = user_form.cleaned_data.get('password1')
             user.refresh_from_db()  # This will load the Profile created by the Signal
 
@@ -99,6 +99,7 @@ def signupView(request):
             login(request, user)
 
             #return redirect('carrito_de_compras:cart_detail')
+            return redirect('/')
 
         else:
             pass
