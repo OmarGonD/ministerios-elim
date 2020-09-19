@@ -8,10 +8,6 @@ dotenv.read_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.en
 
 
 path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-print("##########")
-print("WSGI")
-print(path)
-print("##########")
 
 if path not in sys.path:
     sys.path.append(path)
