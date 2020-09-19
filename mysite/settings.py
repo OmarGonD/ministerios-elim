@@ -25,8 +25,7 @@ else:
 
 
 
-
-ALLOWED_HOSTS = ['ministerios-elim.herokuapp.com']
+ALLOWED_HOSTS = ['ministerios-elim.herokuapp.com', '127.0.0.1']
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
