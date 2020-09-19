@@ -8,9 +8,10 @@ defusedxml==0.6.0
 dj-database-url==0.5.0
 dj-static==0.0.6
 Django==3.0.5
-django-allauth==0.41.0
+django-allauth==0.42.0
 django-crispy-forms==1.9.0
 django-debug-toolbar==2.2
+django-dotenv==1.4.2
 django-environ==0.4.5
 django-extensions==2.2.9
 django-haystack==3.0b2
@@ -26,6 +27,7 @@ django-widget-tweaks==1.4.8
 djangorestframework==3.11.0
 docutils==0.15.2
 draftjs-exporter==2.1.7
+gunicorn==20.0.4
 html5lib==1.0.1
 idna==2.9
 jmespath==0.10.0
@@ -35,6 +37,7 @@ numpy==1.19.1
 oauthlib==3.1.0
 pandas==1.1.1
 Pillow==7.1.2
+psycopg2==2.8.5
 python-dateutil==2.8.1
 python-decouple==3.3
 python3-openid==3.1.0
@@ -49,6 +52,7 @@ static3==0.7.0
 Unidecode==1.1.1
 urllib3==1.25.8
 wagtail==2.9
+wagtailgmaps==1.0.1
 webencodings==0.5.1
 whitenoise==5.0.1
 Willow==1.3
