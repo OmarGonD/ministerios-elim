@@ -10,10 +10,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = os.getenv('DEBUG', False)
+DEBUG = os.getenv('DEBUG', "True")
 
 
-if DEBUG:
+if DEBUG == "True":
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
