@@ -22,12 +22,34 @@ from django.views.generic.list import ListView
 
 
 
-# class MySignupView(SignupView):
-#     template_name = 'accounts/signup.html'
-#     form_class = SignUpForm
-#     redirect_field_name = "next"
-#     success_url = None
+
+def loginView(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            # username = request.POST['username']
+            # password = request.POST['password']
+            user = authenticate(username=username,
+                                password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('/')
+            else:
+                return redirect('signup')
+
+    else:
+        form = AuthenticationForm()
+    return render(request, 'account/login.html', {'form': form})
     
+
+
+def logoutView(request):
+   
+    logout(request)
+    return redirect('/')
+
 
 
 @transaction.atomic

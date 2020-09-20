@@ -7,12 +7,13 @@ from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.core import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
 #from allauth.account.views import LoginView, SignupView, ConfirmEmailView
-from django.contrib.auth import views as auth_views
-
+#from django.contrib.auth import views as auth_views
 
 from search import views as search_views
 
-from registration.views import signupView, get_district, get_province
+from django.urls import path, include, re_path
+
+from registration.views import signupView, loginView, logoutView, get_district, get_province
 
 urlpatterns = [
     
@@ -43,12 +44,16 @@ if settings.DEBUG:
 urlpatterns = urlpatterns + [
 
     url(r'^registrarse/', signupView, name="registration"),
-    url(r'^login/$', auth_views.LoginView.as_view(template_name="account/login.html"), name="login"),
-    url(r'^logout/$', auth_views.LogoutView.as_view(template_name="account/logout.html"), name="logout"),
+    
+    path('ingresar/', loginView, name = 'login'),
+    path('salir/', logoutView, name = 'logout'),
+    #url(r'^login/$', auth_views.LoginView.as_view(template_name="registration/account/login.html"), name="login"),
+    #url(r'^logout/$', auth_views.LogoutView.as_view(template_name="account/logout.html"), name="logout"),
     url(r'^province/', get_province, name='province'),
     url(r'^district/', get_district, name='district'),
     
     url(r'', include(wagtail_urls)),
+
 
 ]
 
