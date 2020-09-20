@@ -16,7 +16,7 @@
 
 <div class="card-deck">
   {% if page.link_page_doctrina_basica %}
-  {% image page.link_page_doctrina_basica.specific.level_image max-100x100 as level_image %}
+  {% image page.link_page_doctrina_basica.specific.level_image max-287x100 as level_image %}
   <div class="card">
     <img src="{{ level_image.url }}" class="" alt="...">
     <div class="card-body">
@@ -25,7 +25,7 @@
       <a href="{{ self.link_page_doctrina_basica.url }}" class="btn btn-primary">Ver más</a>
     </div>
     <div class="card-footer">
-      <small class="text-muted">Last updated 3 mins ago</small>
+      <small class="text-muted">Última actualización: {{ iglesia.last_published_at }}</small>
     </div>
   </div>
   {% endif %}
