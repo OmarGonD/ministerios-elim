@@ -1,6 +1,0 @@
-{
-    "terminal.integrated.shell.windows": "C:\\Program Files\\Git\\bin\\bash.exe",
-    "python.pythonPath": "D:\\virtual_envs\\ministerios_elim\\Scripts\\python.exe",
-    "window.zoomLevel": 0,
-    "python.formatting.provider": "black",
-}
