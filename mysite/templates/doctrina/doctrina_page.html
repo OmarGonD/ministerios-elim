@@ -6,7 +6,7 @@
 
 {% block content %}
 
-<h1>{{ self.title }}</h1>
+<h1>{{ page.title }}</h1>
 
 
 {% for block in page.content %}
@@ -14,52 +14,59 @@
 {% endfor %}
 
 
-<div class="card-deck">
+
+
+
+
+
+<!-- {% if page.link_page_doctrina_basica %}
+{% image page.link_page_doctrina_basica.specific.level_image max-481x487 as level_image %}
+  <div class="row no-gutters">
+    <div class="col-md-4">
+      <img src="{{ level_image.url }}" class="" alt="..." width="" height="50%">
+    </div>
+    <div class="col-md-8">
+      <div class="card-body">
+        <h5 class="card-title">{{ page.link_page_doctrina_basica.title }}</h5>
+        <p class="card-text">{{ page.link_page_doctrina_basica.body }}</p>
+        <a href="{{ page.link_page_doctrina_basica.url }}" class="btn btn-primary">Ver más</a>
+        <p class="card-text"><small class="text-muted">Última actualización: {{ page.link_page_doctrina_basica.latest_published_date }}</small>
+        </p>
+      </div>
+    </div>
+  </div>
+  {% endif %} -->
+
   {% if page.link_page_doctrina_basica %}
-  {% image page.link_page_doctrina_basica.specific.level_image max-287x100 as level_image %}
-  <div class="card">
-    <img src="{{ level_image.url }}" class="" alt="...">
+  <div class="card mt-10">
+    <h5 class="card-header">{{ page.link_page_doctrina_basica.title }}</h5>
     <div class="card-body">
-      <h5 class="card-title">{{ page.link_page_doctrina_basica.title }}</h5>
+      <h5 class="card-title">Special title treatment</h5>
       <p class="card-text">{{ page.link_page_doctrina_basica.body }}</p>
-      <a href="{{ self.link_page_doctrina_basica.url }}" class="btn btn-primary">Ver más</a>
-    </div>
-    <div class="card-footer">
-      <small class="text-muted">Última actualización: {{ iglesia.last_published_at }}</small>
+      <a href="{{ page.link_page_doctrina_basica.url }}" class="btn btn-primary">Ver más</a>
     </div>
   </div>
   {% endif %}
-  {% if self.link_page_doctrina_intermedia %}
-  {% image self.link_page_doctrina_intermedia.specific.level_image max-100x100 as level_image %}
-  <div class="card">
-    <img src="{{ level_image.url }}" class="" alt="...">
+  {% if page.link_page_doctrina_intermedia %}
+  <div class="card mt-10">
+    <h5 class="card-header">{{ page.link_page_doctrina_intermedia.title }}</h5>
     <div class="card-body">
-      <h5 class="card-title">{{ self.link_page_doctrina_intermedia.title }}</h5>
-      <p class="card-text">{{ self.link_page_doctrina_intermedia.body }}</p>
-      <a href="{{ self.link_page_doctrina_intermedia.url }}" class="btn btn-primary">Ver más</a>
-    </div>
-    <div class="card-footer">
-      <small class="text-muted">Last updated 3 mins ago</small>
+      <h5 class="card-title">Special title treatment</h5>
+      <p class="card-text">{{ page.link_page_doctrina_intermedia.body }}</p>
+      <a href="{{ page.link_page_doctrina_intermedia.url }}" class="btn btn-primary">Ver más</a>
     </div>
   </div>
   {% endif %}
-  {% if self.link_page_doctrina_avanzada %}
-  {% image self.link_page_doctrina_avanzada.specific.level_image max-100x100 as level_image %}
-  <div class="card">
-    <img src="{{ level_image.url }}" class="" alt="...">
+  {% if page.link_page_doctrina_avanzada %}
+  <div class="card mt-10">
+    <h5 class="card-header">{{ page.link_page_doctrina_avanzada.title }}</h5>
     <div class="card-body">
-      <h5 class="card-title">{{ self.link_page_doctrina_avanzada.title }}</h5>
-      <p class="card-text">{{ self.link_page_doctrina_avanzada.body }}</p>
-      <a href="{{ self.link_page_doctrina_avanzada.url }}" class="btn btn-primary">Ver más</a>
-    </div>
-    <div class="card-footer">
-      <small class="text-muted">Last updated 3 mins ago</small>
+      <h5 class="card-title">Special title treatment</h5>
+      <p class="card-text">{{ page.link_page_doctrina_avanzada.body }}</p>
+      <a href="{{ page.link_page_doctrina_avanzada.url }}" class="btn btn-primary">Ver más</a>
     </div>
   </div>
   {% endif %}
-</div>
-
-
 
 
 

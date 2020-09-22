@@ -54,7 +54,7 @@ class DoctrinaPage(Page):
     )
 
     link_page_doctrina_basica = models.ForeignKey(
-        "wagtailcore.Page", #app y modelo de tu proyecto
+        "doctrina.DoctrinaLevelPage", #app y modelo de tu proyecto
         blank=True, 
         null=True,
         related_name="+",
@@ -62,7 +62,7 @@ class DoctrinaPage(Page):
     )
 
     link_page_doctrina_intermedia = models.ForeignKey(
-        "wagtailcore.Page", #app y modelo de tu proyecto
+        "doctrina.DoctrinaLevelPage", #app y modelo de tu proyecto
         blank=True, 
         null=True,
         related_name="+",
@@ -70,7 +70,7 @@ class DoctrinaPage(Page):
     )
 
     link_page_doctrina_avanzada = models.ForeignKey(
-        "wagtailcore.Page", #app y modelo de tu proyecto
+        "doctrina.DoctrinaLevelPage", #app y modelo de tu proyecto
         blank=True, 
         null=True,
         related_name="+",
@@ -87,6 +87,9 @@ class DoctrinaPage(Page):
         PageChooserPanel("link_page_doctrina_intermedia"),
         PageChooserPanel("link_page_doctrina_avanzada"),
     ]
+
+
+
 
     class Meta:
         verbose_name = "Doctrina"
@@ -126,6 +129,7 @@ class DoctrinaLevelPage(Page):
         on_delete=models.SET_NULL,
     )
 
+   
     content_panels = Page.content_panels + [
         FieldPanel('custom_title'),
         ImageChooserPanel('level_image'),
@@ -133,19 +137,23 @@ class DoctrinaLevelPage(Page):
 
     subpage_types = ['doctrina.DoctrinaDetailPage']
    
-
+    
+    def latest_published_date(self):
+        latest_published_date = DoctrinaDetailPage.objects.child_of(self).live().public().latest('last_published_at').last_published_at
+        return latest_published_date
 
     def get_context(self, request, *args, **kwargs):
 
         context = super().get_context(request, *args, **kwargs)
 
         all_doctrina_posts = DoctrinaDetailPage.objects.child_of(self).live().public()
-
+    
         if request.GET.get('tag', None):
             tags = request.GET.get('tag')
             all_doctrina_posts = all_doctrina_posts.filter(tags__slug__in=[tags])
 
         context['doctrina_posts'] = all_doctrina_posts
+        
         return context
 
 

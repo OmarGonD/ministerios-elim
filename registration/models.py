@@ -19,7 +19,7 @@ class Profile(models.Model):
     passport = models.CharField(max_length=50, blank=True, null=True)
     phone_number = models.CharField(max_length=30, blank=True)
     shipping_address1 = models.CharField(max_length=100, blank=False)
-    reference = models.CharField(max_length=100, blank=False, null=True)
+    reference = models.CharField(max_length=100, blank=True, null=True)
     shipping_department = models.CharField(max_length=100, blank=False)
     shipping_province = models.CharField(max_length=100, blank=False)
     shipping_district = models.CharField(max_length=100, blank=False)
