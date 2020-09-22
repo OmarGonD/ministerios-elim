@@ -129,10 +129,22 @@ class DoctrinaLevelPage(Page):
         on_delete=models.SET_NULL,
     )
 
+    content = StreamField(
+        [
+            ("title_and_text", blocks.TitleAndTextBlock(classname='text_and_title')),
+            ("full_richtext", blocks.RichtextBlock()),
+            ("simple_richtext", blocks.SimpleRichtextBlock()),
+            ("cards", blocks.CardBlock()),
+            ("cta", blocks.CTABlock()),
+        ],
+        null=True,
+        blank=True,
+    )
    
     content_panels = Page.content_panels + [
         FieldPanel('custom_title'),
         ImageChooserPanel('level_image'),
+        StreamFieldPanel('content'),
     ]
 
     subpage_types = ['doctrina.DoctrinaDetailPage']
