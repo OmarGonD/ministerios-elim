@@ -1,0 +1,68 @@
+/* NAVBAR TOP */
+
+#top-navbar {
+  background-color: #1f1f1f;
+}
+
+#top-navbar ul li.active>a a[aria-expanded="true"] {
+  color: #1f1f1f;
+  background: #12b556;
+}
+
+#top-navbar a {
+  color: red;
+}
+
+#top-navbar a.hover {
+  color: #12b556;
+}
+
+#top-navbar a.dropdown-item {
+  color: #1f1f1f;
+}
+
+#navbarCollapse {
+  margin-left: 1%;
+}
+
+#navbarCollapse ul li {
+  display: inline-block;
+}
+
+.nav-link {
+  margin: 5px;
+  width: 100px;
+}
+
+/* start update */
+
+nav ul {
+  margin-bottom: 0;
+}
+
+.navbar-light .navbar-toggler-icon {
+  background-image: none;
+  font-size: 25px;
+  height: auto;
+  width: auto;
+  padding: 3px;
+}
+
+#navbarCollapse ul {
+  padding-top: 10px
+}
+
+#navbarCollapse ul li a {
+  margin: 0;
+  padding: 5px 10px;
+}
+
+nav {
+  position: relative
+}
+
+nav form {
+  position: absolute;
+  top: 7px;
+  right: 15px;
+}

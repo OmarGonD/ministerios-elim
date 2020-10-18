@@ -1,0 +1,51 @@
+{% load static %}
+
+{% load wagtailcore_tags %}
+
+
+<header>
+    <!--MENU SUPERIOR-->
+    <!-- Fixed navbar -->
+    <div class="container">
+    <nav class="navbar navbar-expand-md navbar-light fixed-top" id="top-navbar">
+        
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <!-- <span class="navbar-toggler-icon"><i class="fas fa-bars"></i></span> -->
+                <span class="navbar-toggler-icon">   
+                    <i class="fas fa-bars" style="color:#fff; font-size:28px;"></i>
+                </span>
+            </button>
+            <a class="navbar-brand mr-auto mt-0" href="/"><img src="{% static 'img/logos/elim-palmera-la-central-blanca.png' %}" width="50px"
+                height="50px"></a> 
+
+            
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="">
+                    <li class="nav-item hoverable mt-2 mb-2">
+                        <a class="nav-link text-white text-center" href="/">Inicio</a>
+                    </li>
+
+                    {% for item in navigation.menu_items.all %}
+                    <li class="nav-item hoverable mt-2 mb-2 text-center">
+                        <a href="{{ item.link }}" class="nav-link" {% if item.open_in_new_tab %} target="_blank"
+                            {% endif %}>{{ item.title }}</a>
+                    </li>
+                    {% endfor %}
+
+                </ul>
+
+            </div>
+            <form class="form-inline ml-auto mt-3">
+                {% if request.user.is_authenticated %}
+                <span class="text-white">Hola, {{ request.user.username }}.</span>
+                <a href="{% url 'logout' %}" class="btn btn-primary ml-2">Salir</a>
+                {% else %}
+                Hola,
+                <a href="{% url 'login' %}" class="btn btn-outline-secondary text-white">Ingresar</a>
+                <a href="{% url 'registration' %}" class="btn btn-primary ml-2">Registro</a>
+                {% endif %}
+            </form>
+    </nav>
+</div>
+</header>

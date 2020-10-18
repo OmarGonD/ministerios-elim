@@ -37,7 +37,7 @@
     flex-direction: row; /* make main axis horizontal (default value) */
     justify-content: center; /* center items horizontally, in this case */
     align-items: center; /* center items vertically, in this case */
-    height: 200px; /* for demo purposes */
+    /*height: 200px;  for demo purposes */
   }
   
   .box {
