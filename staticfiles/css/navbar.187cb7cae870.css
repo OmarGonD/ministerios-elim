@@ -1,0 +1,23 @@
+
+/* NAVBAR TOP */
+
+#top-navbar {
+    background-color: #1f1f1f;
+  }
+  
+  
+  #top-navbar ul li.active>a a[aria-expanded="true"] {
+    color: #1f1f1f;
+    background: #12b556;
+  }
+  
+  
+  #top-navbar a {
+    color: #fff;
+  }
+  
+  #top-navbar a.dropdown-item {
+    color: #1f1f1f;
+  }
+  
+  

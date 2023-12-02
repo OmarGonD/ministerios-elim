@@ -1,0 +1,66 @@
+/* NAVBAR TOP */
+
+#top-navbar {
+  background-color: #1f1f1f;
+  border-bottom:2px solid #cdc2b6;
+}
+
+.nav-item > a {
+  color: #333232 !important;
+}
+
+.nav-item > a:hover {
+  background-color:#cdc2b6;
+  color: white !important;
+  border-top-left-radius: 15px;
+  border-bottom-left-radius: 15px;   
+  border-top-right-radius: 15px;
+  border-bottom-right-radius: 15px;   
+}
+
+
+#navbarCollapse {
+  margin-left: 1%;
+}
+
+#navbarCollapse ul li {
+  display: inline-block;
+}
+
+.nav-link {
+  margin: 5px;
+  width: 100px;
+}
+
+/* start update */
+
+nav ul {
+  margin-bottom: 0;
+}
+
+.navbar-light .navbar-toggler-icon {
+  background-image: none;
+  font-size: 25px;
+  height: auto;
+  width: auto;
+  padding: 3px;
+}
+
+#navbarCollapse ul {
+  padding-top: 10px
+}
+
+#navbarCollapse ul li a {
+  margin: 0;
+  padding: 5px 10px;
+}
+
+nav {
+  position: relative
+}
+
+nav form {
+  position: absolute;
+  top: 7px;
+  right: 15px;
+}
