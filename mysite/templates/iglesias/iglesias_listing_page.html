@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block title %}Ministerios Elim Perú - Iglesias{% endblock title %}
+
+{% block content %}
+
+<h1>{{ self.title }}</h1>
+
+
+{% if self.subtitle %}
+<p>
+  {{ self.subtitle }}
+</p>
+{% endif %}
+
+
+{% for block in page.content %}
+{% include_block block %}
+{% endfor %}
+
+
+<div class="card-deck mt-5">
+
+  {% for iglesia in iglesias_totales %}
+  <div class="col-6  h-100">
+    <div class="card mb-3 mt-5">
+      <div class="row no-gutters">
+        <div class="col-md-4">
+          {% image iglesia.church_image max-320x320 as church_image %}
+          <img src="{{ church_image.url }}" class="card-img" alt="...">
+        </div>
+        <div class="col-md-8">
+          <div class="card-body">
+            <h5 class="card-title">{{ iglesia.custom_title }}</h5>
+            <p class="card-text">{{ iglesia.address }}</p>
+            <a href="{{ iglesia.url }}">
+              <p class="mt-0 mb-3 btn btn-primary"> Ver mapa</p>
+            </a>
+            <p class="card-text"><small class="text-muted">Última actualización: {{ iglesia.last_published_at }}</small>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+</div>
+
+
+{% endblock content %}
