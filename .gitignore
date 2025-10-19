@@ -1,0 +1,27 @@
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.env
+venv/
+venv-ministerios-elim/
+
+# Virtual environment activation scripts
+activate.bat
+activate.ps1
+Scripts/activate
+
+# Django/Wagtail
+*.log
+db.sqlite3
+media/
+staticfiles/
+
+# IDEs
+.vscode/
+.idea/
+
+# Docker
+*.swp
+*.bak
