@@ -1,0 +1,14 @@
+{% load wagtailadmin_tags %}
+
+<div class="panel {{ classname }}">
+    <h2>{{ heading }}</h2>
+    {% if has_children %}
+        <ul>
+            {% for child in child_pages %}
+                <li><a href="{{ child.edit_url }}">{{ child.title }}</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No child pages available.</p>
+    {% endif %}
+</div>

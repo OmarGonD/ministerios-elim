@@ -1,258 +1,85 @@
 from django.db import models
-
-# Create your models here.
-from django.db import models
-from wagtail.admin.panels import FieldPanel
-from wagtail.models import Page
-from wagtail.fields import StreamField
-from streams import blocks
-from wagtail.admin.panels import FieldPanel
-#from wagtailgmaps.edit_handlers import MapFieldPanel
-
-from wagtail.admin.panels import (
-    MultiFieldPanel,
-    InlinePanel,
-    FieldPanel,
-    PageChooserPanel
-)
-
 from django.conf import settings
-
-# Create your models here.
-
-from django.db import models
-from wagtail.admin.panels import FieldPanel
-from wagtail.models import Page
-from wagtail.fields import StreamField
-from streams import blocks
-
-from modelcluster.fields import ParentalKey
-from modelcluster.contrib.taggit import ClusterTaggableManager
-
-from taggit.models import TaggedItemBase
+from wagtail.images.models import Image
+from django_countries.fields import CountryField
 
 
-# Create your models here.
-
-class IglesiasListingPage(Page): #Muestra todas las iglesias en Perú
-
-    '''Lista las categorías de doctrina: básica, intermedia y avanzada'''
-
-    template = 'iglesias/iglesias_listing_page.html'
-    max_count = 1 # Solo se puede añadir 1 vez al sitio
-    subpage_types = ['iglesias.IglesiaPage']
-   
-    # @todo add streamfields
-    '''El primer argumento no tiene que hacer match con nada, es solo para referencia interna de Wagtail'''
-    content = StreamField(
-        [
-            ("title_and_text", blocks.TitleAndTextBlock(classname='text_and_title')),
-            ("full_richtext", blocks.RichtextBlock()),
-            ("simple_richtext", blocks.SimpleRichtextBlock()),
-            ("cards", blocks.CardBlock()),
-            ("cta", blocks.CTABlock()),
-        ],
-        null=True,
-        blank=True,
-        use_json_field=True,
-    )
-
-
-    subtitle = models.CharField(max_length=100, null=True, blank=True)
-
-
-    content_panels = Page.content_panels + [
-        FieldPanel('subtitle'),
-        FieldPanel('content'),
-    ]
-
-    def get_context(self, request, *args, **kwargs):
-
-        context = super().get_context(request, *args, **kwargs)
-
-        all_churches = IglesiaPage.objects.child_of(self).live().public()
-
-        if request.GET.get('tag', None):
-            tags = request.GET.get('tag')
-            all_churches = all_churches.filter(tags__slug__in=[tags])
-
-        context['iglesias_totales'] = all_churches
-        return context
+class Iglesia(models.Model):
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='iglesias')
+    nombre = models.CharField(max_length=255)
+    address = models.CharField(max_length=255, blank=True)
+    
+    # Nuevos campos de horarios con más detalle
+    culto_oracion_dia = models.CharField(max_length=20, choices=[
+        ('lunes', 'Lunes'), ('martes', 'Martes'), ('miercoles', 'Miércoles'),
+        ('jueves', 'Jueves'), ('viernes', 'Viernes'), ('sabado', 'Sábado'), ('domingo', 'Domingo')
+    ], blank=True, null=True, verbose_name='Día - Culto de Oración')
+    culto_oracion_hora = models.TimeField(blank=True, null=True, verbose_name='Hora - Culto de Oración')
+    
+    estudio_biblico_dia = models.CharField(max_length=20, choices=[
+        ('lunes', 'Lunes'), ('martes', 'Martes'), ('miercoles', 'Miércoles'),
+        ('jueves', 'Jueves'), ('viernes', 'Viernes'), ('sabado', 'Sábado'), ('domingo', 'Domingo')
+    ], blank=True, null=True, verbose_name='Día - Estudio Bíblico')
+    estudio_biblico_hora = models.TimeField(blank=True, null=True, verbose_name='Hora - Estudio Bíblico')
+    
+    culto_general_dia = models.CharField(max_length=20, choices=[
+        ('lunes', 'Lunes'), ('martes', 'Martes'), ('miercoles', 'Miércoles'),
+        ('jueves', 'Jueves'), ('viernes', 'Viernes'), ('sabado', 'Sábado'), ('domingo', 'Domingo')
+    ], blank=True, null=True, verbose_name='Día - Culto General')
+    culto_general_hora = models.TimeField(blank=True, null=True, verbose_name='Hora - Culto General')
+    
+    # Campos antiguos (mantener por compatibilidad)
+    culto_oracion = models.CharField(max_length=10, choices=[('a. m.', 'a. m.'), ('p. m.', 'p. m.')], blank=True, null=True)
+    estudio_biblico = models.CharField(max_length=10, choices=[('a. m.', 'a. m.'), ('p. m.', 'p. m.')], blank=True, null=True)
+    culto_general = models.CharField(max_length=10, choices=[('a. m.', 'a. m.'), ('p. m.', 'p. m.')], blank=True, null=True)
+    
+    telefono = models.CharField(max_length=50, blank=True)
+    country = CountryField(blank=True, null=True, help_text='País donde está ubicada la iglesia')
+    foto = models.ForeignKey('wagtailimages.Image', null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Iglesias"
-        verbose_name_plural = "Iglesias"
+        verbose_name = 'Iglesia'
+        verbose_name_plural = 'Iglesias'
 
+    def __str__(self):
+        return f"{self.nombre} ({self.owner})"
 
+    def get_horarios_display(self):
+        """Devuelve una lista de horarios formateados para mostrar"""
+        horarios = []
+        if self.culto_oracion_dia and self.culto_oracion_hora:
+            periodo = 'a. m.' if self.culto_oracion_hora.hour < 12 else 'p. m.'
+            hora_12 = self.culto_oracion_hora.hour % 12
+            hora_12 = 12 if hora_12 == 0 else hora_12
+            horarios.append(f"Culto de Oración: {self.culto_oracion_dia.title()} {hora_12}:{self.culto_oracion_hora.minute:02d} {periodo}")
+        elif self.culto_oracion:
+            horarios.append(f"Culto de Oración: {self.culto_oracion}")
+            
+        if self.estudio_biblico_dia and self.estudio_biblico_hora:
+            periodo = 'a. m.' if self.estudio_biblico_hora.hour < 12 else 'p. m.'
+            hora_12 = self.estudio_biblico_hora.hour % 12
+            hora_12 = 12 if hora_12 == 0 else hora_12
+            horarios.append(f"Estudio Bíblico: {self.estudio_biblico_dia.title()} {hora_12}:{self.estudio_biblico_hora.minute:02d} {periodo}")
+        elif self.estudio_biblico:
+            horarios.append(f"Estudio Bíblico: {self.estudio_biblico}")
+            
+        if self.culto_general_dia and self.culto_general_hora:
+            periodo = 'a. m.' if self.culto_general_hora.hour < 12 else 'p. m.'
+            hora_12 = self.culto_general_hora.hour % 12
+            hora_12 = 12 if hora_12 == 0 else hora_12
+            horarios.append(f"Culto General: {self.culto_general_dia.title()} {hora_12}:{self.culto_general_hora.minute:02d} {periodo}")
+        elif self.culto_general:
+            horarios.append(f"Culto General: {self.culto_general}")
+            
+        return horarios
 
-
-
-class IglesiaPage(Page): # Modelo de cada iglesia individual: pastor, direccion, etc.
-
-    template = 'iglesias/iglesia_page.html'
-
-    parent_page_types = ['iglesias.IglesiasListingPage']
-
-    subpage_types = ['iglesias.IglesiaEventosPage']
-    
-    custom_title = models.CharField(
-        max_length=250,
-        blank=False,
-        null=False,
-        help_text='Sobreescribe el título de la entrada'
-    )
-
-    pastor  = models.ForeignKey( 
-        "ministros.PastorPage",
-        blank=False,
-        null=True,
-        related_name="+",
-        on_delete=models.SET_NULL,
-
-    )
-
-
-    church_image = models.ForeignKey( #imagen del nivel de doctrina: basico, int, avanzado
-        "wagtailimages.Image",
-        blank=True,
-        null=True,
-        related_name="+",
-        on_delete=models.SET_NULL,
-
-    )
-
-    address = models.CharField(
-        max_length=250,
-        blank=False,
-        null=False,
-        help_text='Dirección de la iglesia'
-    )
-
-
-    address_reference = models.CharField(
-        max_length=250,
-        blank=True,
-        null=True,
-        help_text='Referencia de la dirección de la iglesia (opcional).'
-    )
-
-    formatted_address = models.CharField(max_length=255)
-    latlng_address = models.CharField(max_length=255)
-
-    phone = models.CharField(
-        max_length=250,
-        blank=True,
-        null=True,
-        help_text='Teléfono de la iglesia'
-    )
-
-    
-    email = models.EmailField(
-        max_length=250,
-        blank=True,
-        null=True,
-        help_text='Correo electrónico de la iglesia'
-    )
-
-    content = StreamField(
-        [
-            ("title_and_text", blocks.TitleAndTextBlock(classname='text_and_title')),
-            ("full_richtext", blocks.RichtextBlock()),
-            ("simple_richtext", blocks.SimpleRichtextBlock()),
-            ("cards", blocks.CardBlock()),
-            ("cta", blocks.CTABlock()),
-        ],
-        null=True,
-        blank=True,
-        use_json_field=True,
-    )
-
-    content_panels = Page.content_panels + [
-        FieldPanel('custom_title'),
-        FieldPanel('pastor'),
-        FieldPanel('address'),
-        FieldPanel('address_reference'),
-        FieldPanel('phone'),
-        FieldPanel('email'),
-        FieldPanel('church_image'),
-        FieldPanel('content'),
-    ]
-
-    
-
-
-    def get_context(self, request, *args, **kwargs):
-
-        context = super().get_context(request, *args, **kwargs)
-
-        all_church_events = IglesiaEventosPage.objects.child_of(self).live().public()
-
-
-        if request.GET.get('tag', None):
-            tags = request.GET.get('tag')
-            all_church_events = all_church_events.filter(tags__slug__in=[tags])
-
-        pastor = self.pastor
-
-        context['iglesia_eventos'] = all_church_events
-        context['pastor'] = pastor
-        context['WAGTAIL_ADDRESS_MAP_KEY'] = settings.WAGTAIL_ADDRESS_MAP_KEY
-        return context
-
-
-
-
-class IglesiaPageTag(TaggedItemBase):
-    content_object = ParentalKey(
-        'IglesiaEventosPage',
-        related_name='tagged_items',
-        on_delete=models.CASCADE,
-    )
-
-
-
-class IglesiaEventosPage(Page): # Eventos de la iglesia
-
-    subpage_types = []
-    tags = ClusterTaggableManager(through=IglesiaPageTag, blank=True)
-
-    parent_page_types = ['iglesias.IglesiaPage']
-
-    custom_title = models.CharField(
-        max_length=250,
-        blank=False,
-        null=False,
-        help_text='Sobreescribe el título de la entrada'
-    )
-
-    event_image = models.ForeignKey(
-        "wagtailimages.Image",
-        blank=False,
-        null=True,
-        related_name="+",
-        on_delete=models.SET_NULL,
-
-    )
-
-    content = StreamField(
-        [
-            ("title_and_text", blocks.TitleAndTextBlock(classname='text_and_title')),
-            ("full_richtext", blocks.RichtextBlock()),
-            ("simple_richtext", blocks.SimpleRichtextBlock()),
-            ("cards", blocks.CardBlock()),
-            ("cta", blocks.CTABlock()),
-        ],
-        null=True,
-        blank=True,
-        use_json_field=True,
-    )
-
-    content_panels = Page.content_panels + [
-        FieldPanel('custom_title'),
-        FieldPanel('tags'),
-        FieldPanel('event_image'),
-        FieldPanel('content'),
-    ]
-
-
-
+    def save(self, *args, **kwargs):
+        # Set default country from owner's profile if not set
+        if not self.country and self.owner:
+            if hasattr(self.owner, 'pastores_profile') and self.owner.pastores_profile.country:
+                self.country = self.owner.pastores_profile.country
+            elif hasattr(self.owner, 'member_profile') and self.owner.member_profile.country:
+                self.country = self.owner.member_profile.country
+        super().save(*args, **kwargs)

@@ -1,0 +1,292 @@
+{% extends "wagtailadmin/pages/create.html" %}
+{% load static wagtailadmin_tags i18n %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/wagtail_admin.css' %}">
+<style>
+/* Additional custom styles for page creation form */
+.wagtail-admin .page-header {
+    background: linear-gradient(90deg, #3abdda 0%, #89c160 100%) !important;
+    color: white !important;
+    margin: -1rem -1rem 2rem -1rem;
+    padding: 2rem 1rem;
+    border-radius: 0;
+}
+
+.wagtail-admin .page-header__title {
+    color: white !important;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.wagtail-admin .page-header__subtitle {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 1.1rem;
+    margin: 0.5rem 0 0 0;
+}
+
+/* Form container styling */
+.wagtail-admin .content-wrapper {
+    background: #f8f9fa;
+    min-height: calc(100vh - 200px);
+    padding: 2rem 0;
+}
+
+/* Card-like styling for form sections */
+.wagtail-admin .form-section {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.wagtail-admin .form-section__header {
+    background: linear-gradient(90deg, #3abdda 0%, #89c160 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    border: none;
+}
+
+.wagtail-admin .form-section__content {
+    padding: 1.5rem;
+}
+
+/* Enhanced button styling */
+.wagtail-admin .actions {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    margin-top: 2rem;
+}
+
+.wagtail-admin .actions .button {
+    background: linear-gradient(90deg, #3abdda 0%, #89c160 100%) !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.75rem 2rem !important;
+    font-weight: 600 !important;
+    border-radius: 0.5rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(58,189,218,0.2) !important;
+}
+
+.wagtail-admin .actions .button:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(58,189,218,0.3) !important;
+}
+
+/* Breadcrumb styling */
+.wagtail-admin .breadcrumb {
+    background: white !important;
+    border: 1px solid #e9ecef !important;
+    border-radius: 0.5rem !important;
+    padding: 0.5rem 1rem !important;
+    margin-bottom: 2rem !important;
+}
+
+.wagtail-admin .breadcrumb-item a {
+    color: #3abdda !important;
+    text-decoration: none;
+}
+
+.wagtail-admin .breadcrumb-item.active {
+    color: #666 !important;
+}
+
+/* Form field enhancements */
+.wagtail-admin .field {
+    margin-bottom: 1.5rem;
+}
+
+.wagtail-admin .field label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.wagtail-admin .field input[type="text"],
+.wagtail-admin .field input[type="email"],
+.wagtail-admin .field textarea,
+.wagtail-admin .field select {
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    background: white;
+}
+
+.wagtail-admin .field input[type="text"]:focus,
+.wagtail-admin .field input[type="email"]:focus,
+.wagtail-admin .field textarea:focus,
+.wagtail-admin .field select:focus {
+    border-color: #3abdda;
+    box-shadow: 0 0 0 3px rgba(58,189,218,0.1);
+    outline: none;
+}
+
+/* Help text styling */
+.wagtail-admin .field .help {
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+/* Error styling */
+.wagtail-admin .field.error {
+    border-left: 4px solid #dc3545;
+    padding-left: 1rem;
+    background: #f8d7da;
+}
+
+.wagtail-admin .field .error-message {
+    color: #dc3545;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+/* Loading overlay */
+.wagtail-admin .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+/* Success message styling */
+.wagtail-admin .messages {
+    margin-bottom: 2rem;
+}
+
+.wagtail-admin .messages .success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .wagtail-admin .page-header {
+        margin: -1rem -1rem 1rem -1rem;
+        padding: 1.5rem 1rem;
+    }
+
+    .wagtail-admin .page-header__title {
+        font-size: 1.5rem;
+    }
+
+    .wagtail-admin .form-section__content {
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="container-fluid">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'wagtailadmin_home' %}">{% trans 'Dashboard' %}</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'wagtailadmin_home' %}">{% trans 'Pages' %}</a>
+                </li>
+                {% for ancestor in parent_page.get_ancestors %}
+                <li class="breadcrumb-item">
+                    <a href="{% url 'wagtailadmin_pages:edit' ancestor.id %}">{{ ancestor.title }}</a>
+                </li>
+                {% endfor %}
+                <li class="breadcrumb-item active" aria-current="page">
+                    {% trans 'New' %} {{ page_type_name }}
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-header__title">
+                {% trans 'New' %} {{ page_type_name }}
+            </h1>
+            <p class="page-header__subtitle">
+                {% trans 'Create a new' %} {{ page_type_name|lower }} {% trans 'under' %} "{{ parent_page.title }}"
+            </p>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Form -->
+        <form action="" method="POST" novalidate>
+            {% csrf_token %}
+
+            <!-- Content Panels -->
+            <div class="form-section">
+                <div class="form-section__header">
+                    <i class="icon icon-doc-full"></i>
+                    {% trans 'Content' %}
+                </div>
+                <div class="form-section__content">
+                    {{ form.media }}
+                    {% for field in form %}
+                        {% if field.name not in hidden_fields %}
+                        <div class="field{% if field.errors %} error{% endif %}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <div class="help">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% if field.errors %}
+                            <div class="error-message">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Hidden Fields -->
+            {% for field in form %}
+                {% if field.name in hidden_fields %}
+                {{ field }}
+                {% endif %}
+            {% endfor %}
+
+            <!-- Actions -->
+            <div class="actions">
+                <button type="submit" class="button button--primary">
+                    {% trans 'Create' %} {{ page_type_name }}
+                </button>
+                <a href="{% url 'wagtailadmin_pages:edit' parent_page.id %}" class="button button--secondary">
+                    {% trans 'Cancel' %}
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

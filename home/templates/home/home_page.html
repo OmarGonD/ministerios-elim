@@ -1,21 +1,60 @@
 {% extends "base.html" %}
 {% load static %}
+{% load wagtailcore_tags %}
 
 {% block body_class %}template-homepage{% endblock %}
 
-{% block extra_css %}
-
-{% comment %}
-Delete the line below if you're just getting started and want to remove the welcome screen!
-{% endcomment %}
-<link rel="stylesheet" href="{% static 'css/welcome_page.css' %}">
-{% endblock extra_css %}
 
 {% block content %}
 
-{% comment %}
-Delete the line below if you're just getting started and want to remove the welcome screen!
-{% endcomment %}
-{% include 'home/welcome_page.html' %}
+<!-- Banner principal -->
+<section class="elim-main-banner" style="width:100%; background: linear-gradient(90deg, #3abdda 0%, #89c160 100%); color:#fff; text-align:center; padding:2.5rem 1rem; margin-bottom:2rem;">
+    <img src="{% static 'img/logo-elim.avif' %}" alt="Ministerios Elim" style="height:80px; width:auto; margin-bottom:1rem;">
+    <h1 style="font-size:2.5rem; margin-bottom:1rem;">Bienvenido a Ministerios Elim</h1>
+    <p style="font-size:1.2rem;">Descubre los fundamentos de la fe cristiana según la enseñanza de la Iglesia de Cristo Elim.</p>
+    <a href="#cursos" class="elim-btn elim-btn-primary" style="margin-top:1rem;">Explorar Cursos</a>
+</section>
 
-{% endblock content %}
+<!-- Banner secundario -->
+<section class="elim-secondary-banner" style="width:100%; background:#333; color:#fff; text-align:center; padding:1.5rem 1rem; margin-bottom:2rem;">
+    <h2 style="font-size:1.5rem; margin-bottom:0.5rem;">¡Únete a nuestra comunidad!</h2>
+    <p style="font-size:1rem;">Regístrate con tu cuenta de Gmail y accede a recursos exclusivos, cursos y más.</p>
+    <a href="{% url 'social:begin' 'google-oauth2' %}" class="elim-btn elim-btn-primary" style="margin-top:0.5rem;">Registrarse con Gmail</a>
+</section>
+
+<main class="elim-main-content">
+    <section id="cursos" class="elim-courses-section">
+        <h2>Cursos Destacados</h2>
+        <div class="elim-courses-grid">
+            <div class="elim-course-card">
+                <h3>Bautismo en Agua</h3>
+                <p>Aprende el significado y la importancia del bautismo según la Biblia.</p>
+                <a href="#" class="elim-card-btn">Leer más...</a>
+            </div>
+            <div class="elim-course-card">
+                <h3>La Salvación</h3>
+                <p>Entiende el plan de salvación y cómo recibir la vida eterna en Cristo.</p>
+                <a href="#" class="elim-card-btn">Leer más...</a>
+            </div>
+            <div class="elim-course-card">
+                <h3>El Espíritu Santo</h3>
+                <p>Conoce la obra y el poder del Espíritu Santo en la vida del creyente.</p>
+                <a href="#" class="elim-card-btn">Leer más...</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="elim-richtext-section">
+        <h2>Más sobre nuestra doctrina</h2>
+        <div class="elim-richtext-content">
+            {{ page.body|richtext }}
+        </div>
+    </section>
+</main>
+
+<footer class="elim-footer">
+    <div>
+        &copy; {{ now|date:"Y" }} Iglesia de Cristo Elim. Todos los derechos reservados.
+    </div>
+</footer>
+{% endblock %}

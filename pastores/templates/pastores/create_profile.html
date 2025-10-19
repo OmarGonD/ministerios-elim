@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load wagtailimages_tags %}
+{% load static %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin: 2rem auto;">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="card-title mb-0">Crear Perfil de Pastor</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Complete su información para crear su perfil de pastor.</p>
+
+                    <!-- Formulario de creación -->
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.foto.id_for_label }}" class="form-label">Foto de Perfil</label>
+                            {{ form.foto }}
+                            <div class="form-text">Selecciona una imagen para tu foto de perfil (opcional)</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.role.id_for_label }}" class="form-label">Tipo de Pastor</label>
+                            {{ form.role }}
+                            {% if form.role.field.disabled %}
+                            <div class="form-text text-info">
+                                <small>{{ form.role.help_text }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.country.id_for_label }}" class="form-label">País</label>
+                                    {{ form.country }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.phone_number.id_for_label }}" class="form-label">Teléfono</label>
+                                    {{ form.phone_number }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.iglesia_principal.id_for_label }}" class="form-label">Iglesia Principal</label>
+                            {{ form.iglesia_principal }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.titulo_academico.id_for_label }}" class="form-label">Título Académico</label>
+                            {{ form.titulo_academico }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.experiencia.id_for_label }}" class="form-label">Experiencia Ministerial</label>
+                            {{ form.experiencia }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.fecha_ordenacion.id_for_label }}" class="form-label">Fecha de Ordenación</label>
+                            {{ form.fecha_ordenacion }}
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'home' %}" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-success">Crear Perfil</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

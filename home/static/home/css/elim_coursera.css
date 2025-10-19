@@ -1,0 +1,144 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f8f9fa;
+    margin: 0;
+    color: #222;
+}
+
+.elim-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #212529;
+    color: #fff;
+    padding: 1rem 2rem;
+}
+
+.elim-navbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.elim-navbar-logo img {
+    height: 40px;
+}
+
+.elim-navbar-links a {
+    color: #fff;
+    text-decoration: none;
+    margin-left: 2rem;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.elim-navbar-links a:hover {
+    color: #ffc107;
+}
+
+.elim-hero {
+    background: linear-gradient(90deg, #0056b3 0%, #007bff 100%);
+    color: #fff;
+    padding: 4rem 2rem 3rem 2rem;
+    text-align: center;
+}
+
+.elim-hero-content h1 {
+    font-size: 2.8rem;
+    margin-bottom: 1rem;
+}
+
+.elim-hero-content p {
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
+}
+
+.elim-btn {
+    display: inline-block;
+    padding: 0.7rem 1.5rem;
+    border-radius: 25px;
+    background: #fff;
+    color: #007bff;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.elim-btn-primary {
+    background: #ffc107;
+    color: #212529;
+}
+
+.elim-btn:hover {
+    background: #007bff;
+    color: #fff;
+}
+
+.elim-main-content {
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.elim-courses-section h2 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.elim-courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 2rem;
+}
+
+.elim-course-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: box-shadow 0.2s;
+}
+
+.elim-course-card h3 {
+    margin-top: 0;
+    color: #0056b3;
+}
+
+.elim-course-card p {
+    color: #444;
+    margin-bottom: 1.2rem;
+}
+
+.elim-course-card .elim-btn {
+    margin-top: 0.5rem;
+}
+
+.elim-course-card:hover {
+    box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+}
+
+.elim-richtext-section {
+    margin-top: 3rem;
+    background: #fff;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+}
+
+.elim-richtext-section h2 {
+    margin-top: 0;
+    color: #007bff;
+}
+
+.elim-footer {
+    background: #212529;
+    color: #fff;
+    text-align: center;
+    padding: 1.5rem 0;
+    margin-top: 3rem;
+    font-size: 1rem;
+}

@@ -1,5 +1,7 @@
 from django.apps import AppConfig
 
 
-class ChurchesConfig(AppConfig):
+class IglesiasConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
     name = 'iglesias'
+    verbose_name = 'Iglesias'

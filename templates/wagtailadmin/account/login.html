@@ -1,0 +1,297 @@
+{% extends "wagtailadmin/login.html" %}
+{% load static wagtailadmin_tags i18n %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/wagtail_admin.css' %}">
+<style>
+/* Custom login page styling */
+.wagtail-login {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wagtail-login .login-container {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    padding: 3rem;
+    max-width: 400px;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.wagtail-login .login-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3abdda 0%, #89c160 100%);
+}
+
+.wagtail-login .login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.wagtail-login .login-header h1 {
+    color: #333;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-family: 'Georgia', serif;
+}
+
+.wagtail-login .login-header p {
+    color: #666;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.wagtail-login .login-form {
+    width: 100%;
+}
+
+.wagtail-login .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.wagtail-login .form-group label {
+    display: block;
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.wagtail-login .form-group input[type="text"],
+.wagtail-login .form-group input[type="password"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.wagtail-login .form-group input[type="text"]:focus,
+.wagtail-login .form-group input[type="password"]:focus {
+    border-color: #3abdda;
+    box-shadow: 0 0 0 3px rgba(58,189,218,0.1);
+    outline: none;
+}
+
+.wagtail-login .login-button {
+    width: 100%;
+    background: linear-gradient(90deg, #3abdda 0%, #89c160 100%) !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.875rem 1.5rem !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    border-radius: 0.5rem !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(58,189,218,0.3) !important;
+    margin-top: 1rem;
+}
+
+.wagtail-login .login-button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(58,189,218,0.4) !important;
+    color: white !important;
+}
+
+.wagtail-login .login-button:active {
+    transform: translateY(0) !important;
+}
+
+.wagtail-login .login-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.wagtail-login .login-footer p {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.wagtail-login .login-footer a {
+    color: #3abdda;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.wagtail-login .login-footer a:hover {
+    color: #89c160;
+    text-decoration: underline;
+}
+
+/* Error messages */
+.wagtail-login .error-message {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+/* Remember me checkbox */
+.wagtail-login .checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.wagtail-login .checkbox-group input[type="checkbox"] {
+    margin-right: 0.5rem;
+    width: auto;
+}
+
+.wagtail-login .checkbox-group label {
+    margin: 0;
+    font-weight: normal;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Forgot password link */
+.wagtail-login .forgot-password {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.wagtail-login .forgot-password a {
+    color: #3abdda;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.wagtail-login .forgot-password a:hover {
+    color: #89c160;
+    text-decoration: underline;
+}
+
+/* Logo */
+.wagtail-login .login-logo {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.wagtail-login .login-logo img {
+    max-width: 150px;
+    height: auto;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+    .wagtail-login .login-container {
+        padding: 2rem 1.5rem;
+        margin: 1rem;
+    }
+
+    .wagtail-login .login-header h1 {
+        font-size: 1.75rem;
+    }
+}
+
+/* Loading state */
+.wagtail-login .loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.wagtail-login .loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3abdda;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block login_form %}
+<div class="wagtail-login">
+    <div class="login-container">
+        <div class="login-header">
+            <div class="login-logo">
+                <img src="{% static 'img/logo-elim.avif' %}" alt="Ministerios Elim" onerror="this.src='{% static "img/logo-elim.png" %}'">
+            </div>
+            <h1>{% trans 'Sign in' %}</h1>
+            <p>{% trans 'Enter your details to access the admin panel' %}</p>
+        </div>
+
+        {% if form.errors %}
+        <div class="error-message">
+            {% if form.non_field_errors %}
+                {{ form.non_field_errors }}
+            {% else %}
+                {% trans 'Please correct the errors below.' %}
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <form method="post" class="login-form" novalidate>
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                <div class="error-message">{{ form.username.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                <div class="error-message">{{ form.password.errors }}</div>
+                {% endif %}
+            </div>
+
+            {% if form.remember_me %}
+            <div class="checkbox-group">
+                {{ form.remember_me }}
+                <label for="{{ form.remember_me.id_for_label }}">{{ form.remember_me.label }}</label>
+            </div>
+            {% endif %}
+
+            <button type="submit" class="login-button">
+                {% trans 'Sign in' %}
+            </button>
+        </form>
+
+        <div class="login-footer">
+            <p>
+                <a href="{% url 'wagtailadmin_password_reset' %}">{% trans 'Forgot your password?' %}</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

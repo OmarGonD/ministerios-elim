@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load wagtailimages_tags %}
+{% block content %}
+<div class="container" style="max-width:720px;margin:2rem auto;">
+  <h2>Mis iglesias</h2>
+  <a class="elim-btn" href="{% url 'iglesias:create_iglesia' %}">Crear nueva</a>
+  <ul>
+    {% for i in iglesias %}
+    <li>
+      <h3>{{ i.nombre }}</h3>
+      <div>{{ i.address }}</div>
+      <div>
+        {% if i.get_horarios_display %}
+          <strong>Horarios:</strong><br>
+          {% for horario in i.get_horarios_display %}
+            {{ horario }}<br>
+          {% endfor %}
+        {% else %}
+          Horarios no especificados
+        {% endif %}
+      </div>
+      <div>{{ i.telefono }}</div>
+      {% if i.foto %}
+        {% image i.foto fill-300x200 as iglesia_img %}
+        <img src="{{ iglesia_img.url }}" alt="{{ i.nombre }}" style="max-width:300px;" />
+      {% endif %}
+      <div><a href="{% url 'iglesias:edit_iglesia' i.pk %}">Editar</a></div>
+    </li>
+    {% empty %}
+    <li>No has creado ninguna iglesia todavía.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

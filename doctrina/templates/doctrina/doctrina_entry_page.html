@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block extra_css %}
+<style>
+    .doctrina-entry {
+        max-width: 800px;
+        margin: 0 auto;
+        font-family: 'Georgia', serif;
+        color: #333;
+        line-height: 1.6;
+    }
+    .doctrina-entry h1 {
+        font-size: 2.2em;
+        color: #2c3e50;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 10px;
+    }
+    .doctrina-entry .abstract {
+        background: #f9f9f9;
+        padding: 15px;
+        margin: 20px 0;
+        border-left: 4px solid #3498db;
+        font-style: italic;
+    }
+    .doctrina-entry .metadata {
+        font-size: 0.9em;
+        color: #666;
+        margin: 20px 0;
+        border-top: 1px solid #e0e0e0;
+        padding-top: 10px;
+    }
+    .doctrina-entry .tags {
+        margin: 10px 0;
+    }
+    .doctrina-entry .tags span {
+        background: #e0e0e0;
+        padding: 5px 10px;
+        border-radius: 3px;
+        margin-right: 5px;
+        font-size: 0.85em;
+    }
+    .doctrina-entry .references {
+        margin-top: 20px;
+        font-size: 0.95em;
+    }
+    .doctrina-entry img {
+        max-width: 100%;
+        height: auto;
+        margin: 20px 0;
+        border: 1px solid #e0e0e0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="doctrina-entry">
+    <h1>{{ page.title }}</h1>
+    
+    {% if page.abstract %}
+        <div class="abstract">
+            {{ page.abstract|richtext }}
+        </div>
+    {% endif %}
+    
+    {% if page.image %}
+        {% image page.image max-800x400 class="entry-image" %}
+    {% endif %}
+    
+    <div class="body">
+        {{ page.body|richtext }}
+    </div>
+    
+    {% if page.tags.all %}
+        <div class="tags">
+            <strong>Tags:</strong>
+            {% for tag in page.tags.all %}
+                <span>{{ tag.name }}</span>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    {% if page.references %}
+        <div class="references">
+            <h3>References</h3>
+            {{ page.references|richtext }}
+        </div>
+    {% endif %}
+    
+    <div class="metadata">
+        {% if page.date %}
+            <p><strong>Created on:</strong> {{ page.date|date:"F d, Y" }}</p>
+        {% endif %}
+        {% if page.created_by %}
+            <p><strong>Created by:</strong> {{ page.created_by.username }}</p>
+        {% else %}
+            <p><strong>Created by:</strong> Unknown</p>
+        {% endif %}
+        {% if page.last_modified_by %}
+            <p><strong>Last modified by:</strong> {{ page.last_modified_by.username }}</p>
+        {% else %}
+            <p><strong>Last modified by:</strong> Unknown</p>
+        {% endif %}
+        {% if page.last_modified_date %}
+            <p><strong>Last modified on:</strong> {{ page.last_modified_date|date:"F d, Y H:i" }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

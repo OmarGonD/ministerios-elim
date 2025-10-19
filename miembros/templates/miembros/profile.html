@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load wagtailimages_tags %}
+{% load static %}
+
+{% block content %}
+<div class="container" style="max-width: 700px; margin: 2rem auto;">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="card-title mb-0">Mi Perfil de Miembro</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Foto del perfil -->
+                    <div class="text-center mb-4">
+                        {% if profile.foto %}
+                            {% image profile.foto fill-150x150 as profile_img %}
+                            <img src="{{ profile_img.url }}" class="rounded-circle border" alt="Foto de perfil" style="width: 120px; height: 120px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 120px; height: 120px;">
+                                <span class="text-white fw-bold fs-1">{{ user.get_full_name|default:user.username|first|upper }}</span>
+                            </div>
+                        {% endif %}
+                        <h5 class="mt-2">{{ user.get_full_name|default:user.username }}</h5>
+                        <small class="text-muted">{{ user.email }}</small>
+                        <br>
+                        <span class="badge {% if profile.is_member %}bg-success{% else %}bg-info{% endif %} mt-2">
+                            {% if profile.is_member %}Miembro{% else %}Visitante{% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Formulario de edición -->
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.foto.id_for_label }}" class="form-label">Foto de Perfil</label>
+                            {{ form.foto }}
+                            <div class="form-text">Selecciona una imagen para tu foto de perfil (opcional)</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.role.id_for_label }}" class="form-label">Rol</label>
+                            {{ form.role }}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.country.id_for_label }}" class="form-label">País</label>
+                                    {{ form.country }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.country_code.id_for_label }}" class="form-label">Código de País</label>
+                                    {{ form.country_code }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.phone_number.id_for_label }}" class="form-label">Número de Teléfono</label>
+                            {{ form.phone_number }}
+                        </div>
+
+                        <!-- Información específica de miembros -->
+                        {% if profile.is_member %}
+                        <hr>
+                        <h6 class="text-primary mb-3">Información de Membresía</h6>
+
+                        <div class="mb-3">
+                            <label for="{{ form.iglesia_afiliada.id_for_label }}" class="form-label">Iglesia Afiliada</label>
+                            {{ form.iglesia_afiliada }}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.fecha_afiliacion.id_for_label }}" class="form-label">Fecha de Afiliación</label>
+                                    {{ form.fecha_afiliacion }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.estado_civil.id_for_label }}" class="form-label">Estado Civil</label>
+                                    {{ form.estado_civil }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label">Fecha de Nacimiento</label>
+                                    {{ form.fecha_nacimiento }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.ocupacion.id_for_label }}" class="form-label">Ocupación</label>
+                                    {{ form.ocupacion }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'miembros:dashboard' %}" class="btn btn-secondary">Dashboard</a>
+                            <button type="submit" class="btn btn-success">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 10px;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+    border: none;
+}
+
+.btn {
+    border-radius: 6px;
+}
+
+.form-control, .form-select {
+    border-radius: 6px;
+}
+
+.badge {
+    font-size: 0.8em;
+}
+</style>
+{% endblock %}

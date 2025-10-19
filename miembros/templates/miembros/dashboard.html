@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container" style="max-width: 900px; margin: 2rem auto;">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4 class="card-title mb-0">
+                        {% if is_member %}
+                            Panel de Miembro
+                        {% else %}
+                            Panel de Visitante
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            {% if profile.foto %}
+                                {% load wagtailimages_tags %}
+                                {% image profile.foto fill-150x150 as profile_img %}
+                                <img src="{{ profile_img.url }}" class="rounded-circle border mb-3" alt="Foto de perfil" style="width: 120px; height: 120px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 120px; height: 120px;">
+                                    <span class="text-white fw-bold fs-1">{{ user.get_full_name|default:user.username|first|upper }}</span>
+                                </div>
+                            {% endif %}
+                            <h5>{{ user.get_full_name|default:user.username }}</h5>
+                            <span class="badge {% if is_member %}bg-success{% else %}bg-info{% endif %}">
+                                {% if is_member %}Miembro{% else %}Visitante{% endif %}
+                            </span>
+                        </div>
+                        <div class="col-md-8">
+                            <h6 class="text-primary mb-3">Información Personal</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Email:</strong> {{ user.email }}</p>
+                                    {% if profile.country %}
+                                        <p><strong>País:</strong> {{ profile.country }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    {% if profile.phone_number %}
+                                        <p><strong>Teléfono:</strong> {{ profile.phone_number }}</p>
+                                    {% endif %}
+                                    {% if profile.iglesia_afiliada %}
+                                        <p><strong>Iglesia:</strong> {{ profile.iglesia_afiliada }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if is_member %}
+                            <hr>
+                            <h6 class="text-primary mb-3">Información de Membresía</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {% if profile.fecha_afiliacion %}
+                                        <p><strong>Fecha de Afiliación:</strong> {{ profile.fecha_afiliacion|date:"d/m/Y" }}</p>
+                                    {% endif %}
+                                    {% if profile.estado_civil %}
+                                        <p><strong>Estado Civil:</strong> {{ profile.get_estado_civil_display }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    {% if profile.fecha_nacimiento %}
+                                        <p><strong>Fecha de Nacimiento:</strong> {{ profile.fecha_nacimiento|date:"d/m/Y" }}</p>
+                                    {% endif %}
+                                    {% if profile.ocupacion %}
+                                        <p><strong>Ocupación:</strong> {{ profile.ocupacion }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones rápidas -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h6 class="card-title mb-0">Acciones</h6>
+                        </div>
+                        <div class="card-body">
+                            <a href="{% url 'miembros:profile' %}" class="btn btn-outline-success btn-sm d-block mb-2">
+                                <i class="fas fa-user-edit"></i> Editar Perfil
+                            </a>
+                            <a href="{% url 'iglesias:index' %}" class="btn btn-outline-primary btn-sm d-block mb-2">
+                                <i class="fas fa-church"></i> Ver Iglesias
+                            </a>
+                            {% if is_member %}
+                            <a href="#" class="btn btn-outline-info btn-sm d-block">
+                                <i class="fas fa-users"></i> Miembros
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h6 class="card-title mb-0">Estadísticas</h6>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="row">
+                                <div class="col-6">
+                                    <h4 class="text-primary">{{ user.iglesias.count }}</h4>
+                                    <small class="text-muted">Iglesias</small>
+                                </div>
+                                <div class="col-6">
+                                    <h4 class="text-success">
+                                        {% if is_member %}M{% else %}V{% endif %}
+                                    </h4>
+                                    <small class="text-muted">
+                                        {% if is_member %}Miembro{% else %}Visitante{% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 10px;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+    border: none;
+}
+
+.btn {
+    border-radius: 6px;
+}
+
+.badge {
+    font-size: 0.8em;
+}
+</style>
+{% endblock %}

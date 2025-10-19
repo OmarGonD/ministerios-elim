@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load wagtailimages_tags %}
+{% load static %}
+
+{% block content %}
+<div class="container" style="max-width: 900px; margin: 2rem auto;">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'iglesias:index' %}">Iglesias</a></li>
+            <li class="breadcrumb-item active">{{ iglesia.nombre }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 class="card-title mb-4">{{ iglesia.nombre }}</h1>
+                    
+                    {% if iglesia.foto %}
+                        <div class="mb-4 text-center">
+                            {% image iglesia.foto fill-700x350 as img %}
+                            <img src="{{ img.url }}" class="img-fluid rounded shadow" alt="{{ iglesia.nombre }}" style="max-width: 100%; height: auto;">
+                        </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="text-primary mb-3">Información de Contacto</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Dirección:</strong></td>
+                                    <td>{{ iglesia.address|default:"No especificada" }}</td>
+                                </tr>
+                                {% if iglesia.telefono %}
+                                <tr>
+                                    <td><strong>Teléfono:</strong></td>
+                                    <td>{{ iglesia.telefono }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if iglesia.culto_oracion or iglesia.estudio_biblico or iglesia.culto_general or iglesia.culto_oracion_dia or iglesia.estudio_biblico_dia or iglesia.culto_general_dia %}
+                                <tr>
+                                    <td><strong>Horarios:</strong></td>
+                                    <td>
+                                        {% for horario in iglesia.get_horarios_display %}
+                                            {{ horario }}<br>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="text-primary mb-3">Ubicación</h5>
+                            <table class="table table-sm">
+                                {% if iglesia.country %}
+                                <tr>
+                                    <td><strong>País:</strong></td>
+                                    <td>
+                                        <img src="{% static 'flags/' %}{{ iglesia.country|lower }}.gif" alt="{{ iglesia.country }}" style="width: 24px; height: 18px; vertical-align: middle; margin-right: 8px; border: 1px solid #ddd;">
+                                        {{ iglesia.country }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td><strong>Pastor:</strong></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if iglesia.owner.pastores_profile.foto %}
+                                                {% image iglesia.owner.pastores_profile.foto fill-50x50 as pastor_img %}
+                                                <img src="{{ pastor_img.url }}" class="rounded-circle me-2" alt="{{ iglesia.owner.get_full_name|default:iglesia.owner.username }}" style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% elif iglesia.owner.member_profile.foto %}
+                                                {% image iglesia.owner.member_profile.foto fill-50x50 as member_img %}
+                                                <img src="{{ member_img.url }}" class="rounded-circle me-2" alt="{{ iglesia.owner.get_full_name|default:iglesia.owner.username }}" style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                                                    <span class="text-white fw-bold">{{ iglesia.owner.get_full_name|default:iglesia.owner.username|first|upper }}</span>
+                                                </div>
+                                            {% endif %}
+                                            {{ iglesia.owner.get_full_name|default:iglesia.owner.username }}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    <div class="text-muted small">
+                        <i class="fas fa-calendar"></i> Creada: {{ iglesia.created|date:"d/m/Y" }}
+                        {% if iglesia.updated != iglesia.created %}
+                            | <i class="fas fa-edit"></i> Última actualización: {{ iglesia.updated|date:"d/m/Y" }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Actions Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="card-title mb-0">Acciones</h6>
+                </div>
+                <div class="card-body">
+                    {% if can_edit %}
+                        <a href="{% url 'iglesias:edit_iglesia' iglesia.pk %}" class="btn btn-primary btn-sm mb-2 d-block w-100">
+                            <i class="fas fa-edit"></i> Editar Iglesia
+                        </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'iglesias:index' %}" class="btn btn-outline-secondary btn-sm d-block w-100">
+                        <i class="fas fa-arrow-left"></i> Volver al Listado
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Owner's Other Churches -->
+            {% if iglesia.owner == request.user %}
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h6 class="card-title mb-0">Mis Otras Iglesias</h6>
+                    </div>
+                    <div class="card-body">
+                        {% for otra_iglesia in iglesia.owner.iglesias.all %}
+                            {% if otra_iglesia != iglesia %}
+                                <a href="{% url 'iglesias:iglesia_detail' otra_iglesia.pk %}" class="d-block mb-2 text-decoration-none">
+                                    <div class="border-bottom pb-2">
+                                        <strong>{{ otra_iglesia.nombre }}</strong><br>
+                                        <small class="text-muted">{{ otra_iglesia.address|truncatechars:30 }}</small>
+                                    </div>
+                                </a>
+                            {% endif %}
+                        {% empty %}
+                            <p class="text-muted small mb-0">No tienes otras iglesias registradas.</p>
+                        {% endfor %}
+                        
+                        <div class="mt-3">
+                            <a href="{% url 'iglesias:create_iglesia' %}" class="btn btn-success btn-sm w-100">
+                                <i class="fas fa-plus"></i> Crear Nueva Iglesia
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 10px;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+    border: none;
+}
+
+.btn {
+    border-radius: 6px;
+}
+
+.breadcrumb {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.table td {
+    border: none;
+    padding: 8px 12px;
+}
+</style>
+{% endblock %}

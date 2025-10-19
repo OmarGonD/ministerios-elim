@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load wagtailimages_tags %}
+{% load static %}
+
+{% block content %}
+<div class="container elim-main-content">
+  <h1>Iglesias</h1>
+  <form method="get" class="mb-3">
+    <div class="row g-2 align-items-center">
+      <div class="col-auto">
+        <label for="country" class="form-label">País</label>
+        <select name="country" id="country" class="form-select">
+          <option value="">-- Todos --</option>
+          {% for c in countries %}
+            <option value="{{ c }}" {% if c == selected_country %}selected{% endif %}>
+              <img src="{% static 'flags/' %}{{ c|lower }}.gif" alt="{{ c }}" style="width: 20px; height: 15px; vertical-align: middle; margin-right: 5px;">
+              {{ c }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto" style="margin-top:1.6rem;">
+        <button class="elim-btn" type="submit">Filtrar</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="row">
+    {% for iglesia in page_obj.object_list %}
+      <div class="col-md-4 mb-3">
+        <div class="card">
+          {% if iglesia.foto %}
+            {% image iglesia.foto fill-600x300 as img %}
+            <img src="{{ img.url }}" class="card-img-top" alt="{{ iglesia.nombre }}">
+          {% endif %}
+          <div class="card-body">
+            <div class="row">
+              <!-- Columna izquierda: Datos de la iglesia -->
+              <div class="col-8">
+                <h5 class="card-title">{{ iglesia.nombre }}</h5>
+                <p class="card-text">{{ iglesia.address }}</p>
+                
+                <!-- Horarios -->
+                {% if iglesia.get_horarios_display %}
+                  <div class="mb-2">
+                    <small class="text-muted">
+                      <strong>Horarios:</strong><br>
+                      {% for horario in iglesia.get_horarios_display %}
+                        {{ horario }}<br>
+                      {% endfor %}
+                    </small>
+                  </div>
+                {% endif %}
+                
+                {% if iglesia.telefono %}
+                  <div class="mb-2">
+                    <small class="text-muted">
+                      <i class="fas fa-phone"></i> {{ iglesia.telefono }}
+                    </small>
+                  </div>
+                {% endif %}
+              </div>
+              
+              <!-- Columna derecha: Foto y datos del pastor -->
+              <div class="col-4 text-center">
+                <!-- Foto del pastor/miembro -->
+                {% if iglesia.owner.pastores_profile.foto %}
+                  {% image iglesia.owner.pastores_profile.foto fill-80x80 as pastor_img %}
+                  <img src="{{ pastor_img.url }}" class="rounded-circle mb-2" alt="{{ iglesia.owner.get_full_name|default:iglesia.owner.username }}" style="width: 70px; height: 70px; object-fit: cover; border: 2px solid #ddd;">
+                {% elif iglesia.owner.member_profile.foto %}
+                  {% image iglesia.owner.member_profile.foto fill-80x80 as member_img %}
+                  <img src="{{ member_img.url }}" class="rounded-circle mb-2" alt="{{ iglesia.owner.get_full_name|default:iglesia.owner.username }}" style="width: 70px; height: 70px; object-fit: cover; border: 2px solid #ddd;">
+                {% else %}
+                  <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 70px; height: 70px;">
+                    <span class="text-white fw-bold">{{ iglesia.owner.get_full_name|default:iglesia.owner.username|first|upper }}</span>
+                  </div>
+                {% endif %}
+                
+                <!-- Nombre del pastor -->
+                <div class="mb-1">
+                  <small class="fw-bold text-dark">{{ iglesia.owner.get_full_name|default:iglesia.owner.username }}</small>
+                </div>
+                
+                <!-- País -->
+                {% if iglesia.country %}
+                  <div class="mb-2">
+                    <img src="{% static 'flags/' %}{{ iglesia.country|lower }}.gif" alt="{{ iglesia.country }}" style="width: 20px; height: 15px; vertical-align: middle; margin-right: 5px;">
+                    <small class="text-muted">{{ iglesia.country }}</small>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+            
+            <!-- Botón de acción -->
+            <div class="text-center mt-3">
+              <a href="{% url 'iglesias:iglesia_detail' iglesia.pk %}" class="btn btn-outline-primary btn-sm">Ver Detalles</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p>No hay iglesias publicadas todavía.</p>
+    {% endfor %}
+  </div>
+
+  <nav aria-label="Page navigation">
+    <ul class="pagination">
+      {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_country %}&country={{ selected_country }}{% endif %}">Anterior</a></li>
+      {% endif %}
+      <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+      {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_country %}&country={{ selected_country }}{% endif %}">Siguiente</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+
+</div>
+{% endblock %}

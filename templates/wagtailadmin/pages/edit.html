@@ -1,0 +1,285 @@
+{% extends "wagtailadmin/pages/edit.html" %}
+{% load static wagtailadmin_tags i18n %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/wagtail_admin.css' %}">
+<style>
+/* Additional custom styles for page edit form */
+.wagtail-admin .page-header {
+    background: linear-gradient(90deg, #3abdda 0%, #89c160 100%) !important;
+    color: white !important;
+    margin: -1rem -1rem 2rem -1rem;
+    padding: 2rem 1rem;
+    border-radius: 0;
+}
+
+.wagtail-admin .page-header__title {
+    color: white !important;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.wagtail-admin .page-header__subtitle {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 1.1rem;
+    margin: 0.5rem 0 0 0;
+}
+
+/* Tab navigation styling */
+.wagtail-admin .tab-nav {
+    background: white;
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 2rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.wagtail-admin .tab-nav__item a {
+    color: #666;
+    padding: 1rem 1.5rem;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.wagtail-admin .tab-nav__item--active a {
+    color: #3abdda;
+    border-bottom-color: #3abdda;
+    background: rgba(58,189,218,0.05);
+}
+
+/* Form sections */
+.wagtail-admin .tab-content {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-top: none;
+    border-radius: 0 0 0.5rem 0.5rem;
+    padding: 2rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Field panels */
+.wagtail-admin .field-panel {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.wagtail-admin .field-panel__header {
+    background: linear-gradient(90deg, #3abdda 0%, #89c160 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    font-weight: 600;
+}
+
+/* Action buttons */
+.wagtail-admin .actions {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    margin-top: 2rem;
+    border: 1px solid #e9ecef;
+}
+
+.wagtail-admin .actions .button {
+    background: linear-gradient(90deg, #3abdda 0%, #89c160 100%) !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.75rem 2rem !important;
+    font-weight: 600 !important;
+    border-radius: 0.5rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(58,189,218,0.2) !important;
+}
+
+.wagtail-admin .actions .button:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(58,189,218,0.3) !important;
+}
+
+/* Status badge */
+.wagtail-admin .status-badge {
+    background: #28a745;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Preview button */
+.wagtail-admin .preview-button {
+    background: #6c757d !important;
+    color: white !important;
+}
+
+.wagtail-admin .preview-button:hover {
+    background: #5a6268 !important;
+    color: white !important;
+}
+
+/* Meta information */
+.wagtail-admin .meta-info {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e9ecef;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.wagtail-admin .meta-info strong {
+    color: #333;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .wagtail-admin .page-header {
+        margin: -1rem -1rem 1rem -1rem;
+        padding: 1.5rem 1rem;
+    }
+
+    .wagtail-admin .page-header__title {
+        font-size: 1.5rem;
+    }
+
+    .wagtail-admin .tab-content {
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="container-fluid">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'wagtailadmin_home' %}">{% trans 'Dashboard' %}</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'wagtailadmin_home' %}">{% trans 'Pages' %}</a>
+                </li>
+                {% for ancestor in page.get_ancestors %}
+                <li class="breadcrumb-item">
+                    <a href="{% url 'wagtailadmin_pages:edit' ancestor.id %}">{{ ancestor.title }}</a>
+                </li>
+                {% endfor %}
+                <li class="breadcrumb-item active" aria-current="page">
+                    {{ page.title }}
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="page-header__title">
+                        {{ page.title }}
+                        {% if page.live %}
+                        <span class="status-badge">{% trans 'Live' %}</span>
+                        {% endif %}
+                    </h1>
+                    <p class="page-header__subtitle">
+                        {{ page_type_name }} • {% trans 'Last modified' %} {{ page.latest_revision_created_at|date:"M j, Y g:i A" }}
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if page.live %}
+                    <a href="{{ page.url }}" target="_blank" class="button button--secondary">
+                        <i class="icon icon-view"></i> {% trans 'View live' %}
+                    </a>
+                    {% endif %}
+                    <button type="button" class="button button--secondary preview-button" onclick="window.open('{% url "wagtailadmin_pages:preview_on_edit" page.id %}', '_blank')">
+                        <i class="icon icon-view"></i> {% trans 'Preview' %}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Form -->
+        <form action="" method="POST" novalidate>
+            {% csrf_token %}
+
+            <!-- Tab Navigation -->
+            <ul class="nav nav-tabs tab-nav" role="tablist">
+                {% for tab in tabs %}
+                <li class="nav-item tab-nav__item{% if forloop.first %}--active{% endif %}">
+                    <a class="nav-link{% if forloop.first %} active{% endif %}"
+                       href="#tab-{{ tab.name }}"
+                       data-toggle="tab"
+                       role="tab">
+                        {{ tab.title }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                {% for tab in tabs %}
+                <div class="tab-pane fade{% if forloop.first %} show active{% endif %}"
+                     id="tab-{{ tab.name }}"
+                     role="tabpanel">
+
+                    {% for panel in tab.panels %}
+                    <div class="field-panel">
+                        {% if panel.heading %}
+                        <div class="field-panel__header">
+                            {{ panel.heading }}
+                        </div>
+                        {% endif %}
+                        {{ panel.render_as_object }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Meta Information -->
+            <div class="meta-info mt-3">
+                <strong>{% trans 'Page type:' %}</strong> {{ page_type_name }} •
+                <strong>{% trans 'Created:' %}</strong> {{ page.first_published_at|date:"M j, Y g:i A" }} •
+                <strong>{% trans 'Owner:' %}</strong> {{ page.owner.get_full_name|default:page.owner.username }}
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <button type="submit" class="button button--primary">
+                    {% trans 'Save draft' %}
+                </button>
+                {% if can_publish %}
+                <button type="submit" name="action-publish" value="action-publish" class="button button--primary">
+                    {% trans 'Publish' %}
+                </button>
+                {% endif %}
+                <a href="{% url 'wagtailadmin_home' %}" class="button button--secondary">
+                    {% trans 'Cancel' %}
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

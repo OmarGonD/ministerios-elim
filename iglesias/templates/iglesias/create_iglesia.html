@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load wagtailimages_tags %}
+{% load static %}
+{% block content %}
+<div class="container" style="max-width:900px;margin:2rem auto;">
+  <h2>Crear Iglesia</h2>
+  
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <!-- Información Básica -->
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Información Básica</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="{{ form.nombre.id_for_label }}" class="form-label">Nombre de la Iglesia</label>
+              {{ form.nombre }}
+              {% if form.nombre.errors %}
+                <div class="text-danger small">{{ form.nombre.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="{{ form.telefono.id_for_label }}" class="form-label">Teléfono</label>
+              {{ form.telefono }}
+              {% if form.telefono.errors %}
+                <div class="text-danger small">{{ form.telefono.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        
+        <div class="mb-3">
+          <label for="{{ form.address.id_for_label }}" class="form-label">Dirección</label>
+          {{ form.address }}
+          {% if form.address.errors %}
+            <div class="text-danger small">{{ form.address.errors }}</div>
+          {% endif %}
+        </div>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="{{ form.country.id_for_label }}" class="form-label">País</label>
+              {{ form.country }}
+              {% if form.country.errors %}
+                <div class="text-danger small">{{ form.country.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="{{ form.foto.id_for_label }}" class="form-label">Foto de la Iglesia</label>
+              {{ form.foto }}
+              {% if form.foto.errors %}
+                <div class="text-danger small">{{ form.foto.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Horarios -->
+    <div class="card mb-4">
+      <div class="card-header bg-success text-white">
+        <h5 class="mb-0">Horarios de Servicios</h5>
+      </div>
+      <div class="card-body">
+        
+        <!-- Culto de Oración -->
+        <div class="mb-4">
+          <h6 class="text-primary">Culto de Oración</h6>
+          <div class="row">
+            <div class="col-md-4">
+              <label for="{{ form.culto_oracion_dia.id_for_label }}" class="form-label">Día</label>
+              {{ form.culto_oracion_dia }}
+            </div>
+            <div class="col-md-4">
+              <label for="{{ form.culto_oracion_hora.id_for_label }}" class="form-label">Hora</label>
+              {{ form.culto_oracion_hora }}
+            </div>
+            <div class="col-md-4">
+              <label for="{{ form.culto_oracion.id_for_label }}" class="form-label">Período</label>
+              {{ form.culto_oracion }}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Estudio Bíblico -->
+        <div class="mb-4">
+          <h6 class="text-primary">Estudio Bíblico</h6>
+          <div class="row">
+            <div class="col-md-4">
+              <label for="{{ form.estudio_biblico_dia.id_for_label }}" class="form-label">Día</label>
+              {{ form.estudio_biblico_dia }}
+            </div>
+            <div class="col-md-4">
+              <label for="{{ form.estudio_biblico_hora.id_for_label }}" class="form-label">Hora</label>
+              {{ form.estudio_biblico_hora }}
+            </div>
+            <div class="col-md-4">
+              <label for="{{ form.estudio_biblico.id_for_label }}" class="form-label">Período</label>
+              {{ form.estudio_biblico }}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Culto General -->
+        <div class="mb-4">
+          <h6 class="text-primary">Culto General</h6>
+          <div class="row">
+            <div class="col-md-4">
+              <label for="{{ form.culto_general_dia.id_for_label }}" class="form-label">Día</label>
+              {{ form.culto_general_dia }}
+            </div>
+            <div class="col-md-4">
+              <label for="{{ form.culto_general_hora.id_for_label }}" class="form-label">Hora</label>
+              {{ form.culto_general_hora }}
+            </div>
+            <div class="col-md-4">
+              <label for="{{ form.culto_general.id_for_label }}" class="form-label">Período</label>
+              {{ form.culto_general }}
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+    
+    <div class="text-center">
+      <button class="btn btn-primary btn-lg" type="submit">Crear Iglesia</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

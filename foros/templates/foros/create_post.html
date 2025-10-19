@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h1>Responder a {{ topic.title }}</h1>
+  <form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-primary">Publicar</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags user_extras %}
+
+{% block content %}
+  <main class="elim-main-content">
+    <section class="elim-hero doctrina-hero doctrina-basica-hero">
+      <div class="elim-hero-content">
+        <h1>{{ page.title }}</h1>
+        <p class="lead">{{ page.introduction|richtext }}</p>
+      </div>
+    </section>
+
+    <section class="elim-courses-section doctrina-entries">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="text-align:center; margin-bottom:1rem;">Temas - Doctrina Básica</h2>
+        {% if request.user.is_superuser or request.user|is_pastor %}
+        <a href="{% url 'doctrina:create_entry' 'basica' %}" class="btn btn-primary">
+          <i class="fas fa-plus"></i> Crear Nueva Entrada
+        </a>
+        {% endif %}
+      </div>
+      <div class="elim-courses-grid">
+        {% for entry in page.get_children.live %}
+          <article class="elim-course-card doctrina-entry-card">
+            <h3><a href="{% pageurl entry %}">{{ entry.title }}</a></h3>
+            <p class="text-muted">{{ entry.specific.date }}</p>
+            <p>{{ entry.specific.introduction|default_if_none:""|truncatechars:140 }}</p>
+            <a class="elim-card-btn" href="{% pageurl entry %}">Ver</a>
+          </article>
+        {% empty %}
+          <p>No hay entradas aún.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+{% endblock %}

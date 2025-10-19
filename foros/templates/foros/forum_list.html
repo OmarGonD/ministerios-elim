@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h1>Foros</h1>
+  <div class="list-group">
+    {% for forum in forums %}
+      <a href="{% url 'foros:forum_detail' forum.pk %}" class="list-group-item list-group-item-action">{{ forum.title }} - {{ forum.description }}</a>
+    {% empty %}
+      <p>No forums yet.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
