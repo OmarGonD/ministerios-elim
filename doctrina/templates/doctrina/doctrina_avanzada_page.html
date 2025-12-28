@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static wagtailcore_tags wagtailimages_tags %}
+{% load static wagtailcore_tags wagtailimages_tags user_extras %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/ministerios_elim.css' %}">
@@ -7,7 +7,7 @@
 
 {% block content %}
 <!-- Level Header -->
-<div class="level-header position-relative mb-5 overflow-hidden" style="min-height: 400px; background: #000; padding-top: 100px; padding-bottom: 3rem;">
+<div class="level-header position-relative mb-5 overflow-hidden" style="min-height: 400px; background: #000; padding-top: 150px; padding-bottom: 3rem;">
     {% if page.image %}
         {% image page.image fill-1920x600 class="position-absolute w-100 h-100 top-0 start-0 opacity-50" style="object-fit: cover; z-index: 1;" %}
     {% endif %}
@@ -46,7 +46,16 @@
             <h2 class="fw-bold mb-4">Lecciones y Enseñanzas</h2>
             <div class="lessons-list">
                 {% for entry in page.get_children.live.specific %}
-                <div class="card border-0 shadow-sm rounded-0 mb-4 transition hover-shadow overflow-hidden">
+                <div class="card border-0 shadow-sm rounded-0 mb-4 transition hover-shadow overflow-hidden position-relative">
+                    {% if user.is_authenticated %}
+                        {% if user|is_apostle or user|is_superpastor %}
+                        <div class="position-absolute top-0 end-0 p-2" style="z-index: 10;">
+                             <a href="{% url 'wagtailadmin_pages:delete' entry.id %}" class="btn btn-danger btn-sm rounded-0 shadow" title="Eliminar Lección" onclick="return confirm('¿Estás seguro de eliminar esta lección?');">
+                                <i class="fas fa-trash-alt"></i> Eliminar
+                            </a>
+                        </div>
+                        {% endif %}
+                    {% endif %}
                     <div class="row g-0">
                         <div class="col-md-4">
                             {% if entry.image %}

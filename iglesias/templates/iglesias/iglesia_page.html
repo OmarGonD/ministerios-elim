@@ -186,13 +186,39 @@
     <div class="container iglesia-hero-content">
         <div class="d-flex align-items-center w-100">
             {% if page.logo %}
-                <div class="me-4 d-none d-md-block">
+                <div class="me-4 d-none d-md-block" data-aos="fade-right">
                     {% image page.logo fill-120x120 class="rounded-circle border border-4 border-white shadow-lg bg-white" %}
                 </div>
             {% endif %}
-            <div>
+            <div data-aos="fade-up" data-aos-delay="200">
                 <h1 class="church-title-large mb-2">{{ page.title }}</h1>
-                <p class="church-address mb-0"><i class="fas fa-map-marker-alt me-2" style="color: var(--academic-gold);"></i> {{ page.address }}</p>
+                <div class="row pt-2 text-white opacity-90 mx-auto" style="max-width: 600px; font-size: 1.1rem;" data-aos="fade-up" data-aos-delay="200">
+                <div class="col-12 py-1"><i class="fas fa-map-marker-alt me-2 text-warning"></i> {{ page.address }}</div>
+                <div class="col-12 py-2">
+                    <!-- Dynamic Subdomain Link -->
+                    <script>
+                        // Simple script to generate the localhost subdomain link for demo purposes
+                        // In production, this would be a real domain logic
+                        const currentHost = window.location.hostname;
+                        const churchSlug = "{{ page.slug }}";
+                        const isLocal = currentHost.includes('localhost') || currentHost.includes('127.0.0.1');
+                        const protocol = window.location.protocol;
+                        const port = window.location.port ? ':' + window.location.port : '';
+                        
+                        // Construct the microsite URL
+                        // Default to localhost pattern
+                        let microUrl = `${protocol}//${churchSlug}.localhost${port}/`;
+                        
+                        if (!isLocal) {
+                            // Production pattern example (if we had a wildcart DNS)
+                            // microUrl = `${protocol}//${churchSlug}.ministerioselim.org${port}/`;
+                        }
+                    </script>
+                    <a href="#" onclick="window.location.href=`${window.location.protocol}//{{ page.slug }}.localhost:${window.location.port}/`" class="btn btn-outline-light rounded-pill px-4 mt-2">
+                        <i class="fas fa-external-link-alt me-2"></i> Visitar Sitio Web
+                    </a>
+                </div>
+            </div>
             </div>
         </div>
     </div>
@@ -204,7 +230,7 @@
         <div class="col-lg-8">
             
             <!-- About Section -->
-            <div class="academic-card p-5">
+            <div class="academic-card p-5" data-aos="fade-up">
                 <h2 class="card-header-academic">
                     <i class="fas fa-church"></i> Sobre Nosotros
                 </h2>
@@ -219,7 +245,7 @@
             </div>
 
             <!-- Schedule Section -->
-            <div class="academic-card p-5">
+            <div class="academic-card p-5" data-aos="fade-up" data-aos-delay="100">
                 <h2 class="card-header-academic">
                     <i class="fas fa-clock"></i> Horarios de Culto
                 </h2>
@@ -290,7 +316,7 @@
             
             <!-- Preach Materials -->
             {% if preach_materials %}
-            <div class="academic-card p-5">
+            <div class="academic-card p-5" data-aos="fade-up" data-aos-delay="200">
                 <h2 class="card-header-academic">
                     <i class="fas fa-book-reader"></i> Materiales
                 </h2>
@@ -318,7 +344,7 @@
              <!-- Events Section -->
             {% with child_events=page.get_children.live.specific %}
                 {% if child_events %}
-                    <div class="academic-card p-5">
+                    <div class="academic-card p-5" data-aos="fade-up" data-aos-delay="200">
                         <h2 class="card-header-academic">
                             <i class="fas fa-calendar-check"></i> Próximos Eventos
                         </h2>
@@ -359,7 +385,7 @@
         <div class="col-lg-4">
             
             <!-- Pastor Profile Card -->
-            <div class="academic-card p-4 text-center">
+            <div class="academic-card p-4 text-center" data-aos="fade-left" data-aos-delay="300">
                 <div class="pastor-image-container">
                     {% if page.owner.pastores_profile and page.owner.pastores_profile.foto %}
                         {% image page.owner.pastores_profile.foto fill-150x150 class="rounded-circle" %}
@@ -395,7 +421,7 @@
             </div>
 
             <!-- Social Media Card -->
-            <div class="academic-card p-4 text-center">
+            <div class="academic-card p-4 text-center" data-aos="fade-left" data-aos-delay="400">
                 <h5 class="fw-bold text-dark mb-4">Síguenos en Redes</h5>
                 <div class="d-flex justify-content-center flex-wrap">
                     <a href="{{ page.facebook_url|default:'#' }}" class="social-btn" target="_blank" title="Facebook">
@@ -416,7 +442,7 @@
             </div>
 
             <!-- Giving / Tithes -->
-            <div class="academic-card p-4">
+            <div class="academic-card p-4" data-aos="fade-left" data-aos-delay="500">
                  <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">
                     <i class="fas fa-hand-holding-heart text-gold me-2" style="color: var(--academic-gold);"></i> Diezmos y Ofrendas
                  </h5>
@@ -438,7 +464,7 @@
 
             <!-- Map -->
             {% if page.map_embed_code %}
-                <div class="academic-card overflow-hidden p-0">
+                <div class="academic-card overflow-hidden p-0" data-aos="fade-left" data-aos-delay="600">
                     <div style="height: 300px;">
                         {{ page.map_embed_code|safe }}
                     </div>

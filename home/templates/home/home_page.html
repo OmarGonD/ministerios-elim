@@ -273,10 +273,10 @@
 <!-- Main Hero -->
 <section class="academic-hero">
     <div class="container position-relative z-2">
-        <img src="{% static 'img/logo-elim.avif' %}" alt="Ministerios Elim" class="hero-logo">
-        <h1 class="hero-title">Bienvenido a Ministerios Elim</h1>
-        <p class="hero-subtitle">Descubre los fundamentos de la fe cristiana según la enseñanza de la Iglesia de Cristo Elim. Un legado de doctrina y servicio.</p>
-        <a href="#cursos" class="btn btn-academic-hero">Explorar Cursos</a>
+        <img src="{% static 'img/logo-elim.png' %}" alt="Ministerios Elim" class="hero-logo" data-aos="fade-down">
+        <h1 class="hero-title" data-aos="fade-up" data-aos-delay="200">Bienvenido a Ministerios Elim</h1>
+        <p class="hero-subtitle" data-aos="fade-up" data-aos-delay="400">Descubre los fundamentos de la fe cristiana según la enseñanza de la Iglesia de Cristo Elim. Un legado de doctrina y servicio.</p>
+        <a href="#cursos" class="btn btn-academic-hero" data-aos="zoom-in" data-aos-delay="600">Explorar Cursos</a>
     </div>
 </section>
 
@@ -299,13 +299,13 @@
     <!-- Courses Section -->
     <section id="cursos" class="py-5">
         <div class="container">
-            <div class="section-header">
+            <div class="section-header" data-aos="fade-up">
                 <h2 class="section-title">Cursos Destacados</h2>
             </div>
             
             <div class="row g-4">
                 <!-- Course 1 -->
-                <div class="col-md-4">
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
                     <div class="card academic-card p-4 text-center">
                         <div class="mb-3">
                             <i class="fas fa-water fa-3x text-primary opacity-75"></i>
@@ -317,7 +317,7 @@
                 </div>
                 
                 <!-- Course 2 -->
-                <div class="col-md-4">
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
                     <div class="card academic-card p-4 text-center">
                          <div class="mb-3">
                             <i class="fas fa-cross fa-3x text-danger opacity-75"></i>
@@ -329,7 +329,7 @@
                 </div>
 
                 <!-- Course 3 -->
-                <div class="col-md-4">
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
                     <div class="card academic-card p-4 text-center">
                          <div class="mb-3">
                             <i class="fas fa-dove fa-3x text-warning opacity-75"></i>
@@ -346,13 +346,13 @@
     <!-- Recent Preach Materials Section -->
     <section id="materiales" class="py-5 bg-light">
         <div class="container">
-            <div class="section-header">
+            <div class="section-header" data-aos="fade-up">
                 <h2 class="section-title">Materiales Recientes</h2>
             </div>
             
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
                 {% for material in recent_materials %}
-                <div class="col">
+                <div class="col" data-aos="zoom-in" data-aos-delay="{{ forloop.counter0|add:1 }}00">
                     <div class="material-card">
                         <div class="material-card-header">
                             <div class="material-icon-wrapper">
@@ -385,7 +385,7 @@
     <!-- Doctrine Rich Text -->
     <section class="py-5">
         <div class="container">
-             <div class="p-5 bg-white shadow-sm border-start border-5" style="border-color: var(--academic-gold) !important;">
+             <div class="p-5 bg-white shadow-sm border-start border-5" style="border-color: var(--academic-gold) !important;" data-aos="fade-left">
                 <div class="row align-items-center">
                     <div class="col-lg-8">
                         <h3 class="card-title-academic h2 mb-3">Nuestra Doctrina</h3>
@@ -397,7 +397,7 @@
                         </a>
                     </div>
                      <div class="col-lg-4 text-center d-none d-lg-block">
-                        <i class="fas fa-book-bible fa-6x" style="color: var(--academic-gold); opacity: 0.2;"></i>
+                        <i class="fas fa-book-bible fa-6x" style="color: var(--academic-gold); opacity: 0.2;" data-aos="zoom-in" data-aos-delay="300"></i>
                     </div>
                 </div>
              </div>
@@ -405,10 +405,5 @@
     </section>
 </main>
 
-<footer class="academic-footer">
-    <div class="container">
-        <p class="mb-0">&copy; {{ now|date:"Y" }} <strong>Iglesia de Cristo Elim</strong>. Todos los derechos reservados.</p>
-        <p class="small text-white-50 mt-1">Fundamentados en la Palabra, guiados por el Espíritu.</p>
-    </div>
-</footer>
+
 {% endblock %}

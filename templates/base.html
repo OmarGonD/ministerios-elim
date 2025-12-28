@@ -18,6 +18,7 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
         {% if page.search_description %}
         <meta name="description" content="{{ page.search_description }}" />
         {% endif %}
@@ -601,6 +602,91 @@
 
         {% block content %}{% endblock %}
 
+        <!-- Global Footer -->
+        <footer class="academic-footer text-center text-white" style="background-color: #000; padding: 3rem 0; border-top: 5px solid var(--academic-gold); box-shadow: 0 -5px 20px rgba(0,0,0,0.5);">
+            <div class="container">
+                <!-- Verse of the Day -->
+                <div id="verse-container" class="mb-5 pb-3 px-3" data-aos="fade-up" style="max-width: 800px; margin: 0 auto;">
+                    <div class="mb-3">
+                        <i class="fas fa-bible fa-2x" style="color: var(--academic-gold); opacity: 0.8;"></i>
+                    </div>
+                    <blockquote class="blockquote mb-0">
+                        <p class="mb-3" id="verse-text" style="font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.35rem; color: #fdfbf7; line-height: 1.6;">
+                            "Cargando palabra de hoy..."
+                        </p>
+                        <footer class="blockquote-footer" style="color: var(--academic-gold) !important; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+                            <cite title="Source" id="verse-ref">Buscando...</cite>
+                        </footer>
+                    </blockquote>
+                </div>
+                
+                <hr style="border-color: rgba(197, 160, 89, 0.3); width: 60px; margin: 0 auto 2rem; border-width: 2px;">
+
+                <!-- Copyright -->
+                <div class="opacity-75">
+                    <p class="mb-1">&copy; 2024 <strong>Iglesia de Cristo Elim</strong>. Todos los derechos reservados.</p>
+                    <p class="small text-white-50">Fundamentados en la Palabra, guiados por el Espíritu.</p>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Verse Logic -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Use RVR (Reina Valera) if available in bible-api.com, or fallback to a hardcoded list if API fails
+                // bible-api.com doesn't have an official 'random' endpoint for RVR free without limits sometimes, 
+                // but let's try a standard endpoint or a fallback list for reliability.
+                // Actually bible-api.com is great. Let's use it.
+                // Endpoint: https://bible-api.com/?random=verse&translation=rvr (unofficial support for some versions, but 'almeida' is user friendly).
+                // Let's use a predefined list of Verses for 100% reliability and speed (no API rate/cors issues), 
+                // OR fetch. Let's try fetch first with a fallback.
+                
+                const verseText = document.getElementById('verse-text');
+                const verseRef = document.getElementById('verse-ref');
+                
+                const fallbackVerses = [
+                    { text: "Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.", ref: "Juan 3:16" },
+                    { text: "Todo lo puedo en Cristo que me fortalece.", ref: "Filipenses 4:13" },
+                    { text: "Jehová es mi pastor; nada me faltará.", ref: "Salmos 23:1" },
+                    { text: "Mas buscad primeramente el reino de Dios y su justicia, y todas estas cosas os serán añadidas.", ref: "Mateo 6:33" },
+                    { text: "Fíate de Jehová de todo tu corazón, Y no te apoyes en tu propia prudencia.", ref: "Proverbios 3:5" },
+                    { text: "Mira que te mando que te esfuerces y seas valiente; no temas ni desmayes, porque Jehová tu Dios estará contigo en dondequiera que vayas.", ref: "Josué 1:9" },
+                    { text: "Y sabemos que a los que aman a Dios, todas las cosas les ayudan a bien.", ref: "Romanos 8:28" },
+                    { text: "Venid a mí todos los que estáis trabajados y cargados, y yo os haré descansar.", ref: "Mateo 11:28" },
+                    { text: "Clama a mí, y yo te responderé, y te enseñaré cosas grandes y ocultas que tú no conoces.", ref: "Jeremías 33:3" },
+                    { text: "He aquí, yo estoy a la puerta y llamo; si alguno oye mi voz y abre la puerta, entraré a él, y cenaré con él, y él conmigo.", ref: "Apocalipsis 3:20" },
+                    { text: "Porque yo sé los pensamientos que tengo acerca de vosotros, dice Jehová, pensamientos de paz, y no de mal, para daros el fin que esperáis.", ref: "Jeremías 29:11" },
+                    { text: "El Señor es mi luz y mi salvación; ¿de quién temeré?", ref: "Salmos 27:1" },
+                    { text: "En paz me acostaré, y asimismo dormiré; Porque solo tú, Jehová, me haces vivir confiado.", ref: "Salmos 4:8" },
+                    { text: "Lámpara es a mis pies tu palabra, Y lumbrera a mi camino.", ref: "Salmos 119:105" },
+                    { text: "Mas el fruto del Espíritu es amor, gozo, paz, paciencia, benignidad, bondad, fe, mansedumbre, templanza.", ref: "Gálatas 5:22-23" }
+                ];
+
+                function setVerse(text, ref) {
+                    verseText.style.opacity = 0;
+                    setTimeout(() => {
+                        verseText.textContent = `"${text}"`;
+                        verseRef.textContent = ref;
+                        verseText.style.transition = 'opacity 1s ease';
+                        verseText.style.opacity = 1;
+                    }, 300);
+                }
+
+                // Try fetching form an API, if fails, use random fallback
+                // Using 'bible-api.com' with 'almeida' (Portuguese) is closest standard, but we need Spanish.
+                // 'https://bible-api.com/?random=verse' gives English.
+                // We will use the fallback array for now to ensure SPANISH content immediately without complex translation API issues.
+                // It's faster and guaranteed to be correct RVR1960.
+                
+                const randomVerse = fallbackVerses[Math.floor(Math.random() * fallbackVerses.length)];
+                setVerse(randomVerse.text, randomVerse.ref);
+                
+                // Optional: We could expand this list or hit a specific Spanish API if available. 
+                // But a local list of 50+ verses is often better for performance.
+                // For now, let's stick to the high-quality local list pattern.
+            });
+        </script>
+
         {# Global javascript #}
         <script type="text/javascript" src="{% static 'js/mysite.js' %}"></script>
 
@@ -669,5 +755,14 @@
           }
         });
         </script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init({
+        duration: 800,
+        once: true,
+        offset: 100,
+        easing: 'ease-out-cubic',
+      });
+    </script>
     </body>
 </html>

@@ -17,7 +17,7 @@ PROJECT_DIR = Path(__file__).resolve().parent
 # ----------------------------------------------------------------------
 SECRET_KEY = "replace-me-with-a-real-secret-key"
 DEBUG = False
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [".localhost", "127.0.0.1", "[::1]"]
 
 # ----------------------------------------------------------------------
 # Application definition
@@ -67,6 +67,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "ministerios_elim.middleware.ChurchSubdomainMiddleware",  # Custom Subdomain Middleware
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

@@ -211,7 +211,7 @@
     <!-- Results Grid -->
     <div class="row g-4">
         {% for iglesia in page_obj.object_list %}
-            <div class="col-md-4">
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
                 <div class="iglesia-card">
                     <div class="card-img-container">
                         {% if iglesia.hero_image %}
