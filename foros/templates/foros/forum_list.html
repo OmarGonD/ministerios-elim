@@ -1,13 +1,42 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container py-4">
-  <h1>Foros</h1>
-  <div class="list-group">
+<div class="container py-5" style="margin-top: 100px;">
+  <div class="row mb-4">
+      <div class="col-12 text-center">
+          <h1 class="display-4 fw-bold" style="color:var(--primary-color);">Foros de Discusión</h1>
+          <p class="lead text-muted">Únete a la conversación y comparte con la comunidad.</p>
+      </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-10 mx-auto">
     {% for forum in forums %}
-      <a href="{% url 'foros:forum_detail' forum.pk %}" class="list-group-item list-group-item-action">{{ forum.title }} - {{ forum.description }}</a>
+      <div class="forum-card">
+        <div class="card-body">
+            <div class="d-flex align-items-center">
+                <div class="flex-shrink-0" style="font-size: 2.5rem; color: var(--secondary-color); margin-right: 20px;">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <div class="flex-grow-1 forum-info">
+                    <h3><a href="{% url 'foros:forum_detail' forum.pk %}">{{ forum.title }}</a></h3>
+                    <p>{{ forum.description|default:"Sin descripción" }}</p>
+                </div>
+            </div>
+            <div class="forum-stats d-none d-md-block">
+                <span class="forum-stat-count">{{ forum.topics.count }}</span>
+                <span class="forum-stat-label">Temas</span>
+            </div>
+            <div class="ms-4 d-none d-md-block">
+                 <a href="{% url 'foros:forum_detail' forum.pk %}" class="btn btn-sm btn-outline-primary" style="border-radius: 20px;">Ver Foro</a>
+            </div>
+        </div>
+      </div>
     {% empty %}
-      <p>No forums yet.</p>
+      <div class="alert alert-info text-center">
+          No hay foros disponibles en este momento.
+      </div>
     {% endfor %}
+    </div>
   </div>
 </div>
 {% endblock %}

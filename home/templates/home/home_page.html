@@ -4,57 +4,411 @@
 
 {% block body_class %}template-homepage{% endblock %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --academic-navy: #111111; /* Jet Black */
+        --academic-gold: #C5A059; /* Rich Metallic Gold */
+        --academic-bg: #fdfbf7;   /* Warm Ivory */
+        --card-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        --hover-shadow: 0 12px 35px rgba(0,0,0,0.2);
+    }
+
+    body {
+        background-color: var(--academic-bg);
+    }
+
+    /* Hero Section */
+    .academic-hero {
+        position: relative;
+        background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+        color: white;
+        padding: 6rem 0;
+        text-align: center;
+        overflow: hidden;
+        margin-top: 80px; /* Accounts for fixed navbar */
+    }
+    
+    .academic-hero::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: url('{% static "img/pattern-overlay.png" %}') repeat; /* Optional texture */
+        opacity: 0.05;
+        pointer-events: none;
+    }
+
+    .hero-logo {
+        height: 100px;
+        width: auto;
+        margin-bottom: 2rem;
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    }
+
+    .hero-title {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: var(--academic-gold);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .hero-subtitle {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 300;
+        max-width: 800px;
+        margin: 0 auto 2rem;
+        opacity: 0.9;
+    }
+
+    .btn-academic-hero {
+        background-color: var(--academic-gold);
+        color: #000;
+        font-weight: 700;
+        padding: 14px 35px;
+        border-radius: 2px;
+        border: 1px solid var(--academic-gold);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s;
+    }
+
+    .btn-academic-hero:hover {
+        background-color: transparent;
+        color: var(--academic-gold);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(197, 160, 89, 0.2);
+    }
+
+    /* Secondary Banner */
+    .secondary-banner {
+        background-color: white;
+        padding: 2rem 0;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .cta-text {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.5rem;
+        color: var(--academic-navy);
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Content Sections */
+    .section-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .section-title {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 2.5rem;
+        color: var(--academic-navy);
+        position: relative;
+        display: inline-block;
+        padding-bottom: 1rem;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background-color: var(--academic-gold);
+    }
+
+    /* Course Cards */
+    .academic-card {
+        background: white;
+        border: none;
+        border-radius: 2px; /* Sharper */
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        height: 100%;
+        border-top: 4px solid var(--academic-navy);
+    }
+
+    .academic-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--hover-shadow);
+        border-top-color: var(--academic-gold);
+    }
+
+    .card-title-academic {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        color: var(--academic-navy);
+    }
+
+    /* Material Card Specifics */
+    .material-card {
+        background: white;
+        border: none;
+        border-radius: 2px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .material-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    }
+
+    .material-card-header {
+        background: linear-gradient(135deg, #000000 0%, #222 100%);
+        padding: 1.5rem;
+        position: relative;
+        text-align: center;
+    }
+    
+    .material-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        position: relative;
+        z-index: 2;
+    }
+
+    .material-card-body {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .material-category {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--academic-gold);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .material-title {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 1.25rem;
+        color: var(--academic-navy);
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+    }
+    
+    .material-church {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1rem;
+    }
+
+    .btn-material {
+        color: var(--academic-navy);
+        background: rgba(0,0,0, 0.05); /* Black tint */
+        border: none;
+        border-radius: 50px;
+        padding: 8px 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-top: auto;
+        transition: all 0.2s;
+    }
+
+    .btn-material:hover {
+        background: var(--academic-navy);
+        color: var(--academic-gold);
+    }
+    
+     /* Doctrine Section Button */
+    .btn-doctrine {
+        background-color: transparent;
+        color: var(--academic-navy);
+        border: 2px solid var(--academic-navy);
+        padding: 10px 30px;
+        font-weight: 600;
+        border-radius: 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s;
+    }
+    
+    .btn-doctrine:hover {
+        background-color: var(--academic-navy);
+        color: var(--academic-gold);
+    }
+
+    /* Footer */
+    .academic-footer {
+        background-color: #000000; 
+        color: white;
+        padding: 3rem 0;
+        text-align: center;
+        border-top: 5px solid var(--academic-gold);
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-
-<!-- Banner principal -->
-<section class="elim-main-banner" style="width:100%; background: linear-gradient(90deg, #3abdda 0%, #89c160 100%); color:#fff; text-align:center; padding:2.5rem 1rem; margin-bottom:2rem;">
-    <img src="{% static 'img/logo-elim.avif' %}" alt="Ministerios Elim" style="height:80px; width:auto; margin-bottom:1rem;">
-    <h1 style="font-size:2.5rem; margin-bottom:1rem;">Bienvenido a Ministerios Elim</h1>
-    <p style="font-size:1.2rem;">Descubre los fundamentos de la fe cristiana según la enseñanza de la Iglesia de Cristo Elim.</p>
-    <a href="#cursos" class="elim-btn elim-btn-primary" style="margin-top:1rem;">Explorar Cursos</a>
+<!-- Main Hero -->
+<section class="academic-hero">
+    <div class="container position-relative z-2">
+        <img src="{% static 'img/logo-elim.avif' %}" alt="Ministerios Elim" class="hero-logo">
+        <h1 class="hero-title">Bienvenido a Ministerios Elim</h1>
+        <p class="hero-subtitle">Descubre los fundamentos de la fe cristiana según la enseñanza de la Iglesia de Cristo Elim. Un legado de doctrina y servicio.</p>
+        <a href="#cursos" class="btn btn-academic-hero">Explorar Cursos</a>
+    </div>
 </section>
 
-<!-- Banner secundario -->
-<section class="elim-secondary-banner" style="width:100%; background:#333; color:#fff; text-align:center; padding:1.5rem 1rem; margin-bottom:2rem;">
-    <h2 style="font-size:1.5rem; margin-bottom:0.5rem;">¡Únete a nuestra comunidad!</h2>
-    <p style="font-size:1rem;">Regístrate con tu cuenta de Gmail y accede a recursos exclusivos, cursos y más.</p>
-    <a href="{% url 'social:begin' 'google-oauth2' %}" class="elim-btn elim-btn-primary" style="margin-top:0.5rem;">Registrarse con Gmail</a>
+<!-- Secondary CTA Banner -->
+<section class="secondary-banner text-center">
+    <div class="container">
+        <div class="row justify-content-center align-items-center">
+            <div class="col-lg-8">
+                <h2 class="cta-text">¡Únete a nuestra comunidad digital!</h2>
+                <p class="text-muted mb-3">Regístrate con tu cuenta de Gmail para acceder a recursos exclusivos y cursos.</p>
+                <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn btn-outline-dark rounded-pill px-4">
+                    <i class="fab fa-google me-2 text-danger"></i> Registrarse con Gmail
+                </a>
+            </div>
+        </div>
+    </div>
 </section>
 
-<main class="elim-main-content">
-    <section id="cursos" class="elim-courses-section">
-        <h2>Cursos Destacados</h2>
-        <div class="elim-courses-grid">
-            <div class="elim-course-card">
-                <h3>Bautismo en Agua</h3>
-                <p>Aprende el significado y la importancia del bautismo según la Biblia.</p>
-                <a href="#" class="elim-card-btn">Leer más...</a>
+<main>
+    <!-- Courses Section -->
+    <section id="cursos" class="py-5">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Cursos Destacados</h2>
             </div>
-            <div class="elim-course-card">
-                <h3>La Salvación</h3>
-                <p>Entiende el plan de salvación y cómo recibir la vida eterna en Cristo.</p>
-                <a href="#" class="elim-card-btn">Leer más...</a>
-            </div>
-            <div class="elim-course-card">
-                <h3>El Espíritu Santo</h3>
-                <p>Conoce la obra y el poder del Espíritu Santo en la vida del creyente.</p>
-                <a href="#" class="elim-card-btn">Leer más...</a>
+            
+            <div class="row g-4">
+                <!-- Course 1 -->
+                <div class="col-md-4">
+                    <div class="card academic-card p-4 text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-water fa-3x text-primary opacity-75"></i>
+                        </div>
+                        <h3 class="card-title-academic h4 mb-3">Bautismo en Agua</h3>
+                        <p class="text-muted mb-4">Aprende el significado profundo y la importancia del bautismo como testimonio público de fe según las Escrituras.</p>
+                        <a href="#" class="btn btn-link text-decoration-none fw-bold stretched-link">Leer más <i class="fas fa-arrow-right list-inline-item"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Course 2 -->
+                <div class="col-md-4">
+                    <div class="card academic-card p-4 text-center">
+                         <div class="mb-3">
+                            <i class="fas fa-cross fa-3x text-danger opacity-75"></i>
+                        </div>
+                        <h3 class="card-title-academic h4 mb-3">La Salvación</h3>
+                        <p class="text-muted mb-4">Entiende el plan divino de salvación, la gracia redentora y cómo recibir la vida eterna a través de Jesucristo.</p>
+                        <a href="#" class="btn btn-link text-decoration-none fw-bold stretched-link">Leer más <i class="fas fa-arrow-right list-inline-item"></i></a>
+                    </div>
+                </div>
+
+                <!-- Course 3 -->
+                <div class="col-md-4">
+                    <div class="card academic-card p-4 text-center">
+                         <div class="mb-3">
+                            <i class="fas fa-dove fa-3x text-warning opacity-75"></i>
+                        </div>
+                        <h3 class="card-title-academic h4 mb-3">El Espíritu Santo</h3>
+                        <p class="text-muted mb-4">Conoce la obra, los deones y el poder transformador del Espíritu Santo en la vida diaria del creyente.</p>
+                        <a href="#" class="btn btn-link text-decoration-none fw-bold stretched-link">Leer más <i class="fas fa-arrow-right list-inline-item"></i></a>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <section class="elim-richtext-section">
-        <h2>Más sobre nuestra doctrina</h2>
-        <div class="elim-richtext-content">
-            {{ page.body|richtext }}
+    <!-- Recent Preach Materials Section -->
+    <section id="materiales" class="py-5 bg-light">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Materiales Recientes</h2>
+            </div>
+            
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% for material in recent_materials %}
+                <div class="col">
+                    <div class="material-card">
+                        <div class="material-card-header">
+                            <div class="material-icon-wrapper">
+                                <i class="fas fa-file-alt fa-lg text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="material-card-body">
+                            <span class="material-category">{{ material.get_category_display }}</span>
+                            <h5 class="material-title">{{ material.title }}</h5>
+                            <small class="text-muted mb-2 d-block"><i class="far fa-calendar-alt me-1"></i> {{ material.uploaded_at|date:"d M, Y" }}</small>
+                            <div class="material-church">
+                                <i class="fas fa-church me-1 text-warning"></i> {{ material.iglesia.title }}
+                            </div>
+                            <a href="{% url 'iglesias:preach_material_detail' material.pk %}" class="btn btn-material stretched-link">
+                                Ver Recurso
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-folder-open fa-3x text-muted mb-3 opacity-25"></i>
+                    <p class="text-muted">No hay materiales disponibles por el momento.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    
+    <!-- Doctrine Rich Text -->
+    <section class="py-5">
+        <div class="container">
+             <div class="p-5 bg-white shadow-sm border-start border-5" style="border-color: var(--academic-gold) !important;">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h3 class="card-title-academic h2 mb-3">Nuestra Doctrina</h3>
+                        <div class="lead text-muted mb-4">
+                            {{ page.body|richtext }}
+                        </div>
+                        <a href="/doctrina/" class="btn btn-doctrine">
+                            Explorar Doctrina <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                     <div class="col-lg-4 text-center d-none d-lg-block">
+                        <i class="fas fa-book-bible fa-6x" style="color: var(--academic-gold); opacity: 0.2;"></i>
+                    </div>
+                </div>
+             </div>
         </div>
     </section>
 </main>
 
-<footer class="elim-footer">
-    <div>
-        &copy; {{ now|date:"Y" }} Iglesia de Cristo Elim. Todos los derechos reservados.
+<footer class="academic-footer">
+    <div class="container">
+        <p class="mb-0">&copy; {{ now|date:"Y" }} <strong>Iglesia de Cristo Elim</strong>. Todos los derechos reservados.</p>
+        <p class="small text-white-50 mt-1">Fundamentados en la Palabra, guiados por el Espíritu.</p>
     </div>
 </footer>
 {% endblock %}

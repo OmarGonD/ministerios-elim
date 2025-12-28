@@ -1,119 +1,297 @@
 {% extends "base.html" %}
-{% load wagtailimages_tags %}
+{% load wagtailimages_tags wagtailcore_tags %}
 {% load static %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --academic-navy: #111111; /* Jet Black */
+        --academic-gold: #C5A059; /* Rich Metallic Gold */
+        --academic-bg: #fdfbf7;   /* Warm Ivory */
+        --card-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        --hover-shadow: 0 12px 35px rgba(0,0,0,0.2);
+    }
+
+    body {
+        background-color: var(--academic-bg);
+    }
+
+    .iglesias-hero {
+        background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+        color: white;
+        padding: 5rem 0;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+        margin-top: 80px; /* Accounts for fixed navbar */
+    }
+
+    .iglesias-hero::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--academic-gold);
+    }
+    
+    .iglesias-hero::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: url('{% static "img/pattern-overlay.png" %}') repeat;
+        opacity: 0.05;
+        pointer-events: none;
+    }
+
+    .iglesias-hero h1 {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 3.5rem;
+        color: var(--academic-gold);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .filter-bar {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 2px;
+        box-shadow: var(--card-shadow);
+        margin-top: -3rem;
+        position: relative;
+        z-index: 10;
+        border-top: 4px solid var(--academic-navy);
+    }
+
+    .iglesia-card {
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        border: none;
+        border-radius: 2px;
+        overflow: hidden;
+        background: white;
+        box-shadow: var(--card-shadow);
+        height: 100%;
+    }
+
+    .iglesia-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--hover-shadow);
+    }
+
+    .card-img-container {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+    }
+
+    .card-img-container img {
+        transition: transform 0.6s ease;
+    }
+
+    .iglesia-card:hover .card-img-container img {
+        transform: scale(1.08);
+    }
+
+    .church-title {
+        font-family: 'Playfair Display', serif;
+        color: var(--academic-navy);
+        font-weight: 700;
+        font-size: 1.35rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .pastor-avatar-small {
+        width: 45px;
+        height: 45px;
+        object-fit: cover;
+        border: 2px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .pastor-info-box {
+        background: #fdfdfd;
+        padding: 12px;
+        border-radius: 2px;
+        border: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .btn-academic-sm {
+        background-color: transparent;
+        color: var(--academic-navy);
+        border: 1px solid var(--academic-navy);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.75rem;
+        padding: 8px 20px;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-academic-sm:hover {
+        background-color: var(--academic-navy);
+        color: var(--academic-gold);
+        border-color: var(--academic-navy);
+    }
+    
+    .filter-btn {
+        background-color: var(--academic-navy);
+        color: var(--academic-gold);
+        border: none;
+        border-radius: 2px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 10px;
+        transition: all 0.3s;
+    }
+    
+    .filter-btn:hover {
+        background-color: #000;
+        color: #fff;
+    }
+
+    .pagination .page-link {
+        color: var(--academic-navy);
+        border-radius: 2px;
+        margin: 0 3px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: var(--academic-navy);
+        border-color: var(--academic-navy);
+        color: var(--academic-gold);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container elim-main-content">
-  <h1>Iglesias</h1>
-  <form method="get" class="mb-3">
-    <div class="row g-2 align-items-center">
-      <div class="col-auto">
-        <label for="country" class="form-label">País</label>
-        <select name="country" id="country" class="form-select">
-          <option value="">-- Todos --</option>
-          {% for c in countries %}
-            <option value="{{ c }}" {% if c == selected_country %}selected{% endif %}>
-              <img src="{% static 'flags/' %}{{ c|lower }}.gif" alt="{{ c }}" style="width: 20px; height: 15px; vertical-align: middle; margin-right: 5px;">
-              {{ c }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-auto" style="margin-top:1.6rem;">
-        <button class="elim-btn" type="submit">Filtrar</button>
-      </div>
+<div class="iglesias-hero text-center">
+    <div class="container">
+        <h1 class="mb-2">Nuestras Iglesias</h1>
+        <p class="lead opacity-75">Encuentra una comunidad de Ministerios Elim cerca de ti</p>
     </div>
-  </form>
+</div>
 
-  <div class="row">
-    {% for iglesia in page_obj.object_list %}
-      <div class="col-md-4 mb-3">
-        <div class="card">
-          {% if iglesia.foto %}
-            {% image iglesia.foto fill-600x300 as img %}
-            <img src="{{ img.url }}" class="card-img-top" alt="{{ iglesia.nombre }}">
-          {% endif %}
-          <div class="card-body">
-            <div class="row">
-              <!-- Columna izquierda: Datos de la iglesia -->
-              <div class="col-8">
-                <h5 class="card-title">{{ iglesia.nombre }}</h5>
-                <p class="card-text">{{ iglesia.address }}</p>
-                
-                <!-- Horarios -->
-                {% if iglesia.get_horarios_display %}
-                  <div class="mb-2">
-                    <small class="text-muted">
-                      <strong>Horarios:</strong><br>
-                      {% for horario in iglesia.get_horarios_display %}
-                        {{ horario }}<br>
-                      {% endfor %}
-                    </small>
-                  </div>
-                {% endif %}
-                
-                {% if iglesia.telefono %}
-                  <div class="mb-2">
-                    <small class="text-muted">
-                      <i class="fas fa-phone"></i> {{ iglesia.telefono }}
-                    </small>
-                  </div>
-                {% endif %}
-              </div>
-              
-              <!-- Columna derecha: Foto y datos del pastor -->
-              <div class="col-4 text-center">
-                <!-- Foto del pastor/miembro -->
-                {% if iglesia.owner.pastores_profile.foto %}
-                  {% image iglesia.owner.pastores_profile.foto fill-80x80 as pastor_img %}
-                  <img src="{{ pastor_img.url }}" class="rounded-circle mb-2" alt="{{ iglesia.owner.get_full_name|default:iglesia.owner.username }}" style="width: 70px; height: 70px; object-fit: cover; border: 2px solid #ddd;">
-                {% elif iglesia.owner.member_profile.foto %}
-                  {% image iglesia.owner.member_profile.foto fill-80x80 as member_img %}
-                  <img src="{{ member_img.url }}" class="rounded-circle mb-2" alt="{{ iglesia.owner.get_full_name|default:iglesia.owner.username }}" style="width: 70px; height: 70px; object-fit: cover; border: 2px solid #ddd;">
-                {% else %}
-                  <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 70px; height: 70px;">
-                    <span class="text-white fw-bold">{{ iglesia.owner.get_full_name|default:iglesia.owner.username|first|upper }}</span>
-                  </div>
-                {% endif %}
-                
-                <!-- Nombre del pastor -->
-                <div class="mb-1">
-                  <small class="fw-bold text-dark">{{ iglesia.owner.get_full_name|default:iglesia.owner.username }}</small>
+<div class="container mb-5">
+    <!-- Filter Bar -->
+    <div class="filter-bar mb-5">
+        <form method="get" class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-globe text-muted"></i></span>
+                    <select name="country" id="country" class="form-select border-start-0 ps-0 shadow-none">
+                        <option value="">Todos los Países</option>
+                        {% for c_page in countries %}
+                            <option value="{{ c_page.country.code }}" {% if c_page.country.code == selected_country %}selected{% endif %}>
+                                {{ c_page.title }}
+                            </option>
+                        {% endfor %}
+                    </select>
                 </div>
-                
-                <!-- País -->
-                {% if iglesia.country %}
-                  <div class="mb-2">
-                    <img src="{% static 'flags/' %}{{ iglesia.country|lower }}.gif" alt="{{ iglesia.country }}" style="width: 20px; height: 15px; vertical-align: middle; margin-right: 5px;">
-                    <small class="text-muted">{{ iglesia.country }}</small>
-                  </div>
-                {% endif %}
-              </div>
             </div>
+            <div class="col-md-2">
+                <button class="filter-btn w-100" type="submit">
+                    <i class="fas fa-filter me-2"></i> Filtrar
+                </button>
+            </div>
+            {% if selected_country %}
+            <div class="col-md-auto">
+                <a href="." class="btn btn-link text-muted text-decoration-none small"><i class="fas fa-times me-1"></i> Limpiar</a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Results Grid -->
+    <div class="row g-4">
+        {% for iglesia in page_obj.object_list %}
+            <div class="col-md-4">
+                <div class="iglesia-card">
+                    <div class="card-img-container">
+                        {% if iglesia.hero_image %}
+                            {% image iglesia.hero_image fill-600x400 as img %}
+                            <img src="{{ img.url }}" class="w-100 h-100 object-fit-cover" alt="{{ iglesia.title }}">
+                        {% else %}
+                            <div class="bg-light d-flex align-items-center justify-content-center h-100">
+                                <i class="fas fa-church fa-3x text-muted opacity-25"></i>
+                            </div>
+                        {% endif %}
+                        <div class="position-absolute top-0 end-0 p-3">
+                            {% if iglesia.country.flag %}
+                            <img src="{{ iglesia.country.flag }}" alt="{{ iglesia.country.name }}" style="width: 25px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <h5 class="church-title">{{ iglesia.title }}</h5>
+                        <p class="text-muted small mb-3"><i class="fas fa-map-marker-alt me-2" style="color: var(--academic-gold);"></i> {{ iglesia.address|truncatechars:50 }}</p>
+                        
+                        <div class="pastor-info-box mb-4">
+                            {% if iglesia.owner.pastores_profile.foto %}
+                                {% image iglesia.owner.pastores_profile.foto fill-100x100 as p_img %}
+                                <img src="{{ p_img.url }}" class="pastor-avatar-small rounded-circle" alt="{{ iglesia.owner.get_full_name }}">
+                            {% elif iglesia.owner.member_profile.foto %}
+                                {% image iglesia.owner.member_profile.foto fill-100x100 as m_img %}
+                                <img src="{{ m_img.url }}" class="pastor-avatar-small rounded-circle" alt="{{ iglesia.owner.get_full_name }}">
+                            {% else %}
+                                <div class="pastor-avatar-small rounded-circle bg-light d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-user-tie text-muted"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <small class="text-muted d-block lh-1 mb-1">Pastor Principal</small>
+                                <span class="fw-bold text-dark small">{{ iglesia.owner.get_full_name|default:iglesia.owner.username }}</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            {% if iglesia.phone %}
+                                <span class="text-muted small"><i class="fas fa-phone me-1"></i> {{ iglesia.phone }}</span>
+                            {% else %}
+                                <span></span>
+                            {% endif %}
+                            <a href="{% pageurl iglesia %}" class="btn btn-academic-sm">Explorar <i class="fas fa-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-search fa-4x text-muted opacity-25 mb-4"></i>
+                <h4 class="text-muted">No se encontraron iglesias</h4>
+                <p class="text-muted">Prueba con otro país o vuelve más tarde.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link shadow-none" href="?page={{ page_obj.previous_page_number }}{% if selected_country %}&country={{ selected_country }}{% endif %}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+            {% endif %}
             
-            <!-- Botón de acción -->
-            <div class="text-center mt-3">
-              <a href="{% url 'iglesias:iglesia_detail' iglesia.pk %}" class="btn btn-outline-primary btn-sm">Ver Detalles</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    {% empty %}
-      <p>No hay iglesias publicadas todavía.</p>
-    {% endfor %}
-  </div>
-
-  <nav aria-label="Page navigation">
-    <ul class="pagination">
-      {% if page_obj.has_previous %}
-        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_country %}&country={{ selected_country }}{% endif %}">Anterior</a></li>
-      {% endif %}
-      <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
-      {% if page_obj.has_next %}
-        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_country %}&country={{ selected_country }}{% endif %}">Siguiente</a></li>
-      {% endif %}
-    </ul>
-  </nav>
-
+            <li class="page-item disabled"><span class="page-link border-0 text-muted mx-3">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link shadow-none" href="?page={{ page_obj.next_page_number }}{% if selected_country %}&country={{ selected_country }}{% endif %}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
 </div>
 {% endblock %}

@@ -1,0 +1,451 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --academic-navy: #111111; /* Jet Black */
+        --academic-gold: #C5A059; /* Rich Metallic Gold */
+        --academic-bg: #fdfbf7;   /* Warm Ivory */
+        --card-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        --hover-shadow: 0 12px 35px rgba(0,0,0,0.2);
+    }
+
+    body {
+        background-color: var(--academic-bg);
+    }
+
+    /* Hero Section */
+    .iglesia-hero {
+        position: relative;
+        height: 50vh;
+        min-height: 400px;
+        background-color: #000;
+        color: white;
+        overflow: hidden;
+    }
+
+    .iglesia-hero-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.9));
+        z-index: 1;
+    }
+
+    .iglesia-hero-content {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        display: flex;
+        align-items: flex-end;
+        padding-bottom: 4rem;
+        padding-top: 80px; /* Space for navbar */
+    }
+
+    .church-title-large {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 3.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        margin-bottom: 0.5rem;
+        color: var(--academic-gold);
+    }
+
+    .church-address {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.1rem;
+        opacity: 0.9;
+        font-weight: 300;
+        letter-spacing: 0.5px;
+        color: rgba(255,255,255,0.9);
+    }
+
+    /* Cards */
+    .academic-card {
+        background: white;
+        border: none;
+        border-radius: 2px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        margin-bottom: 2rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .academic-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--hover-shadow);
+    }
+
+    .card-header-academic {
+        font-family: 'Playfair Display', serif;
+        color: var(--academic-navy);
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 3px solid var(--academic-gold);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .card-header-academic i {
+        color: var(--academic-gold);
+    }
+
+    /* Buttons */
+    .btn-academic {
+        background-color: var(--academic-navy);
+        color: var(--academic-gold);
+        padding: 10px 25px;
+        border-radius: 50px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.3s;
+        border: 1px solid var(--academic-navy);
+        text-transform: uppercase;
+        font-size: 0.85rem;
+    }
+
+    .btn-academic:hover {
+        background-color: transparent;
+        color: var(--academic-navy);
+        border-color: var(--academic-navy);
+    }
+    
+    .btn-academic-outline {
+        background-color: transparent;
+        color: var(--academic-navy);
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-weight: 600;
+        border: 1px solid var(--academic-navy);
+        transition: all 0.3s;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+    }
+    
+    .btn-academic-outline:hover {
+        background-color: var(--academic-navy);
+        color: var(--academic-gold);
+    }
+
+    /* Social Icons */
+    .social-btn {
+        width: 45px;
+        height: 45px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background-color: transparent;
+        color: var(--academic-navy);
+        border-radius: 50%;
+        margin: 0 8px;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid var(--academic-navy);
+        text-decoration: none;
+    }
+
+    .social-btn:hover {
+        background-color: var(--academic-navy);
+        color: var(--academic-gold);
+        transform: scale(1.15);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    /* Pastor Section */
+    .pastor-image-container {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 2rem;
+    }
+    
+    .pastor-image-container img {
+        border: 4px solid white;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    /* Schedule List */
+    .schedule-item {
+        padding: 15px 20px;
+        border-left: 4px solid var(--academic-gold);
+        background: #fdfdfd;
+        margin-bottom: 15px;
+        border-radius: 0 4px 4px 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="iglesia-hero" style="background-image: url('{% if page.hero_image %}{{ page.hero_image.url }}{% else %}/static/img/default-church.jpg{% endif %}'); background-size: cover; background-position: center;">
+    <div class="iglesia-hero-overlay"></div>
+    <div class="container iglesia-hero-content">
+        <div class="d-flex align-items-center w-100">
+            {% if page.logo %}
+                <div class="me-4 d-none d-md-block">
+                    {% image page.logo fill-120x120 class="rounded-circle border border-4 border-white shadow-lg bg-white" %}
+                </div>
+            {% endif %}
+            <div>
+                <h1 class="church-title-large mb-2">{{ page.title }}</h1>
+                <p class="church-address mb-0"><i class="fas fa-map-marker-alt me-2" style="color: var(--academic-gold);"></i> {{ page.address }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5" style="margin-top: -60px; position: relative; z-index: 10;">
+    <div class="row g-5">
+        <!-- Main Content (Left Column) -->
+        <div class="col-lg-8">
+            
+            <!-- About Section -->
+            <div class="academic-card p-5">
+                <h2 class="card-header-academic">
+                    <i class="fas fa-church"></i> Sobre Nosotros
+                </h2>
+                <div class="text-muted" style="line-height: 1.8; font-size: 1.05rem;">
+                    {% if page.description %}
+                        {{ page.description|richtext }}
+                    {% else %}
+                         <p class="mb-3">Bienvenidos a <strong>{{ page.title }}</strong>. Somos una iglesia comprometida con la enseñanza de la Palabra de Dios y el servicio a nuestra comunidad.</p>
+                         <p class="mb-0">Te invitamos a ser parte de nuestra familia y a crecer juntos en la fe. Muy pronto encontrarás aquí más información sobre nuestra historia y visión.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Schedule Section -->
+            <div class="academic-card p-5">
+                <h2 class="card-header-academic">
+                    <i class="fas fa-clock"></i> Horarios de Culto
+                </h2>
+                <div>
+                     {% if page.worship_schedule %}
+                        {{ page.worship_schedule|richtext }}
+                    {% else %}
+                        <div class="schedule-item">
+                            <span class="fw-bold text-dark d-block mb-1 text-uppercase small ls-1">Martes y Jueves</span>
+                            <span class="text-muted">7:00 PM - Servicio General</span>
+                        </div>
+                        <div class="schedule-item">
+                            <span class="fw-bold text-dark d-block mb-1 text-uppercase small ls-1">Domingos</span>
+                            <span class="text-muted">10:00 AM - Escuela Dominical y Culto General</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Admin Edit Notice -->
+            {% if can_edit %}
+            <div class="alert alert-light border border-secondary shadow-sm d-flex align-items-center mb-4 rounded-0">
+                <i class="fas fa-tools text-dark fa-2x me-3"></i>
+                <div>
+                    <strong>Panel de Administración</strong><br>
+                    Tienes permisos para editar esta página. <a href="/admin/pages/{{ page.id }}/edit/" class="text-decoration-none fw-bold text-dark">Editar ahora</a>.
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Sermons Section -->
+            {% if page.live_sermon %}
+                {% with live_sermon=page.live_sermon %}
+                    <div class="academic-card p-4 border-start border-5 border-danger">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                             <h3 class="fw-bold text-dark m-0"><i class="fas fa-broadcast-tower text-danger me-2"></i> En Vivo</h3>
+                             <span class="badge bg-danger animate__animated animate__pulse animate__infinite rounded-0">TRANSMITIENDO AHORA</span>
+                        </div>
+                        <div class="ratio ratio-16x9 rounded-0 overflow-hidden shadow">
+                            <iframe src="https://www.youtube.com/embed/{{ live_sermon.youtube_url|cut:'https://www.youtube.com/watch?v='|cut:'https://youtu.be/' }}" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                {% endwith %}
+            {% endif %}
+
+            {% if page.recent_sermons %}
+                {% with recent_sermons=page.recent_sermons %}
+                    <div class="academic-card p-5">
+                        <h2 class="card-header-academic">
+                            <i class="fas fa-bible"></i> Predicaciones Recientes
+                        </h2>
+                        <div class="list-group list-group-flush">
+                            {% for sermon in recent_sermons %}
+                                <div class="list-group-item border-0 px-0 py-3 d-flex justify-content-between align-items-center border-bottom">
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-1">{{ sermon.title }}</h6>
+                                        <small class="text-muted"><i class="far fa-calendar me-1"></i> Publicado recientemente</small>
+                                    </div>
+                                    <a href="{{ sermon.youtube_url }}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill">
+                                        Ver <i class="fab fa-youtube ms-1"></i>
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endwith %}
+            {% endif %}
+            
+            <!-- Preach Materials -->
+            {% if preach_materials %}
+            <div class="academic-card p-5">
+                <h2 class="card-header-academic">
+                    <i class="fas fa-book-reader"></i> Materiales
+                </h2>
+                {% regroup preach_materials by get_category_display as material_list %}
+                {% for category in material_list %}
+                    <h5 class="text-muted fw-bold mt-3 mb-3 text-uppercase small ls-1 border-bottom pb-2">{{ category.grouper }}</h5>
+                    <div class="row g-3">
+                        {% for material in category.list %}
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded-0 bg-light hover-shadow transition h-100">
+                                    <div class="d-flex justify-content-between">
+                                        <h6 class="fw-bold text-dark mb-2">{{ material.title }}</h6>
+                                        <i class="fas fa-file-download text-dark"></i>
+                                    </div>
+                                    <p class="small text-muted mb-3">{{ material.description|truncatechars:50 }}</p>
+                                    <a href="{% url 'iglesias:preach_material_detail' material.pk %}" class="btn btn-sm btn-link text-dark text-decoration-none p-0 fw-bold">Descargar <i class="fas fa-arrow-right"></i></a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+             <!-- Events Section -->
+            {% with child_events=page.get_children.live.specific %}
+                {% if child_events %}
+                    <div class="academic-card p-5">
+                        <h2 class="card-header-academic">
+                            <i class="fas fa-calendar-check"></i> Próximos Eventos
+                        </h2>
+                        <div class="row g-4">
+                            {% for event in child_events %}
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-0 shadow-none bg-light rounded-0 overflow-hidden">
+                                        {% if event.image %}
+                                            {% image event.image fill-400x200 class="card-img-top" %}
+                                        {% else %}
+                                            <div class="bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center" style="height: 150px;">
+                                                <i class="fas fa-calendar-day fa-3x text-muted opacity-25"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="card-title fw-bold mb-0">{{ event.title }}</h6>
+                                                {% if event.category == 'jovenes' %}
+                                                    <span class="badge bg-dark text-white rounded-0" style="font-size: 0.6rem;">Jóvenes</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary rounded-0" style="font-size: 0.6rem;">General</span>
+                                                {% endif %}
+                                            </div>
+                                            <p class="small text-muted mb-2"><i class="far fa-clock me-1"></i> {{ event.date|date:"d M, h:i A" }}</p>
+                                            <a href="{% pageurl event %}" class="stretched-link text-decoration-none small fw-bold text-dark">Ver Detalles</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+        </div>
+
+        <!-- Sidebar (Right Column) -->
+        <div class="col-lg-4">
+            
+            <!-- Pastor Profile Card -->
+            <div class="academic-card p-4 text-center">
+                <div class="pastor-image-container">
+                    {% if page.owner.pastores_profile and page.owner.pastores_profile.foto %}
+                        {% image page.owner.pastores_profile.foto fill-150x150 class="rounded-circle" %}
+                    {% else %}
+                         <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center border border-4 border-white shadow-sm" style="width: 150px; height: 150px;">
+                            <i class="fas fa-user-tie fa-4x text-muted opacity-50"></i>
+                        </div>
+                    {% endif %}
+                    <a href="{% if page.owner.pastores_profile %}{% url 'pastores:biography_detail' page.owner.pastores_profile.pk %}{% else %}#{% endif %}" class="btn btn-sm btn-academic position-absolute bottom-0 start-50 translate-middle-x rounded-pill shadow-sm" style="bottom: -15px !important; white-space: nowrap;">
+                        Ver Perfil
+                    </a>
+                </div>
+                
+                <div class="mt-4 pt-2">
+                    <h4 class="fw-bold text-dark mb-1">{{ page.owner.get_full_name|default:page.owner.username }}</h4>
+                    <p class="text-muted fw-bold small text-uppercase ls-1 mb-3">
+                        {% if page.owner.pastores_profile %}{{ page.owner.pastores_profile.role_display }}{% else %}Pastor Principal{% endif %}
+                    </p>
+                    
+                    <div class="d-grid gap-2 px-3">
+                        {% if page.phone %}
+                            <a href="tel:{{ page.phone }}" class="btn btn-academic-outline btn-sm">
+                                <i class="fas fa-phone-alt me-2"></i> {{ page.phone }}
+                            </a>
+                        {% endif %}
+                        {% if page.email or page.owner.email %}
+                            <a href="mailto:{{ page.email|default:page.owner.email }}" class="btn btn-academic-outline btn-sm text-truncate">
+                                <i class="fas fa-envelope me-2"></i> Contáctanos
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Media Card -->
+            <div class="academic-card p-4 text-center">
+                <h5 class="fw-bold text-dark mb-4">Síguenos en Redes</h5>
+                <div class="d-flex justify-content-center flex-wrap">
+                    <a href="{{ page.facebook_url|default:'#' }}" class="social-btn" target="_blank" title="Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="{{ page.instagram_url|default:'#' }}" class="social-btn" target="_blank" title="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="{{ page.tiktok_url|default:'#' }}" class="social-btn" target="_blank" title="TikTok">
+                        <i class="fab fa-tiktok"></i>
+                    </a>
+                    {% if page.youtube_url %}
+                        <a href="{{ page.youtube_url }}" class="social-btn" target="_blank" title="YouTube">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Giving / Tithes -->
+            <div class="academic-card p-4">
+                 <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">
+                    <i class="fas fa-hand-holding-heart text-gold me-2" style="color: var(--academic-gold);"></i> Diezmos y Ofrendas
+                 </h5>
+                 {% if page.donation_qr_image %}
+                    <div class="text-center mb-3">
+                         {% image page.donation_qr_image width-200 class="img-fluid rounded border p-1" %}
+                         <small class="d-block text-muted mt-1">Escanea para donar</small>
+                    </div>
+                 {% endif %}
+                 
+                 <div class="bg-light p-3 rounded-0 small">
+                     {% if page.bank_information %}
+                        {{ page.bank_information|richtext }}
+                     {% else %}
+                        <p class="text-muted m-0 fst-italic text-center">Datos bancarios no disponibles.</p>
+                     {% endif %}
+                 </div>
+            </div>
+
+            <!-- Map -->
+            {% if page.map_embed_code %}
+                <div class="academic-card overflow-hidden p-0">
+                    <div style="height: 300px;">
+                        {{ page.map_embed_code|safe }}
+                    </div>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}

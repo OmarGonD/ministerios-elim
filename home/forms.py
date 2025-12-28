@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm
 import phonenumbers
+import unicodedata
 
 User = get_user_model()
 
@@ -97,29 +98,34 @@ class ExtendedUserCreationForm(forms.ModelForm):
         country_val = self.cleaned_data.get('country')
         if not country_val:
             raise forms.ValidationError('El país es obligatorio')
-        # If user typed an alpha-2 code already, accept it (case-insensitive)
+        
         country_val = country_val.strip()
         if len(country_val) == 2:
             return country_val.upper()
-        # Otherwise, map from country name to code using django_countries
+
+        def normalize_str(s):
+            return unicodedata.normalize('NFKD', s).encode('ASCII', 'ignore').decode('utf-8').lower()
+
+        normalized_input = normalize_str(country_val)
+
         try:
             from django_countries import countries
-            # countries is iterable of (code, name)
+            # exact match (accent-insensitive)
             for code, name in countries:
-                if name.lower() == country_val.lower():
-                    # Also set the country_code field
+                if normalize_str(name) == normalized_input:
                     from .country_phone_codes import COUNTRY_PHONE_CODES
                     self.cleaned_data['country_code'] = '+' + COUNTRY_PHONE_CODES.get(code, '')
                     return code
-            # Try partial match (starts-with)
+            
+            # partial match (accent-insensitive)
             for code, name in countries:
-                if name.lower().startswith(country_val.lower()):
-                    # Also set the country_code field
+                if normalize_str(name).startswith(normalized_input):
                     from .country_phone_codes import COUNTRY_PHONE_CODES
                     self.cleaned_data['country_code'] = '+' + COUNTRY_PHONE_CODES.get(code, '')
                     return code
         except Exception:
             pass
+            
         raise forms.ValidationError('No se pudo reconocer el país. Selecciona uno de la lista.')
 
     def clean_phone_number(self):

@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block extra_css %}
+<style>
+    /* Course Landing Page Styles */
+    .course-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 60px 0;
+        margin-bottom: 40px;
+    }
+    
+    .course-stats-card {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 20px;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .module-card {
+        border-left: 5px solid var(--primary-color);
+        transition: transform 0.2s;
+    }
+    
+    .module-card:hover {
+        transform: translateX(10px);
+        background-color: #f8f9fa;
+        text-decoration: none;
+    }
+
+    .instructor-avatar {
+        width: 60px;
+        height: 60px;
+        background: #eee;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center; 
+        font-size: 1.5rem;
+        color: #888;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="course-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <span class="badge bg-info text-dark mb-2">CRECIMIENTO ESPIRITUAL</span>
+                <h1 class="display-4 fw-bold">{{ page.title }}</h1>
+                <p class="lead mb-4">{{ page.introduction|striptags }}</p>
+                <div class="d-flex align-items-center">
+                    <div class="instructor-avatar me-3">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <div>
+                        <small class="d-block text-white-50">Instructor</small>
+                        <span class="fw-bold">Ministerios Elim</span>
+                    </div>
+                    <div class="ms-5 border-start border-light ps-4">
+                        <small class="d-block text-white-50">Nivel</small>
+                        <span class="fw-bold">Intermedio</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 d-none d-lg-block">
+                <div class="course-stats-card">
+                    <h5 class="mb-3">Tu Progreso</h5>
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar bg-white" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <small class="d-block mb-3">0% Completado</small>
+                    <button class="btn btn-light w-100 fw-bold text-primary">Comenzar Curso</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <h3 class="mb-4 text-secondary fw-bold">Contenido del Curso</h3>
+            
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for child in page.get_children.live %}
+                        <a href="{% pageurl child %}" class="list-group-item list-group-item-action p-4 module-card">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1 fw-bold text-dark">
+                                        <i class="far fa-play-circle me-2 text-primary"></i> {{ child.title }}
+                                    </h5>
+                                    <small class="text-muted d-block ms-4">{{ child.specific.abstract|striptags|truncatewords:15 }}</small>
+                                </div>
+                                <span class="badge bg-light text-dark border ms-3">15 min</span>
+                            </div>
+                        </a>
+                        {% empty %}
+                        <div class="p-4 text-center text-muted">
+                            <i class="fas fa-book-open fa-3x mb-3 opacity-50"></i>
+                            <p>No hay lecciones disponibles aún.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Requisitos</h5>
+                    <ul class="list-unstyled text-muted small">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Haber completado Doctrina Básica</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Compromiso de servicio</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

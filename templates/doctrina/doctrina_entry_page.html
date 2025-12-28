@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags user_extras %}
+
+{% block extra_css %}
+<style>
+    /* University / Coursera Style Layout */
+    .course-layout {
+        display: flex;
+        flex-wrap: wrap;
+        min-height: calc(100vh - 70px); /* Adjust based on navbar height */
+        margin-top: 100px;
+    }
+
+    /* Sidebar / Syllabus Navigation */
+    .course-sidebar {
+        width: 300px;
+        background-color: #f8f9fa;
+        border-right: 1px solid #e0e0e0;
+        padding: 20px 0;
+        flex-shrink: 0;
+    }
+    
+    .course-sidebar-sticky {
+        position: sticky;
+        top: 100px;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+    }
+
+    .course-sidebar-header {
+        padding: 0 20px 20px;
+        border-bottom: 1px solid #e0e0e0;
+        margin-bottom: 10px;
+    }
+
+    .course-sidebar-title {
+        font-weight: 700;
+        color: var(--primary-color);
+        font-size: 1.1rem;
+        display: block;
+        margin-bottom: 5px;
+        text-decoration: none;
+    }
+
+    .course-nav-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .course-nav-item a {
+        display: block;
+        padding: 12px 20px;
+        color: #555;
+        text-decoration: none;
+        font-size: 0.95rem;
+        border-left: 3px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .course-nav-item a:hover {
+        background-color: #f0f4f8;
+        color: var(--primary-color);
+    }
+
+    .course-nav-item.active a {
+        background-color: #e3f2fd;
+        color: var(--primary-color);
+        border-left-color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    /* Main Lesson Content */
+    .course-content {
+        flex: 1;
+        padding: 40px 60px;
+        min-width: 0; /* Prevent overflow */
+        background-color: #fff;
+    }
+
+    .lesson-header {
+        margin-bottom: 30px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 20px;
+    }
+
+    .lesson-meta {
+        font-size: 0.85rem;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+    }
+
+    .lesson-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0;
+    }
+
+    .lesson-body {
+        font-size: 1.1rem;
+        color: #333;
+        line-height: 1.8;
+        max-width: 800px;
+    }
+
+    .lesson-body h2 {
+        margin-top: 40px;
+        font-size: 1.8rem;
+        color: var(--primary-color);
+    }
+
+    .lesson-body h3 {
+        margin-top: 30px;
+        font-size: 1.4rem;
+        color: #444;
+    }
+
+    .entry-image {
+        width: 100%;
+        max-height: 400px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+
+    .lesson-footer {
+        margin-top: 60px;
+        padding-top: 30px;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .btn-nav-lesson {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        text-decoration: none;
+        color: #666;
+        transition: all 0.2s;
+    }
+
+    .btn-nav-lesson:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+
+    @media (max-width: 991px) {
+        .course-layout { flex-direction: column; }
+        .course-sidebar { width: 100%; border-right: none; border-bottom: 1px solid #e0e0e0; }
+        .course-content { padding: 30px 20px; }
+        .lesson-title { font-size: 2rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="course-layout">
+    <!-- Sidebar -->
+    <aside class="course-sidebar">
+        <div class="course-sidebar-sticky">
+            <div class="course-sidebar-header">
+                <a href="{% pageurl page.get_parent %}" class="course-sidebar-title">
+                    <i class="fas fa-arrow-left me-2"></i> {{ page.get_parent.title }}
+                </a>
+                <div class="progress mt-2" style="height: 5px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <small class="text-muted">Progreso del curso: 25%</small>
+            </div>
+            
+            <ul class="course-nav-list">
+                {% for sibling in page.get_siblings.live %}
+                    <li class="course-nav-item {% if sibling.id == page.id %}active{% endif %}">
+                        <a href="{% pageurl sibling %}">
+                            <i class="far fa-circle me-2 {% if sibling.id == page.id %}fas text-primary{% else %}text-muted{% endif %}" style="font-size: 0.8em;"></i>
+                            {{ sibling.title }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="course-content">
+        {% can_edit_doctrina request.user page as user_can_edit %}
+        {% if user_can_edit %}
+        <div class="d-flex justify-content-end mb-3" style="margin-top: 60px;">
+            <a href="/admin/pages/{{ page.id }}/edit/" class="btn btn-outline-primary rounded-0 px-3 py-2" target="_blank">
+                <i class="fas fa-edit me-2"></i> Editar Entrada
+            </a>
+        </div>
+        {% endif %}
+        <div class="lesson-header">
+            <div class="lesson-meta">Lección / {{ page.title }}</div>
+            <h1 class="lesson-title">{{ page.title }}</h1>
+            
+            <div class="mt-3 p-3 bg-light rounded text-muted small">
+                <div class="row">
+                    <div class="col-md-6 mb-2 mb-md-0">
+                        <i class="fas fa-user-edit me-2"></i> 
+                        <strong>Autor:</strong> 
+                        {% if page.owner %}
+                            {{ page.owner.get_full_name|default:page.owner.username }}
+                            <br>
+                            <i class="fas fa-envelope me-2 ms-3 text-white"></i> <span class="ms-1">&lt;{{ page.owner.email }}&gt;</span>
+                        {% else %}
+                            Desconocido
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <i class="far fa-clock me-2"></i> 
+                        <strong>Publicado/Editado:</strong> 
+                        {{ page.last_published_at|date:"d M Y, H:i" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if page.image %}
+            {% image page.image fill-1200x600 class="entry-image" %}
+        {% endif %}
+        
+        {% if page.abstract %}
+            <div class="alert alert-light border-start border-4 border-primary p-4 mb-4" role="alert" style="background-color: #f8fbff;">
+                <h5 class="text-primary"><i class="fas fa-info-circle me-2"></i>Resumen</h5>
+                {{ page.abstract|richtext }}
+            </div>
+        {% endif %}
+        
+        <div class="lesson-body">
+            {{ page.body|richtext }}
+        </div>
+        
+        <div class="text-center mt-5 mb-5">
+            {% if page.get_parent %}
+            <a href="{% pageurl page.get_parent %}" class="btn btn-outline-dark rounded-0 px-4 py-2 hover-lift">
+                <i class="fas fa-arrow-left me-2"></i> Volver a {{ page.get_parent.title }}
+            </a>
+            {% endif %}
+        </div>
+
+        <div class="lesson-footer">
+            {% with prev=page.get_prev_sibling next=page.get_next_sibling %}
+                {% if prev %}
+                    <a href="{% pageurl prev %}" class="btn-nav-lesson">
+                        <i class="fas fa-chevron-left me-2"></i> Anterior
+                    </a>
+                {% else %}
+                    <span></span>
+                {% endif %}
+
+                {% if next %}
+                    <a href="{% pageurl next %}" class="btn-nav-lesson">
+                        Siguiente <i class="fas fa-chevron-right ms-2"></i>
+                    </a>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </main>
+</div>
+{% endblock %}

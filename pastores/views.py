@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import UserProfileForm
@@ -56,3 +56,9 @@ def create_profile(request):
         form = UserProfileForm(initial=initial_data)
 
     return render(request, 'pastores/create_profile.html', {'form': form})
+
+
+def biography_detail(request, pk):
+    """Public view for pastor biography."""
+    profile = get_object_or_404(UserProfile, pk=pk)
+    return render(request, 'pastores/biography_detail.html', {'profile': profile})

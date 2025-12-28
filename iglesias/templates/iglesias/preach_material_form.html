@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+{% load wagtailimages_tags %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4">Agregar Material de Predicación</h2>
+  <form method="post" enctype="multipart/form-data" class="row g-3">
+    {% csrf_token %}
+    <div class="col-md-6">
+      <label class="form-label fw-bold" for="title">Título</label>
+      <input type="text" class="form-control" id="title" name="title" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label fw-bold" for="category">Categoría</label>
+      <select class="form-select" id="category" name="category" required>
+        <option value="amor_de_dios">El Amor de Dios</option>
+        <option value="salvacion">La Salvación</option>
+        <option value="bautismo">El Bautismo</option>
+        <option value="espiritu_santo">El Espíritu Santo y sus dones</option>
+        <option value="otros">Otros</option>
+      </select>
+    </div>
+    <div class="col-12">
+      <label class="form-label fw-bold" for="ppt_file">Archivo PPT</label>
+      <input type="file" class="form-control" id="ppt_file" name="ppt_file" accept=".ppt,.pptx" required>
+    </div>
+    <div class="col-12">
+      <label class="form-label fw-bold" for="extra_file">Archivo extra (opcional)</label>
+      <input type="file" class="form-control" id="extra_file" name="extra_file">
+    </div>
+    <div class="col-12">
+      <label class="form-label fw-bold" for="youtube_links">Enlaces de YouTube (uno por línea)</label>
+      <textarea class="form-control" id="youtube_links" name="youtube_links" rows="3"></textarea>
+    </div>
+    <div class="col-12">
+      <label class="form-label fw-bold" for="description">Descripción (opcional)</label>
+      <textarea class="form-control" id="description" name="description" rows="2"></textarea>
+    </div>
+    <div class="col-12">
+      <button type="submit" class="btn btn-primary">Guardar Material</button>
+      <a href="{% url 'iglesias:pastor_dashboard' %}" class="btn btn-secondary ms-2">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

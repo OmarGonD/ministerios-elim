@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load static wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+<div class="who-we-are-container">
+    
+    <!-- Hero Section -->
+    <section class="page-hero py-5 position-relative" style="background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%); color: var(--gold-primary);">
+        <div class="container text-center py-5">
+            <h1 class="display-3 fw-bold mb-4" style="font-family: 'Playfair Display', serif;">{{ page.introduction_title }}</h1>
+            <div class="lead text-white mx-auto" style="max-width: 800px; font-family: 'Inter', sans-serif;">
+                {{ page.introduction_text|richtext }}
+            </div>
+        </div>
+    </section>
+
+    <!-- Apostle Section -->
+    <section class="apostle-profile py-5 bg-white">
+        <div class="container">
+            <div class="row align-items-center mb-5">
+                <div class="col-lg-5 mb-4 mb-lg-0 text-center">
+                    {% if page.apostle_image %}
+                        <div class="position-relative d-inline-block">
+                            <div class="rounded-0 overflow-hidden shadow-lg border border-2 border-gold p-1" style="border-color: var(--gold-primary) !important;">
+                                {% image page.apostle_image fill-500x600 class="img-fluid" style="max-width: 100%; height: auto;" %}
+                            </div>
+                            <div class="position-absolute bottom-0 start-0 w-100 p-3 bg-dark text-white text-center" style="opacity: 0.9;">
+                                <h3 class="h4 mb-0 fw-bold" style="color: var(--gold-primary);">{{ page.apostle_title }}</h3>
+                                <small class="text-uppercase">{{ page.apostle_subtitle }}</small>
+                            </div>
+                        </div>
+                    {% else %}
+                        <!-- Fallback Apostle Image -->
+                         <div class="rounded-0 overflow-hidden shadow-lg border border-2 border-gold p-1 bg-light d-flex align-items-center justify-content-center" style="border-color: var(--gold-primary) !important; height: 500px; width: 400px; margin: 0 auto;">
+                            <i class="fas fa-user-tie fa-5x text-gold"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-lg-7">
+                    <div class="ps-lg-5">
+                        <span class="badge bg-gold text-dark mb-3 rounded-0 px-3 py-2 text-uppercase fw-bold">Nuestra Cobertura</span>
+                        <h2 class="display-5 fw-bold mb-4" style="font-family: 'Playfair Display', serif;">Una Vida de Servicio</h2>
+                        
+                        {% if page.apostle_quote %}
+                        <figure class="bg-light p-4 border-start border-4 border-gold mb-4">
+                            <blockquote class="blockquote mb-0">
+                                <p class="fst-italic fs-5 text-dark">"{{ page.apostle_quote }}"</p>
+                            </blockquote>
+                        </figure>
+                        {% endif %}
+                        
+                        <div class="apostle-bio text-muted" style="font-size: 1.1rem; line-height: 1.8;">
+                            {{ page.apostle_bio|richtext }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hierarchy Section -->
+    <section class="hierarchy-section py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3" style="font-family: 'Playfair Display', serif;">{{ page.hierarchy_title }}</h2>
+                <p class="lead text-muted mx-auto" style="max-width: 700px;">{{ page.hierarchy_description }}</p>
+            </div>
+
+            <div class="hierarchy-tree position-relative py-4">
+                <!-- Org Chart Connectors (Visual Lines) -->
+                <!-- Simplified Vertical Layout for Mobile / Horizontal for Desktop -->
+                
+                <!-- Level 1: Apostle -->
+                <div class="row justify-content-center mb-5">
+                    <div class="col-md-4 text-center">
+                        <div class="card border-0 shadow-sm rounded-0 h-100 hover-lift">
+                            <div class="card-body p-4 border-top border-5 border-gold">
+                                <i class="fas fa-crown fa-2x mb-3" style="color: var(--gold-primary);"></i>
+                                <h4 class="fw-bold">{{ page.apostle_title }}</h4>
+                                <p class="text-muted small text-uppercase mb-0">Apóstol General</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Connector Line -->
+                <div class="d-none d-md-block position-absolute start-50 top-0 bottom-0 border-start border-2 border-gold opacity-25" style="z-index: 0; transform: translateX(-50%);"></div>
+
+                <!-- Level 2: Superpastors -->
+                {% if superpastors %}
+                <div class="row justify-content-center position-relative" style="z-index: 1;">
+                    <div class="col-12 text-center mb-4">
+                        <span class="badge bg-dark text-white rounded-0 px-4 py-2 text-uppercase fw-bold shadow-sm">Supervisores & Pastores de Pastores</span>
+                    </div>
+                    
+                    {% for sp in superpastors %}
+                    <div class="col-md-4 col-lg-3 mb-4">
+                        <div class="card border-0 shadow-sm rounded-0 h-100 hover-lift">
+                            <div class="card-body p-3 text-center">
+                                {% if sp.foto %}
+                                    {% image sp.foto fill-100x100 class="rounded-0 mb-3 border border-2 border-gold" %}
+                                {% else %}
+                                    <div class="rounded-0 d-inline-flex align-items-center justify-content-center bg-light border border-2 border-gold mb-3" style="width: 100px; height: 100px;">
+                                        <i class="fas fa-user text-muted fa-2x"></i>
+                                    </div>
+                                {% endif %}
+                                <h5 class="fw-bold fs-6 mb-1">{{ sp.user.first_name }} {{ sp.user.last_name }}</h5>
+                                <p class="text-muted small mb-0">{{ sp.iglesia_principal|default:"Supervisor Regional" }}</p>
+                                {% if sp.country.name %}
+                                <small class="d-block text-gold mt-2"><i class="fas fa-map-marker-alt me-1"></i> {{ sp.country.name }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                 <!-- Level 3: Country Pastors (Example/Placeholder) -->
+                 <div class="row justify-content-center position-relative mt-4" style="z-index: 1;">
+                    <div class="col-12 text-center mb-4">
+                         <hr class="w-25 mx-auto border-gold opacity-100 mb-4">
+                        <h4 class="h5 fw-bold text-muted text-uppercase">Pastores Nacionales e Internacionales</h4>
+                    </div>
+                    
+                    <!-- We can list a few country pastors dynamically if needed, keeping it clean -->
+                     <div class="col-12 text-center">
+                        <a href="{% url 'iglesias:index' %}" class="btn btn-outline-dark rounded-0 px-4 py-2 fw-bold">Ver Todas las Iglesias y Pastores</a>
+                     </div>
+                 </div>
+
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<style>
+.bg-gold { background-color: var(--gold-primary) !important; }
+.text-gold { color: var(--gold-primary) !important; }
+.border-gold { border-color: var(--gold-primary) !important; }
+.hover-lift { transition: transform 0.3s ease; }
+.hover-lift:hover { transform: translateY(-5px); }
+</style>
+{% endblock %}

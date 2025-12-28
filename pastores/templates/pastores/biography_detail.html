@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow border-0">
+                <div class="card-body p-5">
+                    <div class="text-center mb-5">
+                        {% if profile.foto %}
+                            {% image profile.foto fill-200x200 class="rounded-circle shadow mb-3" %}
+                        {% else %}
+                            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto shadow mb-3" style="width: 200px; height: 200px;">
+                                <i class="fas fa-user-tie fa-4x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <h1 class="display-5 fw-bold mb-2">{{ profile.user.get_full_name|default:profile.user.username }}</h1>
+                        {% if profile.titulo_academico %}
+                            <h5 class="text-muted mb-1">{{ profile.titulo_academico }}</h5>
+                        {% endif %}
+                        <div class="mb-3">
+                            <span class="badge {% if profile.is_apostle %}bg-primary{% elif profile.is_superpastor %}bg-success{% else %}bg-secondary{% endif %} rounded-pill px-3 py-1">
+                                {{ profile.role_display }}
+                            </span>
+                        </div>
+                        <p class="text-muted"><i class="fas fa-church me-2"></i>{{ profile.iglesia.title }}</p>
+                    </div>
+
+                    <div class="row mb-5 text-center">
+                        {% if profile.fecha_ordenacion %}
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <div class="p-3 bg-light rounded">
+                                <h6 class="fw-bold text-uppercase fs-7 text-secondary">Ordenado el</h6>
+                                <p class="mb-0 fs-5">{{ profile.fecha_ordenacion|date:"d M Y" }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if profile.experiencia %}
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded">
+                                <h6 class="fw-bold text-uppercase fs-7 text-secondary">Experiencia</h6>
+                                <p class="mb-0 fs-5">{{ profile.experiencia|truncatewords:5 }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if profile.biography %}
+                        <div class="biography-content px-lg-4">
+                            <h3 class="border-bottom pb-2 mb-4">Historia y Testimonio</h3>
+                            <div class="richtext-content">
+                                {{ profile.biography|richtext }}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <p>La biografía de este pastor aún no está disponible.</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mt-5 text-center">
+                        {% if profile.iglesia %}
+                            <a href="{% pageurl profile.iglesia %}" class="btn btn-outline-primary rounded-pill px-4">
+                                <i class="fas fa-arrow-left me-2"></i> Volver a {{ profile.iglesia.title }}
+                            </a>
+                        {% else %}
+                            <a href="/" class="btn btn-outline-primary rounded-pill px-4">
+                                <i class="fas fa-home me-2"></i> Inicio
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

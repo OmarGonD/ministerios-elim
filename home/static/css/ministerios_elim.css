@@ -1,0 +1,595 @@
+/* Ministerios Elim - Home Page Styles */
+
+/* Global Square UI Overrides (Angular Elegance) */
+.rounded,
+.rounded-1,
+.rounded-2,
+.rounded-3,
+.rounded-4,
+.rounded-pill,
+.rounded-circle,
+.card,
+.btn,
+.badge,
+.progress,
+.progress-bar,
+.modal-content,
+.dropdown-menu,
+.alert,
+.form-control {
+    border-radius: 0 !important;
+}
+
+:root {
+    --primary-color: #D4AF37;
+    /* Metallic Gold */
+    --gold-primary: #D4AF37;
+    --gold-hover: #B8860B;
+    /* Darker gold for hover */
+    --gold-light: #F9F1D7;
+    /* Soft Champagne */
+    --gold-gradient: linear-gradient(135deg, #D4AF37 0%, #F9F1D7 50%, #D4AF37 100%);
+    --gold-text: #8b6d1b;
+
+    --secondary-color: #1a1a1a;
+    /* Elegant Dark */
+    --accent-color: #B8860B;
+    --text-color: #2d3436;
+    --light-bg: #fcfaf5;
+    /* Very light warm cream */
+    --white: #ffffff;
+    --navbar-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+/* Custom Navbar - Elegant Glassmorphism */
+.navbar-custom {
+    background-color: rgba(255, 255, 255, 0.85);
+    /* Semi-transparent */
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    box-shadow: none;
+    padding: 15px 0;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1050;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Scrolled State */
+.navbar-custom.navbar-scrolled {
+    background-color: var(--white);
+    padding: 10px 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.navbar-custom .navbar-brand {
+    font-weight: 800;
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+}
+
+.navbar-custom .nav-link {
+    color: #444;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95rem;
+    padding: 10px 15px !important;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.navbar-custom .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    left: 15px;
+    right: 15px;
+    height: 2px;
+    background: var(--primary-color);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+    transform-origin: right;
+}
+
+.navbar-custom .nav-link:hover::after,
+.navbar-custom .nav-link.active::after {
+    transform: scaleX(1);
+    transform-origin: left;
+}
+
+.navbar-custom .nav-link:hover,
+.navbar-custom .nav-link.active {
+    color: var(--primary-color);
+}
+
+/* Buttons Refine */
+.btn-nav-login {
+    border: 1.5px solid var(--primary-color);
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-right: 10px;
+    border-radius: 0;
+    padding: 6px 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.btn-nav-login:hover {
+    background-color: var(--primary-color);
+    color: var(--white);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(57, 190, 218, 0.2);
+}
+
+.btn-nav-register {
+    background: var(--gold-gradient);
+    background-size: 200% auto;
+    color: #1a1a1a;
+    border: none;
+    font-weight: 700;
+    border-radius: 0;
+    padding: 8px 25px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    transition: all 0.4s ease;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+}
+
+.btn-nav-register:hover {
+    background-position: right center;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+    color: #000;
+    opacity: 1;
+}
+
+/* Dropdown Elegant */
+.navbar-custom .dropdown-menu {
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 0;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.navbar-custom .dropdown-item {
+    border-radius: 0;
+    padding: 10px 20px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.navbar-custom .dropdown-item:hover {
+    background-color: rgba(57, 190, 218, 0.1);
+    color: var(--primary-color);
+    padding-left: 25px;
+}
+
+/* Hero Section */
+.hero {
+    position: relative;
+    height: 80vh;
+    min-height: 500px;
+    background-color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--white);
+    padding: 20px;
+    overflow: hidden;
+}
+
+.video-hero {
+    background: none;
+}
+
+.hero-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    z-index: 0;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    /* Subtle dark overlay to ensure text readability */
+    z-index: 1;
+}
+
+.hero-content {
+    max-width: 900px;
+    z-index: 2;
+}
+
+.wix-style-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-size: 5rem;
+    line-height: 1.1;
+    letter-spacing: 0.05em;
+    color: #dedede;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+}
+
+.wix-style-subtitle {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
+    font-size: 1.2rem;
+    letter-spacing: 0.2em;
+    color: #ffffff;
+    text-transform: uppercase;
+    margin-top: 0.5rem;
+}
+
+.hero h1 {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.hero .subtitle {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    opacity: 0.95;
+    font-weight: 500;
+}
+
+.btn-primary {
+    display: inline-block;
+    padding: 12px 35px;
+    background-color: var(--white);
+    color: var(--primary-color);
+    text-decoration: none;
+    border-radius: 0;
+    font-weight: 700;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    background-color: var(--white);
+    color: var(--secondary-color);
+}
+
+/* Ministries / Features Section */
+.ministries {
+    padding: 80px 20px;
+    background-color: var(--light-bg);
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 50px;
+    color: var(--text-color);
+    font-weight: 700;
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.card {
+    background: var(--white);
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
+    padding-bottom: 25px;
+    border: none;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.card-image {
+    height: 200px;
+    background-color: #ecf0f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    font-size: 4rem;
+}
+
+.card h3 {
+    margin: 25px 0 10px;
+    color: var(--text-color);
+    font-weight: 700;
+}
+
+.card p {
+    padding: 0 25px;
+    margin-bottom: 25px;
+    color: #666;
+}
+
+.card-link {
+    color: var(--gold-primary);
+    text-decoration: none;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    transition: color 0.3s ease;
+}
+
+.card-link:hover {
+    color: var(--gold-hover);
+}
+
+/* About Section */
+.about {
+    padding: 100px 20px;
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.about p {
+    font-size: 1.25rem;
+    color: #555;
+    line-height: 1.8;
+}
+
+/* Forum Styles */
+.forum-card {
+    background: var(--white);
+    border-radius: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-left: 5px solid var(--primary-color);
+    margin-bottom: 20px;
+    transition: transform 0.2s ease;
+}
+
+.forum-card:hover {
+    transform: translateX(5px);
+}
+
+.forum-card .card-body {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.forum-info h3 {
+    font-size: 1.25rem;
+    margin: 0 0 5px;
+}
+
+.forum-info h3 a {
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+.forum-info p {
+    margin: 0;
+    color: #777;
+    font-size: 0.95rem;
+}
+
+.forum-stats {
+    text-align: right;
+    min-width: 120px;
+}
+
+.forum-stat-count {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    display: block;
+    line-height: 1;
+}
+
+/* Stats Bar */
+.stats-bar {
+    background: #ffffff;
+    padding: 3rem 0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    margin-top: -50px;
+    position: relative;
+    z-index: 10;
+    border-radius: 0;
+}
+
+.stat-item i {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    opacity: 0.8;
+}
+
+.stat-item h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: 2.5rem;
+    margin: 10px 0;
+    color: var(--text-color);
+}
+
+.stat-item p {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    color: #888;
+    font-size: 0.85rem;
+}
+
+/* Ministry Cards */
+.ministry-card {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.ministry-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important;
+}
+
+.ministry-card-image {
+    position: relative;
+    overflow: hidden;
+}
+
+.ministry-icon-float {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    z-index: 2;
+    border: 3px solid var(--white);
+}
+
+.ministry-card:hover .img-fluid {
+    transform: scale(1.1);
+}
+
+.img-fluid {
+    transition: transform 0.5s ease;
+}
+
+/* Transitions */
+.transition {
+    transition: all 0.3s ease;
+}
+
+.hover-shadow:hover {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Section Titles */
+.section-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    position: relative;
+    display: inline-block;
+    padding-bottom: 15px;
+}
+
+.text-center .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: var(--gold-primary);
+    border-radius: 0;
+}
+
+.text-start .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: var(--primary-color);
+    border-radius: 0;
+}
+
+/* Footer Improvements */
+footer {
+    background: #1a1a1a;
+    color: #ffffff;
+    padding: 4rem 0 2rem;
+}
+
+.social-links a {
+    font-size: 1.5rem;
+    margin: 0 15px;
+    color: #ffffff;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+}
+
+.social-links a:hover {
+    opacity: 1;
+}
+
+.forum-stat-label {
+    font-size: 0.8rem;
+    color: #999;
+    text-transform: uppercase;
+}
+
+/* Footer */
+footer {
+    background-color: #222;
+    /* Keep footer dark for contrast */
+    color: var(--white);
+    padding: 50px 20px;
+    text-align: center;
+}
+
+footer .social-links a {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 15px;
+    font-size: 1.5rem;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+footer .social-links a:hover {
+    color: var(--gold-primary);
+}
+
+/* Utility for empty state fallback */
+.placeholder-bg {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    font-size: 3rem;
+}

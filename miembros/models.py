@@ -8,9 +8,11 @@ from django.db.models.signals import post_save
 
 class MemberProfile(models.Model):
     ROLE_MIEMBRO = 'miembro'
+    ROLE_AYUDA = 'ayuda'
     ROLE_VISITANTE = 'visitante'
     ROLE_CHOICES = [
         (ROLE_MIEMBRO, 'Soy miembro de una iglesia (Elim u otra iglesia)'),
+        (ROLE_AYUDA, 'Soy ayuda / supermiembro'),
         (ROLE_VISITANTE, 'Solo soy visitante'),
     ]
 
@@ -22,7 +24,9 @@ class MemberProfile(models.Model):
     foto = models.ForeignKey('wagtailimages.Image', null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
 
     # Información específica de miembros
-    iglesia_afiliada = models.CharField(max_length=255, blank=True, null=True, help_text='Nombre de la iglesia a la que pertenece')
+    iglesia = models.ForeignKey('iglesias.IglesiaPage', on_delete=models.SET_NULL, null=True, blank=True, related_name='miembros', verbose_name="Iglesia Afiliada")
+    is_approved_member = models.BooleanField(default=False, verbose_name="Miembro Aprobado", help_text="Indica si el pastor ha aprobado a este miembro.")
+    iglesia_afiliada = models.CharField(max_length=255, blank=True, null=True, help_text='Nombre de la iglesia a la que pertenece (Legacy)')
     fecha_afiliacion = models.DateField(blank=True, null=True, help_text='Fecha de afiliación como miembro')
     estado_civil = models.CharField(max_length=20, choices=[
         ('soltero', 'Soltero/a'),

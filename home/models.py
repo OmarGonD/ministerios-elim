@@ -29,6 +29,7 @@ class HomePageCarouselImages(models.Model):
         verbose_name = "Home Page Carousel Image"
 
 class HomePage(Page):
+    template = "home/home_page.html"
     banner_title = models.CharField(max_length=100, blank=True, null=True)
     banner_subtitle = RichTextField(features=['bold', 'italic'], blank=True, null=True)
     banner_image = models.ForeignKey(
@@ -50,6 +51,7 @@ class HomePage(Page):
         null=True,
         blank=True,
         use_json_field=True,
+        default=[],  # Provide default empty list to avoid validation errors
     )
     body = RichTextField(blank=True)
 
@@ -59,18 +61,34 @@ class HomePage(Page):
             FieldPanel('banner_subtitle'),
             FieldPanel('banner_image'),
             FieldPanel('banner_cta'),
-        ], heading="Opciones de banners"),
-        MultiFieldPanel([
-            InlinePanel('carousel_images', max_num=5, min_num=1, label="Escoge una imagen"),
-        ], heading='Carousel Images'),
-        FieldPanel('content'),
+        ], heading="Banner Section"),
+        #MultiFieldPanel([
+        #    InlinePanel('carousel_images', max_num=5, min_num=1, label="Escoge una imagen"),
+        #], heading='Carousel Images'),
+        # FieldPanel('content'),  # Commented out - StreamField has no block types defined
+        FieldPanel('body'),
     ]
 
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        from iglesias.models import PreachMaterial, IglesiaPage, CountryIndexPage
+        from pastores.models import UserProfile
+        
+        context['recent_materials'] = PreachMaterial.objects.all().order_by('-uploaded_at')[:6]
+        context['church_count'] = IglesiaPage.objects.live().count()
+        context['pastor_count'] = UserProfile.objects.filter(role='pastor_elim').count()
+        context['country_count'] = CountryIndexPage.objects.live().count()
+        
+        return context
+    parent_page_types = ['wagtailcore.Page']  # Allow HomePage to be created under Root
+    
     subpage_types = [
+        'doctrina.DoctrinaIndexPage',
         'doctrina.DoctrinaBasicaPage',
         'doctrina.DoctrinaIntermediaPage',
         'doctrina.DoctrinaAvanzadaPage',
-        'home.ChurchPage'
+        'home.ChurchPage',
+        'home.WhoWeArePage'
     ]
 
     edit_handler = TabbedInterface([
@@ -78,6 +96,9 @@ class HomePage(Page):
         ObjectList(Page.promote_panels, heading='Promote'),
         ObjectList(Page.settings_panels, heading='Settings'),
     ])
+
+    def get_template(self, request):
+        return "home/home_page.html"
 
 
 
@@ -121,3 +142,64 @@ class ChurchPage(Page):
 
     def __str__(self):
         return self.church_name
+
+
+class WhoWeArePage(Page):
+    template = "home/who_we_are_page.html"
+    
+    introduction_title = models.CharField(max_length=255, default="Quiénes Somos")
+    introduction_text = RichTextField(blank=True, verbose_name="Texto de Introducción")
+    
+    apostle_title = models.CharField(max_length=255, default="Apóstol Jorge Fuentes")
+    apostle_subtitle = models.CharField(max_length=255, default="Fundador y Cobertura Espiritual")
+    apostle_bio = RichTextField(blank=True, verbose_name="Biografía del Apóstol")
+    apostle_image = models.ForeignKey(
+        'wagtailimages.Image',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='+',
+        verbose_name="Imagen del Apóstol"
+    )
+    apostle_quote = models.TextField(blank=True, verbose_name="Cita / Pensamiento")
+    
+    hierarchy_title = models.CharField(max_length=255, default="Nuestra Estructura Ministerial")
+    hierarchy_description = models.TextField(blank=True, verbose_name="Descripción de la Jerarquía")
+
+    content_panels = Page.content_panels + [
+        MultiFieldPanel([
+            FieldPanel('introduction_title'),
+            FieldPanel('introduction_text'),
+        ], heading="Introducción"),
+        
+        MultiFieldPanel([
+            FieldPanel('apostle_title'),
+            FieldPanel('apostle_subtitle'),
+            FieldPanel('apostle_bio'),
+            FieldPanel('apostle_image'),
+            FieldPanel('apostle_quote'),
+        ], heading="Perfil del Apóstol"),
+        
+        MultiFieldPanel([
+            FieldPanel('hierarchy_title'),
+            FieldPanel('hierarchy_description'),
+        ], heading="Estructura Jerárquica"),
+    ]
+
+    max_count = 1
+    parent_page_types = ['home.HomePage']
+    subpage_types = []
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        from pastores.models import UserProfile
+        
+        # Apostle
+        apostle = UserProfile.objects.filter(is_apostle=True).first()
+        context['apostle_profile'] = apostle
+        
+        # Superpastors (Supervisors)
+        superpastors = UserProfile.objects.filter(is_superpastor=True).order_by('user__first_name')
+        context['superpastors'] = superpastors
+        
+        return context

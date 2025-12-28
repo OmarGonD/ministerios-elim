@@ -1,6 +1,10 @@
 from django import template
+import builtins
 
 register = template.Library()
+
+# Use built-in hasattr explicitly to avoid shadowing
+_hasattr = builtins.hasattr
 
 @register.filter
 def email_prefix(value):
@@ -10,11 +14,11 @@ def email_prefix(value):
     except Exception:
         return value
 
-@register.filter
-def hasattr(obj, attr_name):
+@register.filter(name='hasattr')
+def has_attr_filter(obj, attr_name):
     """Check if an object has a specific attribute."""
     try:
-        return hasattr(obj, attr_name)
+        return _hasattr(obj, attr_name)
     except Exception:
         return False
 
@@ -22,7 +26,7 @@ def hasattr(obj, attr_name):
 def is_pastor(user):
     """Check if user is a pastor (pastor_elim or pastor_otro)."""
     try:
-        if hasattr(user, 'pastores_profile'):
+        if _hasattr(user, 'pastores_profile'):
             return user.pastores_profile.role in ['pastor_elim', 'pastor_otro']
         return False
     except Exception:
@@ -32,8 +36,58 @@ def is_pastor(user):
 def is_member(user):
     """Check if user is a member."""
     try:
-        if hasattr(user, 'member_profile'):
+        if _hasattr(user, 'member_profile'):
             return user.member_profile.role == 'miembro'
+        return False
+    except Exception:
+        return False
+
+@register.filter
+def is_apostle(user):
+    """Check if user is an apostle."""
+    try:
+        if _hasattr(user, 'pastores_profile'):
+            return user.pastores_profile.is_apostle
+        return False
+    except Exception:
+        return False
+
+@register.filter
+def is_superpastor(user):
+    """Check if user is a Pastor de Pastores (superpastor)."""
+    try:
+        if _hasattr(user, 'pastores_profile'):
+            return user.pastores_profile.is_superpastor
+        return False
+    except Exception:
+        return False
+
+@register.filter
+def is_pastor_elim(user):
+    """Check if user is a Pastor Elim (not just any pastor)."""
+    try:
+        if _hasattr(user, 'pastores_profile'):
+            return user.pastores_profile.role == 'pastor_elim'
+        return False
+    except Exception:
+        return False
+
+@register.simple_tag
+def can_edit_doctrina(user, page):
+    """Check if user can directly edit a Doctrina entry (owner or apostle)."""
+    try:
+        if not user.is_authenticated:
+            return False
+        # Apostles can edit any entry
+        try:
+            profile = user.pastores_profile
+            if profile.is_apostle:
+                return True
+        except Exception:
+            pass
+        # Owner pastor can edit their own entry
+        if page.owner == user:
+            return True
         return False
     except Exception:
         return False

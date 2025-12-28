@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --academic-navy: #111111; /* Jet Black */
+        --academic-gold: #C5A059; /* Rich Metallic Gold */
+        --academic-bg: #fdfbf7;   /* Warm Ivory */
+        --card-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        --hover-shadow: 0 12px 35px rgba(0,0,0,0.2);
+    }
+
+    body {
+        background-color: var(--academic-bg);
+    }
+
+    .materiales-hero {
+        background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+        color: white;
+        padding: 5rem 0;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+        margin-top: 80px; /* Accounts for fixed navbar */
+    }
+
+    .materiales-hero::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--academic-gold);
+    }
+
+    .materiales-hero h1 {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 3.5rem;
+        color: var(--academic-gold);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .filter-btn {
+        background-color: transparent;
+        color: var(--academic-navy);
+        border: 1px solid var(--academic-navy);
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+    }
+
+    .filter-btn.active, .filter-btn:hover {
+        background-color: var(--academic-navy);
+        color: var(--academic-gold);
+        border-color: var(--academic-navy);
+    }
+
+    .material-card {
+        background: white;
+        border: none;
+        box-shadow: var(--card-shadow);
+        border-radius: 2px;
+        overflow: hidden;
+        transition: all 0.4s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .material-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--hover-shadow);
+    }
+
+    .material-card-header {
+        background: linear-gradient(135deg, #111 0%, #333 100%);
+        padding: 1.5rem;
+        position: relative;
+        text-align: center;
+        border-bottom: 3px solid var(--academic-gold);
+    }
+
+    .material-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        border: 1px solid var(--academic-gold);
+        color: var(--academic-gold);
+        font-size: 1.5rem;
+    }
+
+    .material-title {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: var(--academic-navy);
+    }
+
+    .btn-download {
+        background-color: var(--academic-navy);
+        color: var(--academic-gold);
+        border: none;
+        border-radius: 2px;
+        padding: 8px 16px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-download:hover {
+        background-color: black;
+        color: white;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="materiales-hero text-center">
+    <div class="container">
+        <h1 class="mb-2">Materiales de Estudio</h1>
+        <p class="lead opacity-75">Recursos para el crecimiento espiritual y ministerial</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <!-- Category Filter -->
+    <div class="d-flex justify-content-center flex-wrap gap-2 mb-5">
+        <a href="{% url 'iglesias:materiales_index' %}" class="filter-btn {% if not selected_category %}active{% endif %}">
+            Todos
+        </a>
+        {% for code, name in categories %}
+        <a href="?category={{ code }}" class="filter-btn {% if selected_category == code %}active{% endif %}">
+            {{ name }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Materials Grid -->
+    <div class="row g-4">
+        {% for material in page_obj.object_list %}
+        <div class="col-md-4">
+            <div class="material-card">
+                <div class="material-card-header">
+                    <div class="material-icon-wrapper">
+                        {% if material.category == 'sermon' %}
+                            <i class="fas fa-microphone-alt"></i>
+                        {% elif material.category == 'estudio' %}
+                            <i class="fas fa-book-reader"></i>
+                        {% elif material.category == 'discipulado' %}
+                            <i class="fas fa-users"></i>
+                        {% else %}
+                            <i class="fas fa-file-alt"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body p-4 d-flex flex-column h-100">
+                    <div class="mb-auto">
+                        <span class="badge bg-light text-dark mb-2 text-uppercase" style="letter-spacing:1px; border:1px solid #ddd;">{{ material.get_category_display }}</span>
+                        <h5 class="material-title">
+                            <a href="{% url 'iglesias:preach_material_detail' material.pk %}" class="text-decoration-none text-dark">
+                                {{ material.title }}
+                            </a>
+                        </h5>
+                        <p class="text-muted small mb-3">{{ material.description|truncatewords:20 }}</p>
+                    </div>
+                    
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                        <span class="small text-muted">
+                            <i class="far fa-calendar me-1"></i> {{ material.uploaded_at|date:"d M, Y" }}
+                        </span>
+                        <a href="{% url 'iglesias:preach_material_detail' material.pk %}" class="btn-download">
+                            Ver Recurso <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-folder-open fa-4x text-muted opacity-25 mb-4"></i>
+            <h4 class="text-muted">No se encontraron materiales</h4>
+            <p class="text-muted">Intenta con otra categoría.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link shadow-none border-0 text-dark" href="?page={{ page_obj.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item disabled"><span class="page-link border-0 text-muted mx-3">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link shadow-none border-0 text-dark" href="?page={{ page_obj.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

@@ -78,7 +78,12 @@
                                                     <span class="text-white fw-bold">{{ iglesia.owner.get_full_name|default:iglesia.owner.username|first|upper }}</span>
                                                 </div>
                                             {% endif %}
-                                            {{ iglesia.owner.get_full_name|default:iglesia.owner.username }}
+                                            <div>
+                                                <span class="d-block fw-bold">{{ iglesia.owner.get_full_name|default:iglesia.owner.username }}</span>
+                                                {% if iglesia.owner.pastores_profile %}
+                                                    <small class="text-muted">{{ iglesia.owner.pastores_profile.role_display }}</small>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -95,6 +100,48 @@
                     </div>
                 </div>
             </div>
+                </div>
+            
+            {% comment %}
+            FETCH CHILD EVENTS
+            {% endcomment %}
+            {% with child_events=iglesia.get_children.live.specific %}
+                {% if child_events %}
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h3 class="mb-3 text-primary border-bottom pb-2">Próximos Eventos</h3>
+                    </div>
+                    {% for event in child_events %}
+                        {% if event.content_type.model == 'iglesiaeventpage' %} <!-- Ensure it's an event -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100 shadow-sm border-0">
+                                {% if event.image %}
+                                     {% image event.image fill-400x200 class="card-img-top" %}
+                                {% else %}
+                                     <div class="bg-light d-flex align-items-center justify-content-center card-img-top" style="height: 150px;">
+                                         <i class="fas fa-calendar text-muted opacity-25 fa-3x"></i>
+                                     </div>
+                                {% endif %}
+                                <div class="card-body">
+                                    <h5 class="card-title fw-bold">{{ event.title }}</h5>
+                                    <p class="card-text text-muted small mb-2">
+                                        <i class="far fa-clock me-1"></i> {{ event.date|date:"d M Y, h:i A" }}
+                                    </p>
+                                    <p class="card-text small">
+                                        {{ event.location }}
+                                    </p>
+                                    <div class="mt-2">
+                                        {{ event.description|richtext|truncatewords_html:15 }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+
         </div>
         
         <div class="col-lg-4">

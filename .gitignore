@@ -16,7 +16,7 @@ Scripts/activate
 *.log
 db.sqlite3
 media/
-static/
+
 staticfiles/
 
 # IDEs

@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+<div class="bg-primary text-white py-5 mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-5 fw-bold mb-2">Panel Pastoral</h1>
+                <h2 class="h4 opacity-75">{{ iglesia.title }}</h2>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <span class="badge bg-white text-primary fs-6 px-3 py-2 rounded-pill">
+                    <i class="fas {% if request.user.pastores_profile.is_apostle %}fa-crown{% else %}fa-user-tie{% endif %} me-2"></i> {{ request.user.get_full_name|default:request.user.username }}
+                    {% if request.user.pastores_profile %} | {{ request.user.pastores_profile.role_display }}{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row">
+        <!-- Main Actions -->
+        <div class="col-lg-8">
+            <!-- Pending Requests -->
+            <div class="card border-0 shadow-sm mb-5">
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h4 class="fw-bold mb-0 text-secondary">
+                        <i class="fas fa-user-clock me-2 text-warning"></i> Solicitudes Pendientes
+                    </h4>
+                    {% if pending_members %}
+                        <span class="badge bg-warning text-dark rounded-pill">{{ pending_members.count }}</span>
+                    {% endif %}
+                </div>
+                <div class="card-body p-4">
+                    {% if pending_members %}
+                        <div class="list-group list-group-flush">
+                            {% for member in pending_members %}
+                                <div class="list-group-item border-0 bg-light mb-3 rounded p-3">
+                                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                                        <div class="d-flex align-items-center w-100">
+                                            {% if member.foto %}
+                                                {% image member.foto fill-60x60 class="rounded-circle me-3 border border-2 border-white shadow-sm" %}
+                                            {% else %}
+                                                <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 60px; height: 60px;">
+                                                    <i class="fas fa-user fa-lg"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-1 fw-bold text-dark">{{ member.user.get_full_name|default:member.user.username }}</h6>
+                                                <div class="text-muted small">
+                                                    <i class="fas fa-envelope me-1"></i> {{ member.user.email }}
+                                                </div>
+                                                <div class="text-muted small mt-1">
+                                                    <i class="far fa-clock me-1"></i> Solicitado: {{ member.created|date:"d M Y"|default:"Reciente" }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <form method="post" action="{% url 'iglesias:pastor_dashboard' %}" class="d-flex gap-2 w-100 w-md-auto justify-content-end">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="member_id" value="{{ member.id }}">
+                                            <button type="submit" name="action" value="approve" class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-sm" title="Aprobar Miembro">
+                                                <i class="fas fa-check me-2"></i> Aprobar
+                                            </button>
+                                            <button type="submit" name="action" value="reject" class="btn btn-outline-danger btn-sm rounded-circle shadow-sm" style="width: 32px; height: 32px; padding: 0;" title="Rechazar">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <div class="mb-3">
+                                <i class="fas fa-users-slash fa-4x opacity-25"></i>
+                            </div>
+                            <h5 class="fw-normal">No hay solicitudes pendientes</h5>
+                            <p class="small">Las nuevas solicitudes de membresía aparecerán aquí.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Ayudas / Supermembers -->
+            <div class="card border-0 shadow-sm mb-5">
+                 <div class="card-header bg-white border-bottom-0 pt-4 px-4">
+                    <h4 class="fw-bold mb-0 text-secondary">
+                        <i class="fas fa-hands-helping me-2 text-info"></i> Ayudas / Supermiembros
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    {% if ayudas %}
+                        <div class="row row-cols-1 row-cols-md-2 g-3">
+                            {% for member in ayudas %}
+                            <div class="col">
+                                <div class="d-flex align-items-center bg-light p-3 rounded border border-start-0 border-end-0 border-top-0 border-bottom-0 border-4 border-info shadow-sm h-100">
+                                    {% if member.foto %}
+                                        {% image member.foto fill-50x50 class="rounded-circle me-3" %}
+                                    {% else %}
+                                        <div class="rounded-circle bg-white text-info d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 50px; height: 50px;">
+                                            <i class="fas fa-user-shield"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">{{ member.user.get_full_name|default:member.user.username }}</h6>
+                                        <span class="badge bg-info text-dark rounded-pill" style="font-size: 0.7em;">Líder/Ayuda</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                         <p class="text-muted mb-0">No hay ayudas asignados.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Events Section -->
+            <div class="card border-0 shadow-sm mb-5">
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                   <h4 class="fw-bold mb-0 text-secondary">
+                       <i class="fas fa-calendar-alt me-2 text-danger"></i> Eventos Próximos
+                   </h4>
+                   <div class="d-flex gap-2">
+                        <span class="badge bg-danger text-white rounded-pill">{{ events.count }}</span>
+                        <!-- Only allow adding events if is delegated or owner -->
+                         <a href="{% url 'iglesias:create_event' %}" class="btn btn-sm btn-outline-danger rounded-pill fw-bold">
+                            <i class="fas fa-plus me-1"></i> Nuevo Evento
+                         </a>
+                   </div>
+               </div>
+               <div class="card-body p-4">
+                   {% if events %}
+                       <div class="row row-cols-1 row-cols-md-2 g-3">
+                           {% for event in events %}
+                               <div class="col">
+                                   <div class="card h-100 border-0 shadow-sm">
+                                       {% if event.image %}
+                                            {% image event.image fill-400x200 class="card-img-top" %}
+                                       {% else %}
+                                            <div class="bg-light d-flex align-items-center justify-content-center card-img-top" style="height: 150px;">
+                                                <i class="fas fa-calendar text-muted opacity-25 fa-3x"></i>
+                                            </div>
+                                       {% endif %}
+                                       <div class="card-body">
+                                           <h6 class="card-title fw-bold text-dark">{{ event.title }}</h6>
+                                           <p class="card-text small text-muted mb-2">
+                                               <i class="far fa-clock me-1"></i> {{ event.date|date:"d M, H:i a" }}
+                                           </p>
+                                           <p class="card-text small text-muted">
+                                               <i class="fas fa-map-marker-alt me-1"></i> {{ event.location }}
+                                           </p>
+                                       </div>
+                                       <div class="card-footer bg-white border-top-0 text-end">
+                                            <!-- Edit link could go to wagtail admin or custom edit view -->
+                                            <a href="{% pageurl event %}" class="btn btn-sm btn-light text-muted">Ver</a>
+                                       </div>
+                                   </div>
+                               </div>
+                           {% endfor %}
+                       </div>
+                   {% else %}
+                        <div class="text-center py-4 bg-light rounded border border-dashed">
+                            <i class="far fa-calendar-times text-muted mb-2 fa-2x"></i>
+                           <p class="text-muted mb-0">No hay eventos programados.</p>
+                       </div>
+                   {% endif %}
+               </div>
+           </div>
+
+            <!-- Preach Materials Section -->
+            <div class="card border-0 shadow-sm mb-5">
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h4 class="fw-bold mb-0 text-secondary">
+                        <i class="fas fa-book-open me-2 text-primary"></i> Materiales de Predicación
+                    </h4>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-info text-white rounded-pill">{{ preach_materials.count }}</span>
+                        <a href="{% url 'iglesias:create_preach_material' %}" class="btn btn-sm btn-outline-info rounded-pill fw-bold">
+                            <i class="fas fa-plus me-1"></i> Nuevo Material
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    {% if preach_materials %}
+                        <div class="row row-cols-1 row-cols-md-2 g-3">
+                            {% for material in preach_materials %}
+                                <div class="col">
+                                    <div class="card h-100 border-0 shadow-sm">
+                                        <div class="card-body">
+                                            <h6 class="card-title fw-bold text-dark">{{ material.title }}</h6>
+                                            <p class="card-text small text-muted mb-2">{{ material.get_category_display }}</p>
+                                            <p class="card-text small text-muted">{{ material.uploaded_at|date:"d M, H:i" }}</p>
+                                        </div>
+                                        <div class="card-footer bg-white border-top-0 text-end">
+                                            <a href="{% url 'iglesias:preach_material_detail' material.pk %}" class="btn btn-sm btn-light text-muted">Ver</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-center py-4 bg-light rounded border border-dashed">No hay materiales de predicación.</p>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Active Members -->
+            <div class="card border-0 shadow-sm mb-4">
+                 <div class="card-header bg-white border-bottom-0 pt-4 px-4">
+                    <h4 class="fw-bold mb-0 text-secondary">
+                        <i class="fas fa-users me-2 text-primary"></i> Miembros Activos
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                     {% if active_members %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" class="border-0">Nombre</th>
+                                        <th scope="col" class="border-0">Email</th>
+                                        <th scope="col" class="border-0">Fecha Afiliación</th>
+                                        <th scope="col" class="text-end border-0">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for member in active_members %}
+                                    <tr>
+                                        <td class="border-0">
+                                            <div class="d-flex align-items-center">
+                                                {% if member.foto %}
+                                                    {% image member.foto fill-30x30 class="rounded-circle me-2" %}
+                                                {% else %}
+                                                    <div class="rounded-circle bg-light text-secondary d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
+                                                        <i class="fas fa-user mb-0" style="font-size: 0.8rem;"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <span class="fw-bold">{{ member.user.get_full_name|default:member.user.username }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-muted border-0">{{ member.user.email }}</td>
+                                        <td class="text-muted border-0">{{ member.fecha_afiliacion|date:"d M Y"|default:"-" }}</td>
+                                        <td class="text-end border-0">
+                                            <a href="#" class="btn btn-sm btn-light text-muted"><i class="fas fa-ellipsis-v"></i></a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 bg-light rounded border border-dashed">
+                             <i class="fas fa-user-friends text-muted mb-2"></i>
+                            <p class="text-muted mb-0">No hay miembros activos aún.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Actions -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-cogs me-2"></i>Gestión</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-grid gap-3">
+                        <a href="/admin/pages/{{ iglesia.id }}/edit/" class="btn btn-outline-primary fw-bold py-2 text-start">
+                            <i class="fas fa-edit me-2"></i> Editar Información de Iglesia
+                        </a>
+                        <a href="{% pageurl iglesia %}" class="btn btn-outline-secondary fw-bold py-2 text-start">
+                            <i class="fas fa-external-link-alt me-2"></i> Ver Página Pública
+                        </a>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h6 class="fw-bold text-secondary mb-3">Recursos Pastorales</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-muted"><i class="fas fa-file-alt me-2"></i> Guía de Doctrina</a></li>
+                        <li class="mb-2"><a href="#" class="text-decoration-none text-muted"><i class="fas fa-calendar-alt me-2"></i> Calendario de Eventos</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

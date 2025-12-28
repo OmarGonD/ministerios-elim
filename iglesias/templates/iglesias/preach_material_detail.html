@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+{% load wagtailimages_tags %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4">{{ material.title }}</h2>
+  <p><strong>Categoría:</strong> {{ material.get_category_display }}</p>
+  <p><strong>Subido el:</strong> {{ material.uploaded_at|date:"d M Y, H:i" }}</p>
+  {% if material.description %}
+    <p>{{ material.description }}</p>
+  {% endif %}
+  <div class="mb-3">
+    <a href="{{ material.ppt_file.url }}" class="btn btn-primary" download>Descargar PPT</a>
+    {% if material.extra_file %}
+      <a href="{{ material.extra_file.url }}" class="btn btn-secondary ms-2" download>Descargar Archivo Extra</a>
+    {% endif %}
+  </div>
+
+  <div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body d-flex align-items-center">
+      {% if material.created_by.pastores_profile.foto %}
+        {% image material.created_by.pastores_profile.foto fill-60x60 class="rounded-circle me-3" %}
+      {% else %}
+        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+            <i class="fas fa-user-tie text-muted fa-2x"></i>
+        </div>
+      {% endif %}
+      <div>
+        <h5 class="mb-0 fw-bold">{{ material.created_by.get_full_name|default:material.created_by.username }}</h5>
+        <p class="text-muted small mb-0">Pastor de {{ material.iglesia.title }}</p>
+        {% if material.created_by.pastores_profile %}
+          <a href="{% url 'pastores:biography_detail' material.created_by.pastores_profile.pk %}" class="small text-primary text-decoration-none">Ver Biografía &rarr;</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% if material.youtube_links %}
+    <h4>Enlaces de YouTube</h4>
+    <ul class="list-group">
+      {% for link in youtube_links_list %}
+        <li class="list-group-item">
+          <a href="{{ link }}" target="_blank" class="text-decoration-none">{{ link }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  <hr class="my-4">
+  <h4>Materiales relacionados</h4>
+  {% if related %}
+    <div class="row">
+      {% for rel in related %}
+        <div class="col-md-4 mb-3">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">{{ rel.title }}</h5>
+              <p class="card-text"><small class="text-muted">{{ rel.uploaded_at|date:"d M Y" }}</small></p>
+              <a href="{% url 'iglesias:preach_material_detail' rel.pk %}" class="btn btn-sm btn-outline-primary">Ver detalle</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No hay materiales relacionados.</p>
+  {% endif %}
+  <a href="{% url 'iglesias:pastor_dashboard' %}" class="btn btn-link mt-3">← Volver al panel</a>
+</div>
+{% endblock %}

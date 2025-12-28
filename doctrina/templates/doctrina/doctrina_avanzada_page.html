@@ -1,36 +1,119 @@
 {% extends "base.html" %}
-{% load wagtailcore_tags user_extras %}
+{% load static wagtailcore_tags wagtailimages_tags %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/ministerios_elim.css' %}">
+{% endblock extra_css %}
 
 {% block content %}
-  <main class="elim-main-content">
-    <section class="elim-hero doctrina-hero doctrina-avanzada-hero">
-      <div class="elim-hero-content">
-        <h1>{{ page.title }}</h1>
-        <p class="lead">{{ page.introduction|richtext }}</p>
-      </div>
-    </section>
+<!-- Level Header -->
+<div class="level-header position-relative mb-5 overflow-hidden" style="min-height: 400px; background: #000; padding-top: 100px; padding-bottom: 3rem;">
+    {% if page.image %}
+        {% image page.image fill-1920x600 class="position-absolute w-100 h-100 top-0 start-0 opacity-50" style="object-fit: cover; z-index: 1;" %}
+    {% endif %}
+    <div class="container position-relative py-5" style="z-index: 2;">
+        <div class="row">
+            <div class="col-lg-8">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-4">
+                        <li class="breadcrumb-item"><a href="/doctrina/" class="text-white opacity-75 text-decoration-none">Doctrina</a></li>
+                        <li class="breadcrumb-item active text-white fw-bold" aria-current="page">{{ page.title }}</li>
+                    </ol>
+                </nav>
+                <h1 class="display-3 fw-bold text-white mb-4">{{ page.title }}</h1>
+                
+                <!-- Action Button for Pastors -->
+                {% if user.is_authenticated and page.permissions.for_user.can_add_subpage %}
+                <div class="mb-4">
+                    <a href="{% url 'wagtailadmin_pages:add_subpage' page.id 'doctrina' 'doctrinaentrypage' %}" class="btn btn-warning rounded-0 fw-bold px-4 py-2 border-0 shadow-lg text-dark">
+                        <i class="fas fa-plus-circle me-2"></i> Crear Nueva Lección
+                    </a>
+                </div>
+                {% endif %}
 
-    <section class="elim-courses-section doctrina-entries">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 style="text-align:center; margin-bottom:1rem;">Temas - Doctrina Avanzada</h2>
-        {% if request.user.is_superuser or request.user.is_authenticated and request.user|is_pastor %}
-        <a href="{% url 'doctrina:create_entry' 'avanzada' %}" class="btn btn-primary">
-          <i class="fas fa-plus"></i> Crear Nueva Entrada
-        </a>
-        {% endif %}
-      </div>
-      <div class="elim-courses-grid">
-        {% for entry in page.get_children.live %}
-          <article class="elim-course-card doctrina-entry-card">
-            <h3><a href="{% pageurl entry %}">{{ entry.title }}</a></h3>
-            <p class="text-muted">{{ entry.specific.date }}</p>
-            <p>{{ entry.specific.introduction|default_if_none:""|truncatechars:140 }}</p>
-            <a class="elim-card-btn" href="{% pageurl entry %}">Ver</a>
-          </article>
-        {% empty %}
-          <p>No hay entradas aún.</p>
-        {% endfor %}
-      </div>
-    </section>
-  </main>
-{% endblock %}
+                <div class="lead text-white opacity-90 fs-4 mb-4" style="max-width: 700px;">
+                    {{ page.introduction|richtext }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-2 pb-5">
+    <div class="row">
+        <!-- Main Content (Lessons) -->
+        <div class="col-lg-8">
+            <h2 class="fw-bold mb-4">Lecciones y Enseñanzas</h2>
+            <div class="lessons-list">
+                {% for entry in page.get_children.live.specific %}
+                <div class="card border-0 shadow-sm rounded-0 mb-4 transition hover-shadow overflow-hidden">
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            {% if entry.image %}
+                                {% image entry.image fill-400x300 class="img-fluid h-100" style="object-fit: cover;" %}
+                            {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center h-100" style="min-height: 200px;">
+                                    <i class="fas fa-book-open fa-3x text-muted opacity-25"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body p-4">
+                                <h3 class="h4 fw-bold mb-2">
+                                    <a href="{% pageurl entry %}" class="text-decoration-none text-dark hover-primary">{{ entry.title }}</a>
+                                </h3>
+                                <p class="text-muted small mb-3">
+                                    {{ entry.abstract|striptags|truncatewords:25 }}
+                                </p>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="text-muted small"><i class="far fa-calendar me-1"></i> {{ entry.first_published_at|date:"d M, Y" }}</span>
+                                    <a href="{% pageurl entry %}" class="btn btn-sm btn-link text-primary text-decoration-none fw-bold">Estudiar Lección <i class="fas fa-arrow-right ms-1"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5 bg-light rounded-0">
+                    <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No hay lecciones disponibles en este nivel por el momento.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4 mt-5 mt-lg-0">
+            <div class="card border-0 shadow-sm rounded-0 p-4 mb-4" style="background: linear-gradient(135deg, var(--primary-color), #2980b9); color: white;">
+                <h4 class="fw-bold mb-3">Progreso Espiritual</h4>
+                <p class="small opacity-90 mb-4">La doctrina es el fundamento de nuestro crecimiento. Asegúrate de meditar en cada enseñanza.</p>
+                <div class="progress mb-3 rounded-0" style="height: 10px; background: rgba(255,255,255,0.2);">
+                    <div class="progress-bar bg-white rounded-0" role="progressbar" style="width: 15%;" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <span class="small opacity-75">15% completado de este nivel</span>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-0 p-4">
+                <h4 class="fw-bold mb-4">Otros Niveles</h4>
+                <div class="list-group list-group-flush">
+                    {% if doctrina_basica_page and page.id != doctrina_basica_page.id %}
+                    <a href="{% pageurl doctrina_basica_page %}" class="list-group-item list-group-item-action border-0 px-0 d-flex align-items-center">
+                        <i class="fas fa-seedling me-3 text-success"></i> {{ doctrina_basica_page.title }}
+                    </a>
+                    {% endif %}
+                    {% if doctrina_intermedia_page and page.id != doctrina_intermedia_page.id %}
+                    <a href="{% pageurl doctrina_intermedia_page %}" class="list-group-item list-group-item-action border-0 px-0 d-flex align-items-center">
+                        <i class="fas fa-tree me-3 text-primary"></i> {{ doctrina_intermedia_page.title }}
+                    </a>
+                    {% endif %}
+                    {% if doctrina_avanzada_page and page.id != doctrina_avanzada_page.id %}
+                    <a href="{% pageurl doctrina_avanzada_page %}" class="list-group-item list-group-item-action border-0 px-0 d-flex align-items-center">
+                        <i class="fas fa-mountain me-3 text-warning"></i> {{ doctrina_avanzada_page.title }}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

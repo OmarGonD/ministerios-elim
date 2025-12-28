@@ -11,10 +11,21 @@ from modelcluster.contrib.taggit import ClusterTaggableManager
 from django import forms
 
 # Base class for shared fields and settings
+import django.utils.timezone
 class DoctrinaBasePage(Page):
     introduction = RichTextField(blank=True, help_text="Introduction text for the page")
+    image = models.ForeignKey(
+        Image,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='+',
+        help_text="Header image for the category"
+    )
     
+    # ¡CORREGIDO! Incluye 'title' y hereda bien
     content_panels = Page.content_panels + [
+        FieldPanel('image'),
         FieldPanel('introduction'),
     ]
     
@@ -26,9 +37,30 @@ class DoctrinaBasePage(Page):
         abstract = True
 
 
+# Doctrina Index Page
+class DoctrinaIndexPage(DoctrinaBasePage):
+    template = 'doctrina/doctrina_index_page.html'
+    parent_page_types = ['home.HomePage']
+    subpage_types = ['doctrina.DoctrinaBasicaPage', 'doctrina.DoctrinaIntermediaPage', 'doctrina.DoctrinaAvanzadaPage']
+
+    def get_context(self, request):
+        context = super().get_context(request)
+        context['levels'] = self.get_children().live()
+        # Note: We'll need to handle DoctrinaEntryPage specifically if it's not imported yet, 
+        # but it's defined later in the same file.
+        context['recent_entries'] = DoctrinaEntryPage.objects.live().descendant_of(self).order_by('-first_published_at')[:6]
+        return context
+
+    class Meta:
+        verbose_name = "Doctrina Index"
+
+
+
+
 # Doctrina Basica Page
 class DoctrinaBasicaPage(DoctrinaBasePage):
     template = 'doctrina/doctrina_basica_page.html'
+    parent_page_types = ['home.HomePage', 'doctrina.DoctrinaIndexPage']  # Allow migration/nested structure
     subpage_types = ['doctrina.DoctrinaEntryPage']
 
     class Meta:
@@ -37,6 +69,7 @@ class DoctrinaBasicaPage(DoctrinaBasePage):
 # Doctrina Intermedia Page
 class DoctrinaIntermediaPage(DoctrinaBasePage):
     template = 'doctrina/doctrina_intermedia_page.html'
+    parent_page_types = ['home.HomePage', 'doctrina.DoctrinaIndexPage']
     subpage_types = ['doctrina.DoctrinaEntryPage']
 
     class Meta:
@@ -45,10 +78,15 @@ class DoctrinaIntermediaPage(DoctrinaBasePage):
 # Doctrina Avanzada Page
 class DoctrinaAvanzadaPage(DoctrinaBasePage):
     template = 'doctrina/doctrina_avanzada_page.html'
+    parent_page_types = ['home.HomePage', 'doctrina.DoctrinaIndexPage']
     subpage_types = ['doctrina.DoctrinaEntryPage']
 
     class Meta:
         verbose_name = "Doctrina Avanzada"
+    
+    def clean(self):
+        super().clean()
+        # Add any custom validation here if needed
 
 # Entry Page for blog-like subpages
 
@@ -64,11 +102,11 @@ class DoctrinaEntryPageTag(TaggedItemBase):
 
 class DoctrinaEntryPage(Page):
     date = models.DateField(
-        "Post date",
-        default=None,  # Will be set in clean() method
+        "Fecha de Publicación",
+        default=django.utils.timezone.now,
         blank=True,
-        null=True,  # Allow NULL in database
-        help_text="Date the entry was created"
+        null=True,
+        help_text="Fecha de creación de la entrada"
     )
     body = RichTextField(
         blank=True,
@@ -115,51 +153,43 @@ class DoctrinaEntryPage(Page):
         auto_now=True,
         help_text="Date the entry was last modified"
     )
+    apostle_last_edit_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Date when the Apostle last edited this entry"
+    )
 
-    def get_parent(self, *args, **kwargs):
-        # Only override if we have dummy path values during form validation
-        if hasattr(self, '_skip_parent_validation') and self._skip_parent_validation:
-            return None
-        return super().get_parent(*args, **kwargs)
 
-    def full_clean(self, *args, **kwargs):
-        # Handle validation when path/depth are not set (during form validation)
-        if not self.path or not self.depth or self.path.startswith('9999'):
-            # Mark that we should skip parent validation
-            self._skip_parent_validation = True
 
-            try:
-                # Call the parent validation without path validation
-                super().full_clean(*args, **kwargs)
-            finally:
-                # Clean up the flag
-                if hasattr(self, '_skip_parent_validation'):
-                    delattr(self, '_skip_parent_validation')
-        else:
-            super().full_clean(*args, **kwargs)
-
-    content_panels = Page.content_panels + [
-        FieldPanel('title'),
-        MultiFieldPanel(
-            [
-                FieldPanel('image'),
-                FieldPanel('abstract'),
-                FieldPanel('tags', widget=forms.CheckboxSelectMultiple),
-                FieldPanel('body'),
-                FieldPanel('references'),
-            ],
-            heading="Content",
-        ),
-        MultiFieldPanel(
-            [
-                FieldPanel('date'),
-                FieldPanel('created_by', read_only=True),
-                FieldPanel('last_modified_by', read_only=True),
-                FieldPanel('last_modified_date', read_only=True),
-            ],
-            heading="Entry Details",
-        ),
+    content_panels = [
+        FieldPanel('title', classname="full title"),
+        FieldPanel('slug'),
+        FieldPanel('body'),
+        # Page.content_panels is usually just title? simpler to be explicit.
     ]
+    # content_panels = Page.content_panels + [
+    #     MultiFieldPanel(
+    #         [
+    #             FieldPanel('slug'), # Debugging: Expose slug to check for validation
+    #             FieldPanel('image'),
+    #             FieldPanel('abstract'),
+    #             FieldPanel('tags'),
+    #             FieldPanel('body'),
+    #             FieldPanel('references'),
+    #         ],
+    #         heading="Contenido",
+    #     ),
+    #     MultiFieldPanel(
+    #         [
+    #             FieldPanel('date'),
+    #             FieldPanel('created_by', read_only=True),
+    #             FieldPanel('last_modified_by', read_only=True),
+    #             # FieldPanel('last_modified_date', read_only=True),
+    #             FieldPanel('apostle_last_edit_date', read_only=True),
+    #         ],
+    #         heading="Metadatos",
+    #     ),
+    # ]
 
     # Set default values for required fields
     def __init__(self, *args, **kwargs):

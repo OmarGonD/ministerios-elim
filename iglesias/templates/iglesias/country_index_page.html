@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4 display-4 text-center">{{ page.title }}</h1>
+    
+    <div class="row">
+        {% for city in page.get_children.live %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title fw-bold">{{ city.title }}</h5>
+                    <a href="{% pageurl city %}" class="btn btn-outline-primary mt-3 rounded-pill">Ver Iglesias</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center text-muted">
+            <p>No hay ciudades registradas aún.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

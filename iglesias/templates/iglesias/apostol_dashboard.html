@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+<div class="bg-primary text-white py-5 mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-5 fw-bold mb-2">
+                    <i class="fas fa-crown me-3 text-warning"></i>Panel del Apóstol
+                </h1>
+                <p class="lead opacity-75 mb-0">Gestión de Pastores y Supervisión</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <span class="badge bg-white text-primary fs-6 px-3 py-2 rounded-pill">
+                    <i class="fas fa-user-tie me-2"></i> {{ request.user.get_full_name|default:request.user.username }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <!-- Stats Cards -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm bg-primary text-white">
+                <div class="card-body text-center py-4">
+                    <i class="fas fa-users fa-2x mb-3 opacity-75"></i>
+                    <h2 class="display-5 fw-bold mb-1">{{ total_pastores }}</h2>
+                    <p class="mb-0 opacity-75">Pastores Elim</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm bg-success text-white">
+                <div class="card-body text-center py-4">
+                    <i class="fas fa-user-shield fa-2x mb-3 opacity-75"></i>
+                    <h2 class="display-5 fw-bold mb-1">{{ superpastores_count }}</h2>
+                    <p class="mb-0 opacity-75">Pastores de Pastores</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm bg-info text-white">
+                <div class="card-body text-center py-4">
+                    <i class="fas fa-cross fa-2x mb-3 opacity-75"></i>
+                    <h2 class="display-5 fw-bold mb-1">{{ total_pastores|add:superpastores_count }}</h2>
+                    <p class="mb-0 opacity-75">Total Ministerio</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pastores Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom-0 pt-4 px-4">
+            <h4 class="fw-bold mb-0 text-secondary">
+                <i class="fas fa-user-tie me-2 text-primary"></i> Gestión de Pastores
+            </h4>
+            <p class="text-muted small mt-1 mb-0">Administra los roles de los pastores en el ministerio</p>
+        </div>
+        <div class="card-body p-4">
+            {% if pastores %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" class="border-0">Pastor</th>
+                                <th scope="col" class="border-0">Email</th>
+                                <th scope="col" class="border-0">Iglesia</th>
+                                <th scope="col" class="border-0 text-center">Estado</th>
+                                <th scope="col" class="border-0 text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pastor in pastores %}
+                            <tr>
+                                <td class="border-0">
+                                    <div class="d-flex align-items-center">
+                                        {% if pastor.foto %}
+                                            {% image pastor.foto fill-45x45 class="rounded-circle me-3 border border-2 border-light shadow-sm" %}
+                                        {% else %}
+                                            <div class="rounded-circle bg-light text-secondary d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 45px; height: 45px;">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">{{ pastor.user.get_full_name|default:pastor.user.username }}</h6>
+                                            <small class="text-muted">{{ pastor.country.name|default:"-" }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-muted border-0">{{ pastor.user.email }}</td>
+                                <td class="text-muted border-0">{{ pastor.iglesia.title|default:pastor.iglesia_principal|default:"-" }}</td>
+                                <td class="text-center border-0">
+                                    <span class="badge {% if pastor.is_apostle %}bg-primary{% elif pastor.is_superpastor %}bg-success{% else %}bg-secondary{% endif %} rounded-pill px-3 py-2">
+                                        <i class="fas {% if pastor.is_apostle %}fa-crown{% elif pastor.is_superpastor %}fa-star{% else %}fa-user{% endif %} me-1"></i> {{ pastor.role_display }}
+                                    </span>
+                                </td>
+                                <td class="text-end border-0">
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="pastor_id" value="{{ pastor.id }}">
+                                        {% if pastor.is_superpastor %}
+                                            <button type="submit" name="action" value="demote" 
+                                                    class="btn btn-sm btn-outline-warning rounded-pill px-3"
+                                                    onclick="return confirm('¿Deseas quitar el rol de Pastor de Pastores a {{ pastor.user.get_full_name|default:pastor.user.username }}?')">
+                                                <i class="fas fa-chevron-down me-1"></i> Quitar Rol
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" name="action" value="upgrade" 
+                                                    class="btn btn-sm btn-success rounded-pill px-3">
+                                                <i class="fas fa-crown me-1"></i> Promover
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-4x text-muted opacity-25 mb-3"></i>
+                    <h5 class="text-muted">No hay pastores registrados</h5>
+                    <p class="text-muted small">Los pastores que se registren aparecerán aquí.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-5">
+        <div class="col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-book-open me-2 text-primary"></i> Doctrina
+                    </h5>
+                    <p class="text-muted small">Accede a la administración de Doctrina para crear y editar contenido.</p>
+                    <a href="/admin/pages/" class="btn btn-outline-primary rounded-pill">
+                        <i class="fas fa-edit me-2"></i> Ir al Panel de Wagtail
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-church me-2 text-info"></i> Iglesias
+                    </h5>
+                    <p class="text-muted small">Explora todas las iglesias del ministerio.</p>
+                    <a href="{% url 'iglesias:index' %}" class="btn btn-outline-info rounded-pill">
+                        <i class="fas fa-list me-2"></i> Ver Iglesias
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

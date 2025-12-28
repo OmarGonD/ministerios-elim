@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% pageurl page.get_parent %}">{{ page.get_parent.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ page.title }}</li>
+        </ol>
+    </nav>
+
+    <h1 class="mb-4 display-4 text-center">Iglesias en {{ page.title }}</h1>
+    
+    <p class="lead text-center text-muted mb-5">{{ page.introduction }}</p>
+    
+    <div class="row">
+        {% for iglesia in page.get_children.live %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm border-0 overflow-hidden">
+                <div class="row g-0 h-100">
+                    <div class="col-4 bg-light d-flex align-items-center justify-content-center">
+                        {% if iglesia.specific.logo %}
+                            {% load wagtailimages_tags %}
+                            {% image iglesia.specific.logo fill-150x150 class="img-fluid rounded-circle p-2" %}
+                        {% else %}
+                            <i class="fas fa-church fa-3x text-secondary opacity-50"></i>
+                        {% endif %}
+                    </div>
+                    <div class="col-8">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">{{ iglesia.title }}</h5>
+                            <p class="card-text small text-muted"><i class="fas fa-map-marker-alt me-1"></i> {{ iglesia.specific.address }}</p>
+                            <a href="{% pageurl iglesia %}" class="btn btn-sm btn-primary rounded-pill">Visitar Página</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center text-muted">
+            <p>No hay iglesias registradas en esta ciudad aún.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
