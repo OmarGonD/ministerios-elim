@@ -177,21 +177,7 @@
 {% block content %}
 <article class="doctrina-entry-container">
     
-    <!-- Admin Controls (Only for Authorized Users) -->
-    {% if user.is_authenticated %}
-    <div class="admin-controls-floating">
-        {% if page.permissions.for_user.can_edit %}
-        <a href="{% url 'wagtailadmin_pages:edit' page.id %}" target="_blank" class="admin-btn-floating btn-dark" title="Editar Entrada">
-            <i class="fas fa-pen"></i>
-        </a>
-        {% endif %}
-        {% if user|is_apostle or user|is_superpastor %}
-        <a href="{% url 'wagtailadmin_pages:delete' page.id %}" target="_blank" class="admin-btn-floating btn-danger" title="Eliminar Entrada" onclick="return confirm('¿Está seguro que desea eliminar esta entrada?');">
-            <i class="fas fa-trash-alt"></i>
-        </a>
-        {% endif %}
-    </div>
-    {% endif %}
+    {# Admin controls moved to header section below #}
 
     <!-- Header Section -->
     <header class="entry-hero-section">
@@ -210,11 +196,28 @@
                 <span><i class="far fa-calendar-alt me-2"></i> {{ page.first_published_at|date:"d M, Y" }}</span>
                 <div class="meta-divider"></div>
                 {% if page.owner %}
-                <span><i class="far fa-user me-2"></i> Por {{ page.owner.get_full_name|default:page.owner.username }}</span>
+                <span><i class="far fa-user me-2"></i> Por 
+                    {% if page.owner|is_apostle %}Ap. {% elif page.owner|is_pastor or page.owner|is_superpastor %}Pr. {% endif %}{{ page.owner.get_full_name|default:page.owner.username }}</span>
                 {% endif %}
                 <div class="meta-divider"></div>
                 <span title="Tiempo de lectura estimado"><i class="far fa-clock me-2"></i> 5 min de lectura</span>
             </div>
+
+            <!-- Admin Controls - Visible in Header -->
+            {% if user.is_authenticated %}
+                {% if page.owner == user or user|is_apostle or user|is_superpastor or user|is_pastor %}
+                <div class="admin-controls-header mt-4">
+                    <a href="{% url 'wagtailadmin_pages:edit' page.id %}" target="_blank" class="btn btn-dark btn-sm px-4 py-2 me-2">
+                        <i class="fas fa-pen me-2"></i> Editar Entrada
+                    </a>
+                    {% if user|is_apostle or user|is_superpastor %}
+                    <a href="{% url 'wagtailadmin_pages:delete' page.id %}" target="_blank" class="btn btn-outline-danger btn-sm px-4 py-2" onclick="return confirm('¿Está seguro que desea eliminar esta entrada?');">
+                        <i class="fas fa-trash-alt me-2"></i> Eliminar
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            {% endif %}
 
             {% if page.apostle_last_edit_date %}
             <div class="apostle-stamp-elegant shadow-sm">
@@ -252,6 +255,41 @@
                 <div class="entry-body-elegant rich-text">
                     {{ page.body|richtext }}
                 </div>
+
+                <!-- YouTube Videos -->
+                {% if page.youtube_videos.all %}
+                <div class="youtube-videos-section my-5">
+                    <h4 class="fw-bold mb-4" style="font-family: 'Playfair Display', serif;">
+                        <i class="fab fa-youtube text-danger me-2"></i> Videos Relacionados
+                    </h4>
+                    <div class="row g-4">
+                        {% for video in page.youtube_videos.all %}
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="ratio ratio-16x9">
+                                    {% with video.url as url %}
+                                        {% if 'youtube.com/watch?v=' in url %}
+                                            <iframe src="https://www.youtube.com/embed/{{ url|cut:'https://www.youtube.com/watch?v='|truncatechars:11 }}" title="{{ video.title|default:'Video de YouTube' }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                        {% elif 'youtu.be/' in url %}
+                                            <iframe src="https://www.youtube.com/embed/{{ url|cut:'https://youtu.be/' }}" title="{{ video.title|default:'Video de YouTube' }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                        {% else %}
+                                            <a href="{{ url }}" target="_blank" class="d-flex align-items-center justify-content-center bg-dark text-white">
+                                                <i class="fab fa-youtube fa-3x"></i>
+                                            </a>
+                                        {% endif %}
+                                    {% endwith %}
+                                </div>
+                                {% if video.title %}
+                                <div class="card-body py-3">
+                                    <p class="card-text mb-0 fw-medium">{{ video.title }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
 
                 <!-- References -->
                 {% if page.references %}
@@ -299,7 +337,7 @@
                             {% if page.owner %}
                             <div class="d-inline-flex flex-column align-items-md-end">
                                 <span class="text-muted small">Escrito por:</span>
-                                <span class="fw-bold fs-6">{{ page.owner.get_full_name|default:page.owner.username }}</span>
+                                <span class="fw-bold fs-6">{% if page.owner|is_apostle %}Ap. {% elif page.owner|is_pastor or page.owner|is_superpastor %}Pr. {% endif %}{{ page.owner.get_full_name|default:page.owner.username }}</span>
                             </div>
                             {% endif %}
                         </div>

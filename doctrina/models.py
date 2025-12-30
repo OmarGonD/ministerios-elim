@@ -1,7 +1,7 @@
 from django.db import models
-from wagtail.models import Page
+from wagtail.models import Page, Orderable
 from wagtail.fields import RichTextField
-from wagtail.admin.panels import FieldPanel, MultiFieldPanel
+from wagtail.admin.panels import FieldPanel, MultiFieldPanel, InlinePanel
 from django.contrib.auth.models import User
 from wagtail.search import index
 from wagtail.images.models import Image
@@ -9,6 +9,7 @@ from taggit.models import TaggedItemBase
 from modelcluster.fields import ParentalKey
 from modelcluster.contrib.taggit import ClusterTaggableManager
 from django import forms
+from django.utils.text import slugify
 
 # Base class for shared fields and settings
 import django.utils.timezone
@@ -100,6 +101,52 @@ class DoctrinaEntryPageTag(TaggedItemBase):
         on_delete=models.CASCADE
     )
 
+
+class DoctrinaYouTubeVideo(Orderable):
+    """Model for storing YouTube video URLs related to a DoctrinaEntryPage."""
+    page = ParentalKey(
+        'DoctrinaEntryPage',
+        on_delete=models.CASCADE,
+        related_name='youtube_videos'
+    )
+    url = models.URLField(
+        "URL de YouTube",
+        help_text="Enlace completo del video de YouTube (ej: https://www.youtube.com/watch?v=...)"
+    )
+    title = models.CharField(
+        "Título del video",
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Título descriptivo del video (se obtiene automáticamente si lo dejas vacío)"
+    )
+
+    panels = [
+        FieldPanel('url'),
+        FieldPanel('title'),
+    ]
+
+    def save(self, *args, **kwargs):
+        """Auto-fetch YouTube title if not provided."""
+        if self.url and not self.title:
+            try:
+                import urllib.request
+                import urllib.parse
+                import json
+                
+                # Use YouTube oEmbed API to get video info
+                oembed_url = f"https://www.youtube.com/oembed?url={urllib.parse.quote(self.url, safe='')}&format=json"
+                with urllib.request.urlopen(oembed_url, timeout=5) as response:
+                    data = json.loads(response.read().decode())
+                    self.title = data.get('title', '')[:255]  # Limit to field max_length
+            except Exception:
+                pass  # If fetching fails, just leave title empty
+        super().save(*args, **kwargs)
+
+    class Meta(Orderable.Meta):
+        verbose_name = "Video de YouTube"
+        verbose_name_plural = "Videos de YouTube"
+
 class DoctrinaEntryPage(Page):
     date = models.DateField(
         "Fecha de Publicación",
@@ -109,8 +156,16 @@ class DoctrinaEntryPage(Page):
         help_text="Fecha de creación de la entrada"
     )
     body = RichTextField(
+        "Contenido",
         blank=True,
-        help_text="Main content of the entry"
+        help_text="Contenido principal de la lección"
+    )
+    subtitle = models.CharField(
+        "Subtítulo",
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Subtítulo opcional para la lección"
     )
     image = models.ForeignKey(
         Image,
@@ -161,11 +216,11 @@ class DoctrinaEntryPage(Page):
 
 
 
-    content_panels = [
-        FieldPanel('title', classname="full title"),
-        FieldPanel('slug'),
+    content_panels = Page.content_panels + [
+        FieldPanel('subtitle'),
         FieldPanel('body'),
-        # Page.content_panels is usually just title? simpler to be explicit.
+        InlinePanel('youtube_videos', label="Videos de YouTube", heading="Videos Relacionados"),
+        # Slug is auto-generated from title, no need to show it
     ]
     # content_panels = Page.content_panels + [
     #     MultiFieldPanel(
@@ -196,6 +251,37 @@ class DoctrinaEntryPage(Page):
         super().__init__(*args, **kwargs)
         if not self.show_in_menus:
             self.show_in_menus = True  # Default to showing in menus
+
+    def full_clean(self, *args, **kwargs):
+        """
+        Auto-generate slug from title if not set.
+        Handle duplicates by appending incremental numbers.
+        """
+        # Auto-generate slug from title if empty or not set
+        if self.title and (not self.slug or self.slug == ''):
+            base_slug = slugify(self.title)
+            if not base_slug:
+                base_slug = 'entrada'
+            
+            # Check for existing slugs and make unique
+            slug = base_slug
+            counter = 1
+            
+            # Get sibling pages (same parent)
+            siblings = Page.objects.filter(path__startswith=self.path[:len(self.path)-4] if self.path else '').exclude(pk=self.pk)
+            existing_slugs = set(siblings.values_list('slug', flat=True))
+            
+            # Also check globally for safety
+            all_slugs = set(Page.objects.exclude(pk=self.pk).values_list('slug', flat=True))
+            existing_slugs = existing_slugs.union(all_slugs)
+            
+            while slug in existing_slugs:
+                counter += 1
+                slug = f"{base_slug}-{counter}"
+            
+            self.slug = slug
+        
+        super().full_clean(*args, **kwargs)
 
     search_fields = Page.search_fields + [
         index.SearchField('body'),

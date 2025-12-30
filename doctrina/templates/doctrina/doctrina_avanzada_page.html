@@ -23,12 +23,14 @@
                 <h1 class="display-3 fw-bold text-white mb-4">{{ page.title }}</h1>
                 
                 <!-- Action Button for Pastors -->
-                {% if user.is_authenticated and page.permissions.for_user.can_add_subpage %}
-                <div class="mb-4">
-                    <a href="{% url 'wagtailadmin_pages:add_subpage' page.id 'doctrina' 'doctrinaentrypage' %}" class="btn btn-warning rounded-0 fw-bold px-4 py-2 border-0 shadow-lg text-dark">
-                        <i class="fas fa-plus-circle me-2"></i> Crear Nueva Lección
-                    </a>
-                </div>
+                {% if user.is_authenticated %}
+                    {% if user|is_pastor or user|is_superpastor or user|is_apostle %}
+                    <div class="mb-4">
+                        <a href="{% url 'wagtailadmin_pages:add_subpage' page.id %}" class="btn btn-warning rounded-0 fw-bold px-4 py-2 border-0 shadow-lg text-dark">
+                            <i class="fas fa-plus-circle me-2"></i> Crear Nueva Lección
+                        </a>
+                    </div>
+                    {% endif %}
                 {% endif %}
 
                 <div class="lead text-white opacity-90 fs-4 mb-4" style="max-width: 700px;">

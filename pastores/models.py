@@ -60,7 +60,7 @@ class UserProfile(models.Model):
 def manage_user_group(sender, instance, created, **kwargs):
     """
     Manage Django groups based on UserProfile role and flags:
-    - pastor_elim → Pastores group
+    - pastor_elim → Pastores group + is_staff (for Wagtail admin)
     - is_apostle → Apostol group  
     - is_superpastor → Pastor de Pastores group
     """
@@ -68,16 +68,32 @@ def manage_user_group(sender, instance, created, **kwargs):
     
     try:
         # Pastores group (for pastor_elim role)
-        pastores_group, _ = Group.objects.get_or_create(name='Pastores')
+        pastores_group, group_created = Group.objects.get_or_create(name='Pastores')
         if instance.role == UserProfile.ROLE_PASTOR:
             instance.user.groups.add(pastores_group)
+            # Grant is_staff for Wagtail admin access
+            if not instance.user.is_staff:
+                instance.user.is_staff = True
+                instance.user.save(update_fields=['is_staff'])
         else:
             instance.user.groups.remove(pastores_group)
+        
+        # Set up Wagtail page permissions for the Pastores group if newly created
+        if group_created:
+            try:
+                from pastores.permissions import setup_pastor_group_permissions
+                setup_pastor_group_permissions(pastores_group)
+            except Exception:
+                pass  # Permissions will be set up by management command instead
         
         # Apostol group (set only via is_apostle flag by superuser)
         apostol_group, _ = Group.objects.get_or_create(name='Apostol')
         if instance.is_apostle:
             instance.user.groups.add(apostol_group)
+            # Apostles also need staff access
+            if not instance.user.is_staff:
+                instance.user.is_staff = True
+                instance.user.save(update_fields=['is_staff'])
         else:
             instance.user.groups.remove(apostol_group)
         
@@ -85,6 +101,10 @@ def manage_user_group(sender, instance, created, **kwargs):
         superpastor_group, _ = Group.objects.get_or_create(name='Pastor de Pastores')
         if instance.is_superpastor:
             instance.user.groups.add(superpastor_group)
+            # Superpastores also need staff access
+            if not instance.user.is_staff:
+                instance.user.is_staff = True
+                instance.user.save(update_fields=['is_staff'])
         else:
             instance.user.groups.remove(superpastor_group)
     except Exception:

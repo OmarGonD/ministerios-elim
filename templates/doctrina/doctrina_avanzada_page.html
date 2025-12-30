@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load wagtailcore_tags wagtailimages_tags %}
+{% load wagtailcore_tags wagtailimages_tags user_extras %}
 
 {% block extra_css %}
 <style>
@@ -52,6 +52,17 @@
                 <span class="badge bg-danger text-white mb-2">LIDERAZGO Y TEOLOGÍA</span>
                 <h1 class="display-4 fw-bold">{{ page.title }}</h1>
                 <p class="lead mb-4">{{ page.introduction|striptags }}</p>
+                
+                <!-- Action Button for Pastors -->
+                {% if user.is_authenticated %}
+                    {% if user|is_pastor or user|is_superpastor or user|is_apostle %}
+                    <div class="mb-4">
+                        <a href="{% url 'wagtailadmin_pages:add_subpage' page.id %}" class="btn btn-warning rounded-0 fw-bold px-4 py-2 border-0 shadow-lg text-dark">
+                            <i class="fas fa-plus-circle me-2"></i> Crear Nueva Lección
+                        </a>
+                    </div>
+                    {% endif %}
+                {% endif %}
                 <div class="d-flex align-items-center">
                     <div class="instructor-avatar me-3">
                         <i class="fas fa-user-graduate"></i>
