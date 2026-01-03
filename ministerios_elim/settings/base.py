@@ -200,5 +200,6 @@ CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
 CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
 CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'")
 CSP_CONNECT_SRC = ("'self'",)
-CSP_FRAME_SRC = ("'self'",)
+CSP_FRAME_SRC = ("'self'", "https://www.youtube.com", "https://youtube.com")
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 CSP_OBJECT_SRC = ("'none'",)

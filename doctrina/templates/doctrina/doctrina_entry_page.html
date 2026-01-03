@@ -199,6 +199,21 @@
                 width: 100%;
             }
         }
+
+        /* Dark Mode Specifics for Cards */
+        [data-theme="dark"] .card {
+            background-color: var(--card-bg) !important;
+            border-color: var(--border-color) !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
+        }
+
+        [data-theme="dark"] .card-text {
+            color: var(--text-color) !important;
+        }
+
+        [data-theme="dark"] .youtube-videos-section h4 {
+            color: var(--primary-color) !important;
+        }
     </style>
 {% endblock extra_css %}
 
@@ -302,7 +317,7 @@
                                 <div class="ratio ratio-16x9">
                                     {% with video.url|get_youtube_id as video_id %}
                                         {% if video_id %}
-                                            <iframe src="https://www.youtube.com/embed/{{ video_id }}" title="{{ video.title|default:'Video de YouTube' }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                            <iframe src="https://www.youtube.com/embed/{{ video_id }}" title="{{ video.title|default:'Video de YouTube' }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                                         {% else %}
                                             <a href="{{ video.url }}" target="_blank" class="d-flex align-items-center justify-content-center bg-dark text-white">
                                                 <i class="fab fa-youtube fa-3x"></i>

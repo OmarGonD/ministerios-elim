@@ -32,6 +32,7 @@
         <meta name="description" content="{{ page.search_description }}" />
         {% endif %}
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="referrer" content="strict-origin-when-cross-origin">
 
         {# Force all links in the live preview panel to be opened in a new tab #}
         {% if request.in_preview_panel %}
@@ -56,6 +57,81 @@
   {% block extra_css %}
   {# Override this in templates to add extra css #}
   {% endblock %}
+
+        <style>
+            /* Welcome Modal - Premium Elegance */
+            .welcome-modal-content {
+                background-color: var(--card-bg) !important;
+                border: none;
+                border-radius: 0 !important;
+                box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+                overflow: hidden;
+                border-top: 5px solid var(--primary-color);
+            }
+
+            .welcome-modal-header {
+                border-bottom: none;
+                text-align: center;
+                padding-top: 2.5rem;
+                display: block !important;
+            }
+
+            .welcome-modal-header .welcome-icon {
+                font-size: 3.5rem;
+                background: var(--gold-gradient);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-bottom: 1.5rem;
+            }
+
+            .welcome-modal-title {
+                font-family: 'Playfair Display', serif;
+                font-weight: 700;
+                font-size: 2.2rem;
+                color: var(--text-color) !important;
+                margin-bottom: 0.5rem;
+            }
+
+            .modal-body.welcome-modal-body {
+                padding: 1rem 3rem 2.5rem;
+                text-align: center;
+            }
+
+            .welcome-modal-message {
+                font-family: 'Inter', sans-serif;
+                font-size: 1.1rem;
+                line-height: 1.6;
+                color: var(--text-muted) !important;
+                margin-bottom: 2rem;
+            }
+
+            .welcome-gold-btn {
+                background: var(--gold-gradient);
+                color: #000 !important;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+                padding: 12px 40px;
+                border: none;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            }
+
+            .welcome-gold-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
+                color: #000 !important;
+            }
+
+            [data-theme="dark"] .welcome-modal-content {
+                background-color: #1a1a1a !important;
+            }
+
+            @media (max-width: 576px) {
+                .welcome-modal-title { font-size: 1.8rem; }
+                .modal-body.welcome-modal-body { padding: 1rem 1.5rem 2rem; }
+            }
+        </style>
     </head>
 
     <body class="{% block body_class %}{% endblock %}">
@@ -633,19 +709,40 @@
   </div>
 </div>
 
-        <!-- Success/Error Modal -->
+        <!-- Message Modal (Standard for Errors/Info) -->
         <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel">
           <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content" style="border-radius: 0; border: none; border-top: 4px solid var(--primary-color);">
               <div class="modal-header" id="messageModalHeader">
-                <h5 class="modal-title" id="messageModalLabel" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: 600;">Mensaje</h5>
+                <h5 class="modal-title" id="messageModalLabel" style="font-family: 'Montserrat', sans-serif; font-weight: 700;">Mensaje</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <div class="modal-body" id="messageModalBody" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 16px; line-height: 1.5;">
+              <div class="modal-body" id="messageModalBody" style="font-family: 'Inter', sans-serif; font-size: 16px; line-height: 1.5; padding: 2rem;">
                 <!-- Message content will be inserted here -->
               </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Aceptar</button>
+              <div class="modal-footer" style="border-top: none;">
+                <button type="button" class="btn btn-dark w-100 py-3" data-bs-dismiss="modal" style="font-weight: 600; border-radius: 0;">Aceptar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Elegant Welcome Modal -->
+        <div class="modal fade" id="welcomeModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content welcome-modal-content">
+              <div class="welcome-modal-header">
+                <div class="welcome-icon">
+                  <i class="fas fa-dove"></i>
+                </div>
+                <h2 class="welcome-modal-title">¡Bienvenido!</h2>
+                <button type="button" class="btn-close position-absolute" data-bs-dismiss="modal" aria-label="Close" style="top: 20px; right: 20px;"></button>
+              </div>
+              <div class="welcome-modal-body">
+                <p id="welcomeModalMessage" class="welcome-modal-message">
+                  Nos alegra tenerte de vuelta en Ministerios Elim.
+                </p>
+                <button type="button" class="btn welcome-gold-btn" data-bs-dismiss="modal">Continuar</button>
               </div>
             </div>
           </div>
@@ -994,9 +1091,27 @@
           showMessageModal(message, false);
         };
 
-        // Function to show success messages
+        // Function to show success messages (Elegant Welcome)
         function showSuccess(message) {
-          showMessageModal(message, true);
+          if (message.includes('éxito') || message.includes('bienvenido')) {
+            showWelcomeModal(message);
+          } else {
+            showMessageModal(message, true);
+          }
+        }
+
+        function showWelcomeModal(message) {
+          const modalElement = document.getElementById('welcomeModal');
+          const messageElement = document.getElementById('welcomeModalMessage');
+          
+          if (message) {
+            messageElement.textContent = message;
+          }
+          
+          const modal = new bootstrap.Modal(modalElement, {
+            backdrop: 'static'
+          });
+          modal.show();
         }
 
         // Function to show error messages
