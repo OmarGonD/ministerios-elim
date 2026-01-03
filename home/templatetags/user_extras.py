@@ -105,4 +105,30 @@ def reading_time(html_content):
     words = len(re.findall(r'\w+', text))
     # Average reading speed: 200 words per minute
     minutes = round(words / 200)
-    return max(1, minutes)
+@register.filter
+def get_youtube_id(url):
+    """
+    Extract the 11-character YouTube video ID from various URL formats.
+    Supported formats:
+    - https://www.youtube.com/watch?v=xxxxxxxxxxx
+    - https://youtu.be/xxxxxxxxxxx
+    - https://www.youtube.com/embed/xxxxxxxxxxx
+    - https://youtube.com/v/xxxxxxxxxxx
+    """
+    if not url:
+        return ""
+    
+    import re
+    # Regex to find 11 character ID
+    # Matches after v=, after be/, after embed/, or after v/
+    regex = r'(?:v=|\/be\/|\/embed\/|\/v\/|shorts\/)([a-zA-Z0-9_-]{11})'
+    match = re.search(regex, url)
+    
+    if match:
+        return match.group(1)
+    
+    # Fallback for very simple formats if regex fails
+    if len(url) == 11:
+        return url
+        
+    return ""

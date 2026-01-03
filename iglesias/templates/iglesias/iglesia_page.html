@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load wagtailcore_tags wagtailimages_tags %}
+{% load wagtailcore_tags wagtailimages_tags user_extras %}
 {% load static %}
 
 {% block extra_css %}
@@ -285,7 +285,7 @@
                              <span class="badge bg-danger animate__animated animate__pulse animate__infinite rounded-0">TRANSMITIENDO AHORA</span>
                         </div>
                         <div class="ratio ratio-16x9 rounded-0 overflow-hidden shadow">
-                            <iframe src="https://www.youtube.com/embed/{{ live_sermon.youtube_url|cut:'https://www.youtube.com/watch?v='|cut:'https://youtu.be/' }}" allowfullscreen></iframe>
+                            <iframe src="https://www.youtube.com/embed/{{ live_sermon.youtube_url|get_youtube_id }}" allowfullscreen></iframe>
                         </div>
                     </div>
                 {% endwith %}

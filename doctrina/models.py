@@ -270,13 +270,21 @@ class DoctrinaEntryPage(Page):
         """
         Auto-generate slug from title if not set.
         Handle duplicates by appending incremental numbers.
+        Ensure slugs are always ASCII-only (no accents).
         """
-        # Auto-generate slug from title if empty or not set
-        if self.title and (not self.slug or self.slug == ''):
+        # Determine the base slug to use
+        if self.slug and self.slug != '':
+            base_slug = slugify(self.slug)
+        elif self.title:
             base_slug = slugify(self.title)
-            if not base_slug:
-                base_slug = 'entrada'
-            
+        else:
+            base_slug = 'entrada'
+
+        if not base_slug:
+            base_slug = 'entrada'
+        
+        # If the current slug is different from the sanitized version, or if it was empty, update it
+        if self.slug != base_slug or (not self.slug or self.slug == ''):
             # Check for existing slugs and make unique
             slug = base_slug
             counter = 1

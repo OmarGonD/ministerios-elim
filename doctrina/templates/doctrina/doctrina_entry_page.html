@@ -300,13 +300,11 @@
                         <div class="col-md-6">
                             <div class="card border-0 shadow-sm h-100">
                                 <div class="ratio ratio-16x9">
-                                    {% with video.url as url %}
-                                        {% if 'youtube.com/watch?v=' in url %}
-                                            <iframe src="https://www.youtube.com/embed/{{ url|cut:'https://www.youtube.com/watch?v='|truncatechars:11 }}" title="{{ video.title|default:'Video de YouTube' }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                                        {% elif 'youtu.be/' in url %}
-                                            <iframe src="https://www.youtube.com/embed/{{ url|cut:'https://youtu.be/' }}" title="{{ video.title|default:'Video de YouTube' }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                    {% with video.url|get_youtube_id as video_id %}
+                                        {% if video_id %}
+                                            <iframe src="https://www.youtube.com/embed/{{ video_id }}" title="{{ video.title|default:'Video de YouTube' }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                                         {% else %}
-                                            <a href="{{ url }}" target="_blank" class="d-flex align-items-center justify-content-center bg-dark text-white">
+                                            <a href="{{ video.url }}" target="_blank" class="d-flex align-items-center justify-content-center bg-dark text-white">
                                                 <i class="fab fa-youtube fa-3x"></i>
                                             </a>
                                         {% endif %}

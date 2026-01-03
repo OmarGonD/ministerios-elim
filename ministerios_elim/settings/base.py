@@ -164,6 +164,7 @@ STORAGES = {
 # Wagtail settings
 # ----------------------------------------------------------------------
 WAGTAIL_SITE_NAME = "Ministerios Elim"
+WAGTAIL_ALLOW_UNICODE_SLUGS = False
 WAGTAILADMIN_BASE_URL = "http://localhost:8000"
 WAGTAILADMIN_USER_AVATAR = None  # Disable Gravatar
 
