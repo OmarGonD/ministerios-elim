@@ -15,7 +15,7 @@
     }
 
     body {
-        background-color: var(--academic-bg);
+        background-color: var(--bg-color);
     }
 
     /* Hero Section */
@@ -27,15 +27,6 @@
         text-align: center;
         overflow: hidden;
         margin-top: 80px; /* Accounts for fixed navbar */
-    }
-    
-    .academic-hero::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: url('{% static "img/pattern-overlay.png" %}') repeat; /* Optional texture */
-        opacity: 0.05;
-        pointer-events: none;
     }
 
     .hero-logo {
@@ -84,9 +75,9 @@
 
     /* Secondary Banner */
     .secondary-banner {
-        background-color: white;
+        background-color: var(--card-bg);
         padding: 2rem 0;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
+        border-bottom: 1px solid var(--border-color);
     }
 
     .cta-text {
@@ -125,7 +116,7 @@
 
     /* Course Cards */
     .academic-card {
-        background: white;
+        background: var(--card-bg);
         border: none;
         border-radius: 2px; /* Sharper */
         box-shadow: var(--card-shadow);
@@ -148,6 +139,38 @@
 
     /* Material Card Specifics */
     .material-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .bg-light {
+        background-color: var(--bg-alt) !important;
+    }
+    
+    .bg-white {
+        background-color: var(--bg-color) !important;
+    }
+    
+    .text-muted {
+        color: var(--text-muted) !important;
+    }
+
+    [data-theme="dark"] .bg-white {
+        background-color: var(--card-bg) !important;
+    }
+
+    [data-theme="dark"] {
+        --academic-navy: var(--text-color);
+        --academic-bg: var(--bg-color);
+        --card-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    [data-theme="dark"] .btn-material {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
         background: white;
         border: none;
         border-radius: 2px;

@@ -101,12 +101,15 @@
                     <div class="list-group list-group-flush">
                         {% for child in page.get_children.live %}
                         <a href="{% pageurl child %}" class="list-group-item list-group-item-action p-4 module-card">
-                            <div class="d-flex w-100 justify-content-between align-items-center">
-                                <div>
-                                    <h5 class="mb-1 fw-bold text-dark">
-                                        <i class="far fa-play-circle me-2 text-primary"></i> {{ child.title }}
-                                    </h5>
-                                    <small class="text-muted d-block ms-4">{{ child.specific.abstract|striptags|truncatewords:15 }}</small>
+                            <div class="d-flex w-100 justify-content-between align-items-start">
+                                <div class="d-flex align-items-start">
+                                    <i class="far fa-play-circle me-3 text-primary mt-1"></i>
+                                    <div>
+                                        <h5 class="mb-1 fw-bold text-dark">{{ child.title }}</h5>
+                                        {% if child.specific.abstract %}
+                                        <small class="text-muted d-block">{{ child.specific.abstract|striptags|truncatewords:15 }}</small>
+                                        {% endif %}
+                                    </div>
                                 </div>
                                 <span class="badge bg-light text-dark border ms-3">10 min</span>
                             </div>

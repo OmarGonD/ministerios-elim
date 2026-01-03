@@ -1,38 +1,293 @@
 {% extends "base.html" %}
-{% load static wagtailcore_tags %}
+{% load static wagtailcore_tags user_extras %}
 
 {% block body_class %}template-searchresults{% endblock %}
 
-{% block title %}Search{% endblock %}
+{% block title %}{% if search_query %}Resultados: {{ search_query }}{% else %}Buscar{% endif %} - Ministerios Elim{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --gold-accent: #D4AF37;
+    }
+
+    .search-results-container {
+        margin-top: 120px;
+        min-height: 60vh;
+    }
+
+    .search-header {
+        text-align: center;
+        padding: 3rem 0;
+        background: var(--bg-alt);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    [data-theme="dark"] .search-header {
+        background: linear-gradient(135deg, #1a1a1a 0%, #121212 100%);
+    }
+
+    .search-header h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-color);
+        margin-bottom: 1.5rem;
+    }
+
+    .search-header-form {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .search-header-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-header-input {
+        width: 100%;
+        padding: 15px 20px 15px 50px;
+        font-size: 1.1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 0;
+        outline: none;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.3s ease;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+    }
+
+    .search-header-input:focus {
+        border-color: var(--gold-accent);
+        box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+    }
+
+    .search-header-icon {
+        position: absolute;
+        left: 18px;
+        color: var(--gold-accent);
+        font-size: 1.1rem;
+    }
+
+    .search-header-btn {
+        position: absolute;
+        right: 5px;
+        background: var(--gold-accent);
+        color: #fff;
+        border: none;
+        padding: 10px 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .search-header-btn:hover {
+        background: #b8860b;
+    }
+
+    /* Results Section */
+    .search-results-section {
+        padding: 3rem 0 5rem;
+    }
+
+    .results-count {
+        font-family: 'Inter', sans-serif;
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+        font-size: 0.95rem;
+    }
+
+    .results-count strong {
+        color: var(--text-color);
+    }
+
+    /* Result Card */
+    .result-card {
+        display: block;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        padding: 1.5rem 2rem;
+        margin-bottom: 1rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+
+    .result-card:hover {
+        border-left-color: var(--gold-accent);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        transform: translateX(5px);
+    }
+
+    .result-card-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+        transition: color 0.2s;
+    }
+
+    .result-card:hover .result-card-title {
+        color: var(--gold-accent);
+    }
+
+    .result-card-description {
+        font-family: 'Inter', sans-serif;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .result-card-meta {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Empty State */
+    .no-results {
+        text-align: center;
+        padding: 5rem 2rem;
+    }
+
+    .no-results-icon {
+        font-size: 4rem;
+        color: var(--text-muted);
+        opacity: 0.3;
+        margin-bottom: 1.5rem;
+    }
+
+    .no-results h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.5rem;
+        color: var(--text-color);
+        margin-bottom: 1.5rem;
+    }
+
+    .no-results p {
+        color: var(--text-muted);
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    /* Pagination */
+    .pagination-wrapper {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 3rem;
+    }
+
+    .pagination-link {
+        padding: 10px 25px;
+        border: 2px solid var(--gold-accent);
+        color: var(--gold-accent);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .pagination-link:hover {
+        background: var(--gold-accent);
+        color: #fff;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<h1>Search</h1>
+<div class="search-results-container">
+    <!-- Search Header -->
+    <div class="search-header">
+        <div class="container">
+            <h1><i class="fas fa-search me-3" style="color: var(--gold-accent); opacity: 0.6;"></i>Búsqueda</h1>
+            <form action="{% url 'search' %}" method="get" class="search-header-form">
+                <div class="search-header-input-wrapper">
+                    <i class="fas fa-search search-header-icon"></i>
+                    <input type="text" name="query" class="search-header-input" placeholder="¿Qué estás buscando?" {% if search_query %}value="{{ search_query }}"{% endif %} required>
+                    <button type="submit" class="search-header-btn">Buscar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-<form action="{% url 'search' %}" method="get">
-    <input type="text" name="query"{% if search_query %} value="{{ search_query }}"{% endif %}>
-    <input type="submit" value="Search" class="button">
-</form>
+    <!-- Results Section -->
+    <section class="search-results-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    {% if search_results %}
+                        <p class="results-count">
+                            Se encontraron <strong>{{ search_results.paginator.count }}</strong> resultado{% if search_results.paginator.count != 1 %}s{% endif %} para "<strong>{{ search_query }}</strong>"
+                        </p>
 
-{% if search_results %}
-<ul>
-    {% for result in search_results %}
-    <li>
-        <h4><a href="{% pageurl result %}">{{ result }}</a></h4>
-        {% if result.search_description %}
-        {{ result.search_description }}
-        {% endif %}
-    </li>
-    {% endfor %}
-</ul>
+                        {% for result in search_results %}
+                        <a href="{% pageurl result %}" class="result-card">
+                            <h4 class="result-card-title">{{ result.title }}</h4>
+                            {% if result.search_description %}
+                            <p class="result-card-description">{{ result.search_description|truncatewords:30 }}</p>
+                            {% endif %}
+                            <div class="result-card-meta">
+                                <span><i class="fas fa-file-alt me-1"></i> {{ result.specific_class|default:"Página" }}</span>
+                                {% if result.last_published_at %}
+                                <span class="ms-3"><i class="far fa-clock me-1"></i> Modificado: {{ result.last_published_at|date:"d M, Y" }}</span>
+                                {% endif %}
+                                {% if result.owner %}
+                                <span class="ms-3"><i class="far fa-user me-1"></i> Por: {{ result.owner.get_full_name|default:result.owner.username }}</span>
+                                {% endif %}
+                                {% with specific=result.specific %}
+                                    {% if specific.body %}
+                                    <span class="ms-3"><i class="fas fa-hourglass-half me-1"></i> {{ specific.body|reading_time }} min</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        </a>
+                        {% endfor %}
 
-{% if search_results.has_previous %}
-<a href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;page={{ search_results.previous_page_number }}">Previous</a>
-{% endif %}
+                        <!-- Pagination -->
+                        {% if search_results.has_previous or search_results.has_next %}
+                        <div class="pagination-wrapper">
+                            {% if search_results.has_previous %}
+                            <a href="{% url 'search' %}?query={{ search_query|urlencode }}&page={{ search_results.previous_page_number }}" class="pagination-link">
+                                <i class="fas fa-arrow-left me-2"></i>Anterior
+                            </a>
+                            {% endif %}
 
-{% if search_results.has_next %}
-<a href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;page={{ search_results.next_page_number }}">Next</a>
-{% endif %}
-{% elif search_query %}
-No results found
-{% endif %}
+                            {% if search_results.has_next %}
+                            <a href="{% url 'search' %}?query={{ search_query|urlencode }}&page={{ search_results.next_page_number }}" class="pagination-link">
+                                Siguiente<i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                    {% elif search_query %}
+                        <!-- No Results -->
+                        <div class="no-results">
+                            <div class="no-results-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <h3>No encontramos resultados</h3>
+                            <p>No hay resultados para "<strong>{{ search_query }}</strong>". Intenta con otros términos o explora nuestras secciones.</p>
+                        </div>
+                    {% else %}
+                        <!-- Initial State -->
+                        <div class="no-results">
+                            <div class="no-results-icon">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <h3>Comienza tu búsqueda</h3>
+                            <p>Escribe un término en el campo de arriba para buscar en doctrina, iglesias, foros y más.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
 {% endblock %}

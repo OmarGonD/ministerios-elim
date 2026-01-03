@@ -6,11 +6,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
-            --reading-bg: #ffffff;
-            --text-main: #2d3436;
-            --text-muted: #636e72;
+            --reading-bg: var(--bg-color);
+            --text-main: var(--text-color);
+            --text-muted: var(--text-muted);
             --gold-accent: #d4af37;
-            --gold-light: #fdfaf0;
+            --gold-light: var(--bg-alt);
         }
 
         .doctrina-entry-container {
@@ -51,10 +51,15 @@
 
         /* Hero Section */
         .entry-hero-section {
-            padding-top: 140px;
-            padding-bottom: 60px;
+            padding-top: 160px;
+            padding-bottom: 80px;
             text-align: center;
-            background: linear-gradient(to bottom, #fcfbf5 0%, #ffffff 100%);
+            background: var(--bg-alt);
+            position: relative;
+        }
+
+        [data-theme="dark"] .entry-hero-section {
+            background: linear-gradient(to bottom, #1a1a1a 0%, #121212 100%);
         }
 
         .entry-category-badge {
@@ -130,7 +135,7 @@
             font-family: 'Playfair Display', serif;
             margin-top: 2.5rem;
             margin-bottom: 1.5rem;
-            color: #1a1a1a;
+            color: var(--text-color);
         }
 
         .entry-body-elegant p {
@@ -141,7 +146,7 @@
         .intro-lead {
             font-size: 1.5rem;
             line-height: 1.6;
-            color: #444;
+            color: var(--text-color);
             font-style: italic;
             border-left: 3px solid var(--gold-accent);
             padding-left: 2rem;
@@ -151,13 +156,19 @@
         /* Image Mask */
         .hero-image-wrap {
             position: relative;
-            margin-top: -30px;
+            margin-top: -40px;
             margin-bottom: 5rem;
+            z-index: 1;
+        }
+
+        .admin-controls-header {
+            position: relative;
+            z-index: 10;
         }
 
         /* Footer Modern */
         .modern-footer-stats {
-            background: #f8f9fa;
+            background: var(--bg-alt);
             border-radius: 0;
             padding: 2.5rem;
             margin-top: 5rem;
@@ -200,7 +211,7 @@
                     {% if page.owner|is_apostle %}Ap. {% elif page.owner|is_pastor or page.owner|is_superpastor %}Pr. {% endif %}{{ page.owner.get_full_name|default:page.owner.username }}</span>
                 {% endif %}
                 <div class="meta-divider"></div>
-                <span title="Tiempo de lectura estimado"><i class="far fa-clock me-2"></i> 5 min de lectura</span>
+                <span title="Tiempo de lectura estimado"><i class="far fa-clock me-2"></i> {{ page.body|reading_time }} min de lectura</span>
             </div>
 
             <!-- Admin Controls - Visible in Header -->
@@ -307,7 +318,7 @@
                     <div class="d-flex flex-wrap gap-2">
                         {% for tag in page.tags.all %}
                         <a href="{% url 'search:search' %}?query={{ tag.name }}" class="text-decoration-none">
-                            <span class="badge rounded-pill px-3 py-2" style="background: #f1f2f6; color: #57606f; font-weight: 500;">
+                            <span class="badge rounded-pill px-3 py-2 bg-light-theme text-muted">
                                 #{{ tag.name }}
                             </span>
                         </a>
@@ -358,7 +369,7 @@
         border-left: 2px solid var(--gold-accent);
         padding-left: 1.5rem;
         margin: 2rem 0;
-        color: #555;
+        color: var(--text-muted);
     }
 </style>
 {% endblock %}

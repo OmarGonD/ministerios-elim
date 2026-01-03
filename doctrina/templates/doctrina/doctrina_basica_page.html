@@ -7,7 +7,7 @@
 
 {% block content %}
 <!-- Level Header -->
-<div class="level-header position-relative mb-5 overflow-hidden" style="min-height: 400px; background: #000; padding-top: 150px; padding-bottom: 3rem;">
+<div class="level-header position-relative mb-5 overflow-hidden" style="min-height: 400px; background: #121212; padding-top: 150px; padding-bottom: 3rem;">
     {% if page.image %}
         {% image page.image fill-1920x600 class="position-absolute w-100 h-100 top-0 start-0 opacity-50" style="object-fit: cover; z-index: 1;" %}
     {% endif %}
@@ -71,7 +71,7 @@
                         <div class="col-md-8">
                             <div class="card-body p-4">
                                 <h3 class="h4 fw-bold mb-2">
-                                    <a href="{% pageurl entry %}" class="text-decoration-none text-dark hover-primary">{{ entry.title }}</a>
+                                    <a href="{% pageurl entry %}" class="text-decoration-none text-color hover-primary">{{ entry.title }}</a>
                                 </h3>
                                 <p class="text-muted small mb-3">
                                     {{ entry.abstract|striptags|truncatewords:25 }}
@@ -95,7 +95,7 @@
 
         <!-- Sidebar -->
         <div class="col-lg-4 mt-5 mt-lg-0">
-            <div class="card border-0 shadow-sm rounded-0 p-4 mb-4" style="background: linear-gradient(135deg, var(--primary-color), #2980b9); color: white;">
+            <div class="card border-0 shadow-sm rounded-0 p-4 mb-4" style="background: linear-gradient(135deg, var(--primary-color), var(--gold-hover)); color: white;">
                 <h4 class="fw-bold mb-3">Progreso Espiritual</h4>
                 <p class="small opacity-90 mb-4">La doctrina es el fundamento de nuestro crecimiento. Asegúrate de meditar en cada enseñanza.</p>
                 <div class="progress mb-3 rounded-0" style="height: 10px; background: rgba(255,255,255,0.2);">

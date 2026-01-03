@@ -91,3 +91,18 @@ def can_edit_doctrina(user, page):
         return False
     except Exception:
         return False
+
+@register.filter
+def reading_time(html_content):
+    """Calculate minutes of reading time for a given HTML string."""
+    if not html_content:
+        return 1
+    
+    import re
+    # Strip HTML tags
+    text = re.sub('<[^<]+?>', '', str(html_content))
+    # Count words
+    words = len(re.findall(r'\w+', text))
+    # Average reading speed: 200 words per minute
+    minutes = round(words / 200)
+    return max(1, minutes)

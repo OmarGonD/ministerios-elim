@@ -39,7 +39,19 @@
         {% endif %}
 
   {# Global stylesheets #}
-  <link rel="stylesheet" type="text/css" href="{% static 'css/ministerios_elim.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ministerios_elim.css' %}">
+    
+    <!-- Theme Detection & Apply (Prevent Flash) -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
   
   {% block extra_css %}
   {# Override this in templates to add extra css #}
@@ -92,6 +104,20 @@
                         </li>
                     </ul>
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+                        <!-- Search Button -->
+                        <li class="nav-item me-2">
+                            <button type="button" class="btn btn-search-nav" id="openSearchBtn" title="Buscar (Ctrl+K)">
+                                <i class="fas fa-search"></i>
+                                <span class="search-shortcut d-none d-lg-inline">Ctrl+K</span>
+                            </button>
+                        </li>
+                        <!-- Theme Toggle Button -->
+                        <li class="nav-item me-2">
+                            <button type="button" class="btn btn-theme-toggle" id="themeToggleBtn" title="Cambiar tema">
+                                <i class="fas fa-moon theme-icon-dark"></i>
+                                <i class="fas fa-sun theme-icon-light" style="display:none;"></i>
+                            </button>
+                        </li>
                         {% if request.user.is_authenticated %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color:var(--text-color);">
@@ -157,6 +183,230 @@
             </div>
         </nav>
         <!-- Fin navbar -->
+
+        <!-- Search Modal -->
+        <div class="search-modal-overlay" id="searchModal">
+            <div class="search-modal-container">
+                <div class="search-modal-header">
+                    <button type="button" class="search-modal-close" id="closeSearchBtn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form action="{% url 'search' %}" method="get" class="search-modal-form">
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search search-input-icon"></i>
+                        <input type="text" name="query" id="searchInput" class="search-modal-input" placeholder="Buscar doctrina, iglesias, foros..." autocomplete="off" required>
+                        <span class="search-input-hint">ESC para cerrar</span>
+                    </div>
+                    <div class="search-categories">
+                        <span class="search-category-label">Sugerencias:</span>
+                        <a href="/doctrina/" class="search-category-tag"><i class="fas fa-book me-1"></i>Doctrina</a>
+                        <a href="{% url 'iglesias:index' %}" class="search-category-tag"><i class="fas fa-church me-1"></i>Iglesias</a>
+                        <a href="{% url 'foros:forum_list' %}" class="search-category-tag"><i class="fas fa-comments me-1"></i>Foros</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <style>
+        /* Theme Toggle Button */
+        .btn-theme-toggle {
+            background: transparent;
+            border: 1.5px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .btn-theme-toggle:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        /* Search Button in Navbar */
+        .btn-search-nav {
+            background: transparent;
+            border: 1.5px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        .btn-search-nav:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: rgba(212, 175, 55, 0.05);
+        }
+        .search-shortcut {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            background: var(--bg-alt);
+            border-radius: 3px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        /* Search Modal Overlay */
+        .search-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 15vh;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .search-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Search Modal Container */
+        .search-modal-container {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 650px;
+            border-radius: 0;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+            transform: translateY(-20px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            overflow: hidden;
+            border-top: 4px solid var(--primary-color);
+        }
+        .search-modal-overlay.active .search-modal-container {
+            transform: translateY(0) scale(1);
+        }
+
+        /* Search Modal Header */
+        .search-modal-header {
+            display: flex;
+            justify-content: flex-end;
+            padding: 15px 20px 0;
+        }
+        .search-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s;
+            padding: 5px;
+        }
+        .search-modal-close:hover {
+            color: var(--primary-color);
+        }
+
+        /* Search Form */
+        .search-modal-form {
+            padding: 20px 30px 30px;
+        }
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .search-input-icon {
+            position: absolute;
+            left: 20px;
+            font-size: 1.3rem;
+            color: var(--primary-color);
+        }
+        .search-modal-input {
+            width: 100%;
+            padding: 20px 20px 20px 55px;
+            font-size: 1.25rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        .search-modal-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+        }
+        .search-modal-input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+        .search-input-hint {
+            position: absolute;
+            right: 15px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: var(--bg-alt);
+            padding: 4px 10px;
+            border-radius: 3px;
+        }
+
+        /* Search Categories */
+        .search-categories {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .search-category-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .search-category-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 15px;
+            background: var(--bg-alt);
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+        .search-category-tag:hover {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .search-modal-container {
+                width: 95%;
+            }
+            .search-modal-form {
+                padding: 15px 20px 25px;
+            }
+            .search-modal-input {
+                font-size: 1rem;
+                padding: 15px 15px 15px 45px;
+            }
+            .search-input-hint {
+                display: none;
+            }
+            .search-categories {
+                justify-content: center;
+            }
+        }
+        </style>
 
         <!-- Register Modal (fuera de cualquier otro modal) -->
         <div class="modal fade elim-modal" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
@@ -763,6 +1013,86 @@
             nav.classList.remove('navbar-scrolled');
           }
         });
+
+        // Search Modal Functionality
+        (function() {
+            const searchModal = document.getElementById('searchModal');
+            const searchInput = document.getElementById('searchInput');
+            const openBtn = document.getElementById('openSearchBtn');
+            const closeBtn = document.getElementById('closeSearchBtn');
+
+            function openSearchModal() {
+                searchModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                setTimeout(() => searchInput.focus(), 100);
+            }
+
+            function closeSearchModal() {
+                searchModal.classList.remove('active');
+                document.body.style.overflow = '';
+                searchInput.value = '';
+            }
+
+            // Open modal on button click
+            openBtn.addEventListener('click', openSearchModal);
+
+            // Close modal on X button click
+            closeBtn.addEventListener('click', closeSearchModal);
+
+            // Close modal on overlay click (outside the container)
+            searchModal.addEventListener('click', function(e) {
+                if (e.target === searchModal) {
+                    closeSearchModal();
+                }
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Ctrl+K or Cmd+K to open
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    if (searchModal.classList.contains('active')) {
+                        closeSearchModal();
+                    } else {
+                        openSearchModal();
+                    }
+                }
+                // ESC to close
+                if (e.key === 'Escape' && searchModal.classList.contains('active')) {
+                    closeSearchModal();
+                }
+            });
+        })();
+
+        // Theme Toggle Logic
+        (function() {
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            const iconDark = themeToggleBtn.querySelector('.theme-icon-dark');
+            const iconLight = themeToggleBtn.querySelector('.theme-icon-light');
+            
+            function updateIcons(theme) {
+                if (theme === 'dark') {
+                    iconDark.style.display = 'none';
+                    iconLight.style.display = 'inline-block';
+                } else {
+                    iconDark.style.display = 'inline-block';
+                    iconLight.style.display = 'none';
+                }
+            }
+
+            // Initial icon state
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            updateIcons(currentTheme);
+
+            themeToggleBtn.addEventListener('click', () => {
+                const theme = document.documentElement.getAttribute('data-theme');
+                const newTheme = theme === 'dark' ? 'light' : 'dark';
+                
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateIcons(newTheme);
+            });
+        })();
         </script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>

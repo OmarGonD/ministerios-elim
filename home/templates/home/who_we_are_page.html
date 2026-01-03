@@ -15,7 +15,7 @@
     </section>
 
     <!-- Apostle Section -->
-    <section class="apostle-profile py-5 bg-white">
+    <section class="apostle-profile py-5 bg-card">
         <div class="container">
             <div class="row align-items-center mb-5">
                 <div class="col-lg-5 mb-4 mb-lg-0 text-center">
@@ -44,12 +44,12 @@
                         {% if page.apostle_quote %}
                         <figure class="bg-light p-4 border-start border-4 border-gold mb-4">
                             <blockquote class="blockquote mb-0">
-                                <p class="fst-italic fs-5 text-dark">"{{ page.apostle_quote }}"</p>
+                                <p class="fst-italic fs-5">"{{ page.apostle_quote }}"</p>
                             </blockquote>
                         </figure>
                         {% endif %}
                         
-                        <div class="apostle-bio text-muted" style="font-size: 1.1rem; line-height: 1.8;">
+                        <div class="apostle-bio text-color" style="font-size: 1.1rem; line-height: 1.8;">
                             {{ page.apostle_bio|richtext }}
                         </div>
                     </div>
@@ -59,7 +59,7 @@
     </section>
 
     <!-- Hierarchy Section -->
-    <section class="hierarchy-section py-5 bg-light">
+    <section class="hierarchy-section py-5 bg-light-theme">
         <div class="container">
             <div class="text-center mb-5">
                 <h2 class="display-5 fw-bold mb-3" style="font-family: 'Playfair Display', serif;">{{ page.hierarchy_title }}</h2>
@@ -120,12 +120,12 @@
                  <div class="row justify-content-center position-relative mt-4" style="z-index: 1;">
                     <div class="col-12 text-center mb-4">
                          <hr class="w-25 mx-auto border-gold opacity-100 mb-4">
-                        <h4 class="h5 fw-bold text-muted text-uppercase">Pastores Nacionales e Internacionales</h4>
+                        <h4 class="h5 fw-bold text-color text-uppercase">Pastores Nacionales e Internacionales</h4>
                     </div>
                     
                     <!-- We can list a few country pastors dynamically if needed, keeping it clean -->
                      <div class="col-12 text-center">
-                        <a href="{% url 'iglesias:index' %}" class="btn btn-outline-dark rounded-0 px-4 py-2 fw-bold">Ver Todas las Iglesias y Pastores</a>
+                        <a href="{% url 'iglesias:index' %}" class="btn btn-outline-gold rounded-0 px-4 py-2 fw-bold">Ver Todas las Iglesias y Pastores</a>
                      </div>
                  </div>
 
@@ -136,9 +136,13 @@
 </div>
 
 <style>
+.bg-card { background-color: var(--card-bg) !important; }
+.bg-light-theme { background-color: var(--bg-alt) !important; }
 .bg-gold { background-color: var(--gold-primary) !important; }
 .text-gold { color: var(--gold-primary) !important; }
 .border-gold { border-color: var(--gold-primary) !important; }
+.btn-outline-gold { border: 2px solid var(--gold-primary); color: var(--gold-primary); }
+.btn-outline-gold:hover { background-color: var(--gold-primary); color: var(--bg-color) !important; }
 .hover-lift { transition: transform 0.3s ease; }
 .hover-lift:hover { transform: translateY(-5px); }
 </style>
