@@ -182,6 +182,23 @@
             .entry-meta-professional { flex-direction: column; gap: 5px; }
             .meta-divider { display: none; }
         }
+
+        /* Image Wrapped Style */
+        .image-wrapped-container {
+            float: right;
+            margin-left: 2rem;
+            margin-bottom: 2rem;
+            max-width: 400px;
+        }
+
+        @media (max-width: 768px) {
+            .image-wrapped-container {
+                float: none;
+                margin-left: 0;
+                max-width: 100%;
+                width: 100%;
+            }
+        }
     </style>
 {% endblock extra_css %}
 
@@ -244,8 +261,8 @@
         </div>
     </header>
 
-    <!-- Featured Image -->
-    {% if page.image %}
+    <!-- Featured Image (Hero Style) -->
+    {% if page.image and page.image_display_style == 'hero' %}
     <div class="container-fluid p-0 hero-image-wrap">
         {% image page.image fill-1600x600 class="img-fluid w-100 shadow-sm" %}
     </div>
@@ -264,6 +281,11 @@
 
                 <!-- Main Content -->
                 <div class="entry-body-elegant rich-text">
+                    {% if page.image and page.image_display_style == 'wrapped' %}
+                    <div class="image-wrapped-container">
+                        {% image page.image width-800 class="img-fluid rounded shadow-sm" %}
+                    </div>
+                    {% endif %}
                     {{ page.body|richtext }}
                 </div>
 

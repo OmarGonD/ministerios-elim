@@ -214,12 +214,26 @@ class DoctrinaEntryPage(Page):
         help_text="Date when the Apostle last edited this entry"
     )
 
-
+    IMAGE_DISPLAY_CHOICES = [
+        ('hero', 'Banner Hero (Ancho completo arriba)'),
+        ('wrapped', 'Rodeada de Texto (Dentro del contenido)'),
+    ]
+    image_display_style = models.CharField(
+        "Estilo de visualización de imagen",
+        max_length=20,
+        choices=IMAGE_DISPLAY_CHOICES,
+        default='hero',
+        help_text="Selecciona cómo quieres que se muestre la imagen principal"
+    )
 
     content_panels = Page.content_panels + [
+        FieldPanel('image'),
+        FieldPanel('image_display_style', widget=forms.RadioSelect),
         FieldPanel('subtitle'),
+        FieldPanel('abstract'),
         FieldPanel('body'),
         InlinePanel('youtube_videos', label="Videos de YouTube", heading="Videos Relacionados"),
+        FieldPanel('references'),
         # Slug is auto-generated from title, no need to show it
     ]
     # content_panels = Page.content_panels + [
