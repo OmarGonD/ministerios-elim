@@ -1,0 +1,27 @@
+{% load static graficos_tags %}
+{# Wrapper template for graphics with description #}
+
+{% if grafico %}
+<div class="grafico-interactivo-wrapper mb-5">
+    {% if grafico.descripcion %}
+    <div class="grafico-descripcion mb-3">
+        {{ grafico.descripcion|safe }}
+    </div>
+    {% endif %}
+    
+    <div class="grafico-container" style="height: {{ height }}; width: 100%;">
+        {% include grafico.get_template_name with grafico=grafico datos_json=datos_json unique_id=unique_id %}
+    </div>
+    
+    <div class="grafico-footer mt-2 text-center">
+        <small class="text-muted">
+            <i class="fas fa-expand-arrows-alt me-1"></i> Arrastra para navegar | Scroll para zoom
+        </small>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    El gráfico "{{ slug }}" no está disponible.
+</div>
+{% endif %}

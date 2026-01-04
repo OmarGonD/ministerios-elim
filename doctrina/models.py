@@ -226,6 +226,28 @@ class DoctrinaEntryPage(Page):
         help_text="Selecciona cómo quieres que se muestre la imagen principal"
     )
 
+    # Gráficos interactivos embebidos
+    graficos_embebidos = models.ManyToManyField(
+        'graficos_interactivos.GraficoInteractivo',
+        blank=True,
+        related_name='doctrina_entries',
+        verbose_name="Gráficos Interactivos",
+        help_text="Selecciona los gráficos interactivos que aparecerán al final del contenido"
+    )
+
+    GRAFICOS_POSITION_CHOICES = [
+        ('after_body', 'Después del contenido principal'),
+        ('before_body', 'Antes del contenido principal'),
+        ('after_abstract', 'Después del resumen introductorio'),
+    ]
+    graficos_position = models.CharField(
+        "Posición de los gráficos",
+        max_length=20,
+        choices=GRAFICOS_POSITION_CHOICES,
+        default='after_body',
+        help_text="¿Dónde mostrar los gráficos interactivos?"
+    )
+
     content_panels = Page.content_panels + [
         FieldPanel('image'),
         FieldPanel('image_display_style', widget=forms.RadioSelect),
@@ -234,6 +256,10 @@ class DoctrinaEntryPage(Page):
         FieldPanel('body'),
         InlinePanel('youtube_videos', label="Videos de YouTube", heading="Videos Relacionados"),
         FieldPanel('references'),
+        MultiFieldPanel([
+            FieldPanel('graficos_embebidos', widget=forms.CheckboxSelectMultiple),
+            FieldPanel('graficos_position', widget=forms.RadioSelect),
+        ], heading="Gráficos Interactivos"),
         # Slug is auto-generated from title, no need to show it
     ]
     # content_panels = Page.content_panels + [

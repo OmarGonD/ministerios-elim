@@ -1,0 +1,150 @@
+{% load static %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+{# Generic Diagram template - for simple relationship diagrams #}
+
+<div id="{{ unique_id }}" class="diagrama-container" style="height: {{ height }}; width: {{ width|default:'100%' }}; overflow: hidden; position: relative;">
+    <svg id="{{ unique_id }}-svg" width="100%" height="100%"></svg>
+</div>
+
+    /* Modern Diagram Styles */
+    .diagrama-container {
+        background-color: #ffffff;
+        background-image: radial-gradient(#d4af37 0.5px, transparent 0.5px), radial-gradient(#d4af37 0.5px, #ffffff 0.5px);
+        background-size: 20px 20px;
+        background-position: 0 0, 10px 10px;
+        background-opacity: 0.1;
+        border-radius: 12px;
+        border: 1px solid #e0e0e0;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
+    }
+    
+    [data-theme="dark"] .diagrama-container {
+        background-color: #1a1a1a;
+        background-image: radial-gradient(#555 1px, transparent 1px), radial-gradient(#555 1px, #1a1a1a 1px);
+        border-color: #333;
+    }
+    
+    .diagrama-node circle {
+        fill: url(#nodeGradient);
+        stroke: #fff;
+        stroke-width: 3px;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .diagrama-node:hover circle {
+        stroke: #d4af37;
+        r: 25; /* expand on hover in CSS if possible, but r is usually attribute. handled in JS mostly, but stroke/filter here works */
+        filter: drop-shadow(0 4px 8px rgba(212, 175, 55, 0.4));
+    }
+    
+    .diagrama-node text {
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        fill: #333;
+        text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff; /* outline effect for readability */
+        pointer-events: none;
+        transition: all 0.3s ease;
+    }
+    
+    [data-theme="dark"] .diagrama-node text {
+         fill: #eee;
+         text-shadow: 1px 1px 0 #000, -1px -1px 0 #000;
+    }
+    
+    .diagrama-link {
+        stroke: #999;
+        stroke-opacity: 0.4;
+        stroke-width: 2px;
+        transition: all 0.3s ease;
+    }
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+(function() {
+    const containerId = "{{ unique_id }}";
+    const svgId = "{{ unique_id }}-svg";
+    const data = {{ datos_json|safe }};
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        initDiagrama(containerId, svgId, data);
+    });
+    
+    function initDiagrama(containerId, svgId, data) {
+        const container = document.getElementById(containerId);
+        const svg = d3.select("#" + svgId);
+        
+        if (!container || svg.empty()) return;
+        
+        const width = container.clientWidth || 600;
+        const height = container.clientHeight || 400;
+        
+        svg.selectAll("*").remove();
+        
+        // Add definitions for gradients
+        const defs = svg.append("defs");
+        
+        const gradient = defs.append("linearGradient")
+            .attr("id", "nodeGradient")
+            .attr("x1", "0%")
+            .attr("y1", "0%")
+            .attr("x2", "100%")
+            .attr("y2", "100%");
+            
+        gradient.append("stop")
+            .attr("offset", "0%")
+            .attr("style", "stop-color:#d4af37;stop-opacity:1");
+            
+        gradient.append("stop")
+            .attr("offset", "100%")
+            .attr("style", "stop-color:#b8860b;stop-opacity:1");
+
+        if (!data || !data.nodes) {
+            svg.append("text")
+                .attr("x", width / 2)
+                .attr("y", height / 2)
+                .attr("text-anchor", "middle")
+                .style("fill", "var(--text-muted)")
+                .text("Configure los datos del diagrama en el admin");
+            return;
+        }
+        
+        // Simple force-directed layout
+        const simulation = d3.forceSimulation(data.nodes)
+            .force("link", d3.forceLink(data.links || []).id(d => d.id).distance(100))
+            .force("charge", d3.forceManyBody().strength(-200))
+            .force("center", d3.forceCenter(width / 2, height / 2));
+        
+        const link = svg.selectAll(".diagrama-link")
+            .data(data.links || [])
+            .enter()
+            .append("line")
+            .attr("class", "diagrama-link");
+        
+        const node = svg.selectAll(".diagrama-node")
+            .data(data.nodes)
+            .enter()
+            .append("g")
+            .attr("class", "diagrama-node");
+        
+        node.append("circle")
+            .attr("r", 20);
+        
+        node.append("text")
+            .attr("dy", 35)
+            .attr("text-anchor", "middle")
+            .text(d => d.name);
+        
+        simulation.on("tick", () => {
+            link.attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+            
+            node.attr("transform", d => `translate(${d.x},${d.y})`);
+        });
+    }
+})();
+</script>

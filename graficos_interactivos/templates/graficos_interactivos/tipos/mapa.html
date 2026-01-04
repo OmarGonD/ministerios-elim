@@ -1,0 +1,82 @@
+{% load static %}
+{# Map template - placeholder for biblical maps using Leaflet #}
+
+<div id="{{ unique_id }}" class="mapa-container" style="height: {{ height }}; width: {{ width|default:'100%' }}; position: relative;">
+    <div id="{{ unique_id }}-map" style="height: 100%; width: 100%;"></div>
+</div>
+
+<style>
+    .mapa-container {
+        border-radius: 12px;
+        border: 4px solid #fff;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .mapa-container::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 8px; /* Inner border radius */
+        pointer-events: none;
+        z-index: 4000;
+    }
+    
+    [data-theme="dark"] .mapa-container {
+        border-color: #333;
+    }
+</style>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+(function() {
+    const containerId = "{{ unique_id }}";
+    const mapId = "{{ unique_id }}-map";
+    const data = {{ datos_json|safe }};
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        initMapa(mapId, data);
+    });
+    
+    function initMapa(mapId, data) {
+        const mapContainer = document.getElementById(mapId);
+        if (!mapContainer) return;
+        
+        // Default center: Jerusalem
+        const defaultCenter = [31.7683, 35.2137];
+        const defaultZoom = 8;
+        
+        const map = L.map(mapId).setView(
+            data.center || defaultCenter,
+            data.zoom || defaultZoom
+        );
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+        
+        // Add markers from data
+        if (data.markers) {
+            data.markers.forEach(marker => {
+                L.marker(marker.coords)
+                    .addTo(map)
+                    .bindPopup(`<b>${marker.name}</b><br>${marker.description || ''}`);
+            });
+        }
+        
+        // Add paths/routes
+        if (data.routes) {
+            data.routes.forEach(route => {
+                L.polyline(route.coords, {
+                    color: route.color || '#d4af37',
+                    weight: 3
+                }).addTo(map).bindPopup(route.name || '');
+            });
+        }
+    }
+})();
+</script>

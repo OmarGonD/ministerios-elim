@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static wagtailcore_tags wagtailimages_tags user_extras %}
+{% load static wagtailcore_tags wagtailimages_tags user_extras graficos_tags %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/ministerios_elim.css' %}">
@@ -303,6 +303,30 @@
                     {% endif %}
                     {{ page.body|richtext }}
                 </div>
+
+                <!-- Gráficos Interactivos (posición: after_body) -->
+                {% if page.graficos_embebidos.all and page.graficos_position == 'after_body' %}
+                <div class="graficos-section my-5">
+                    <h4 class="fw-bold mb-4" style="font-family: 'Playfair Display', serif;">
+                        <i class="fas fa-project-diagram text-warning me-2"></i> Gráficos Interactivos
+                    </h4>
+                    {% for grafico in page.graficos_embebidos.all %}
+                        {% if grafico.activo %}
+                        <div class="grafico-wrapper mb-4">
+                            {% if grafico.nombre %}
+                            <h5 class="text-center mb-3">{{ grafico.nombre }}</h5>
+                            {% endif %}
+                            {% if grafico.descripcion %}
+                            <div class="grafico-descripcion mb-3 text-muted">
+                                {{ grafico.descripcion|safe }}
+                            </div>
+                            {% endif %}
+                            {% grafico_con_descripcion grafico.slug height="550px" %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
 
                 <!-- YouTube Videos -->
                 {% if page.youtube_videos.all %}

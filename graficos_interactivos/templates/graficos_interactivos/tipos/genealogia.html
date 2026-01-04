@@ -1,0 +1,463 @@
+{% load static %}
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+{# Genealogy Tree using D3.js #}
+
+<div id="{{ unique_id }}" class="genealogia-container" style="height: {{ height }}; width: {{ width|default:'100%' }}; overflow: hidden; position: relative;">
+    <div class="genealogia-controls" style="position: absolute; top: 10px; right: 10px; z-index: 100;">
+        <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="zoomIn_{{ unique_id|slugify }}()">
+            <i class="fas fa-plus"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="zoomOut_{{ unique_id|slugify }}()">
+            <i class="fas fa-minus"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetZoom_{{ unique_id|slugify }}()">
+            <i class="fas fa-home"></i>
+        </button>
+    </div>
+    <svg id="{{ unique_id }}-svg" width="100%" height="100%"></svg>
+</div>
+
+<style>
+    .genealogia-container {
+        background-color: #fdfbf7;
+        background-image: url('{% static "graficos_interactivos/img/parchment.png" %}');
+        background-size: cover;
+        background-blend-mode: multiply;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border: 4px double #d4af37;
+    }
+    
+    [data-theme="dark"] .genealogia-container {
+        background-color: #2c241b;
+        background-blend-mode: overlay;
+        border-color: #8a6d25;
+    }
+    
+    .genealogia-node rect {
+        fill: #fff9f0;
+        stroke: #d4af37;
+        stroke-width: 1.5px;
+        rx: 4px; /* Slightly more square like a card */
+        filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.1));
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .genealogia-node:hover rect {
+        fill: #fff;
+        stroke: #b8860b;
+        stroke-width: 2.5px;
+        filter: drop-shadow(4px 6px 8px rgba(212, 175, 55, 0.3));
+        transform: translateY(-2px);
+    }
+    
+    .genealogia-node:hover text {
+        fill: #000;
+        font-weight: 600;
+    }
+    
+    .genealogia-node text {
+        font-family: 'Cinzel', 'Playfair Display', serif; /* Biblical feel */
+        font-size: 12px;
+        fill: #4a4a4a;
+        pointer-events: none;
+        transition: all 0.3s ease;
+    }
+    
+    .genealogia-link {
+        fill: none;
+        stroke: #d4af37;
+        stroke-width: 1px;
+        opacity: 0.5;
+    }
+    
+    .genealogia-node.important rect {
+        stroke-width: 3px;
+        fill: #fcf4e4;
+        stroke: #b8860b;
+    }
+    
+    .genealogia-node.important text {
+        fill: #8a2be2; /* Deep purple or keep it dark */
+        fill: #5d4037; /* Dark brown matches parchment better */
+        font-weight: 900;
+        text-shadow: 0px 0px 1px rgba(255,255,255,0.5);
+    }
+</style>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+(function() {
+    const containerId = "{{ unique_id }}";
+    const svgId = "{{ unique_id }}-svg";
+    const data = {{ datos_json|safe }};
+    
+    // Wait for DOM to be ready
+    document.addEventListener('DOMContentLoaded', function() {
+        initGenealogiaTree(containerId, svgId, data);
+    });
+    
+    // Also try immediately in case DOM is already loaded
+    if (document.readyState !== 'loading') {
+        setTimeout(() => initGenealogiaTree(containerId, svgId, data), 100);
+    }
+    
+    function initGenealogiaTree(containerId, svgId, data) {
+        const container = document.getElementById(containerId);
+        const svg = d3.select("#" + svgId);
+        
+        if (!container || svg.empty()) return;
+        
+        const width = container.clientWidth || 800;
+        const height = container.clientHeight || 500;
+        
+        // Clear any existing content
+        svg.selectAll("*").remove();
+        
+        // Create main group for zoom/pan
+        const g = svg.append("g");
+        
+        // Setup zoom behavior
+        const zoom = d3.zoom()
+            .scaleExtent([0.1, 4])
+            .on("zoom", (event) => {
+                g.attr("transform", event.transform);
+            });
+        
+        svg.call(zoom);
+        
+        // Store zoom for external controls
+        window["zoom_" + containerId.replace(/-/g, "_")] = zoom;
+        window["svg_" + containerId.replace(/-/g, "_")] = svg;
+        
+        // Check if data has hierarchical structure
+        if (!data || !data.nodes) {
+            g.append("text")
+                .attr("x", width / 2)
+                .attr("y", height / 2)
+                .attr("text-anchor", "middle")
+                .text("Configure los datos del gráfico en el admin");
+            return;
+        }
+        
+        // Create tree layout
+        const nodeWidth = 140; // Wider for images
+        const nodeHeight = 80; // Taller for images
+        const horizontalSpacing = 60;
+        const verticalSpacing = 100;
+        
+        // Build hierarchy from flat data
+        // Filter out free-floating nodes (like manual Holy Spirit) to prevent tree errors
+        const treeNodes = data.nodes.filter(n => n.parent_id || n.id === data.nodes[0].id);
+        
+        const nodesById = {};
+        treeNodes.forEach(n => nodesById[n.id] = {...n, children: []});
+        
+        let root = null;
+        treeNodes.forEach(n => {
+            if (n.parent_id && nodesById[n.parent_id]) {
+                nodesById[n.parent_id].children.push(nodesById[n.id]);
+            } else if (!n.parent_id) {
+                root = nodesById[n.id];
+            }
+        });
+        
+        if (!root) {
+            root = nodesById[treeNodes[0].id];
+        }
+        
+        // Create tree layout
+        const treeLayout = d3.tree()
+            .nodeSize([nodeWidth + horizontalSpacing, nodeHeight + verticalSpacing]);
+        
+        const hierarchyRoot = d3.hierarchy(root);
+        const treeData = treeLayout(hierarchyRoot);
+        
+        const descendants = treeData.descendants();
+        
+        // Manual Alignment: Force Joseph and Mary to same level (max depth)
+        // Manual Alignment: Force Joseph and Mary to same level (max depth)
+        const mariaNode = descendants.find(d => d.data.name && d.data.name.includes("María"));
+        // Ensure we pick Joseph the father (not Mary's son)
+        const joseNode = descendants.find(d => d.data.name === "José" && d.data.parent_id !== mariaNode?.data?.id);
+        
+        if (joseNode && mariaNode) {
+            const maxY = Math.max(joseNode.y, mariaNode.y); // Use max depth
+            
+            const alignNode = (node, targetY) => {
+                const deltaY = targetY - node.y;
+                if (deltaY === 0) return;
+                
+                // Helper to shift descendants recursively
+                const shiftDescendants = (n, dy) => {
+                    n.y += dy;
+                    if (n.children) {
+                        n.children.forEach(child => shiftDescendants(child, dy));
+                    }
+                };
+                
+                shiftDescendants(node, deltaY);
+            };
+            
+            alignNode(joseNode, maxY);
+            alignNode(mariaNode, maxY);
+        }
+        
+        // Manually Add Holy Spirit Node (if present in data but filtered above)
+        const hsData = data.nodes.find(n => n.name === "Espíritu Santo");
+        if (hsData && mariaNode) {
+             // Create a fake node structure for HS
+             const hsNode = d3.hierarchy(hsData);
+             // Check collision with other nodes (like Joseph)
+             // User requested HS to be on the RIGHT of Mary to separate from Joseph (presumably on left)
+             hsNode.x = mariaNode.x + (nodeWidth + horizontalSpacing); // Right of Mary
+             hsNode.y = mariaNode.y; // Same level as Mary
+             
+             descendants.push(hsNode);
+             
+             // Manually Align Jesus under the Holy Spirit & Mary Union
+             const jesusNode = descendants.find(d => d.data.name === "JESUCRISTO");
+             if (jesusNode) {
+                 // Center Jesus exactly under the union
+                 jesusNode.x = (hsNode.x + mariaNode.x) / 2;
+             }
+        }
+
+         // Draw standard links
+         // Filter out links that we will draw manually:
+         // 1. To Jesus (from Mary) - we'll draw from HS-Mary union
+         // 2. To Siblings (from Mary) - we'll draw from Mary-Joseph union
+         // 3. To Holy Spirit (none exist, filtered)
+         const siblingsNames = ["Santiago", "José", "Simón", "Judas"];
+         const filteredLinks = treeData.links().filter(l => {
+            const targetName = l.target.data.name;
+            if (targetName === "JESUCRISTO") return false;
+            
+            if (siblingsNames.includes(targetName)) {
+                if (targetName === "José") {
+                     // Check if source is Mary (implies it's the sibling relation)
+                     const sourceName = l.source.data.name;
+                     // Only hide if Mary is the parent
+                     if (sourceName && sourceName.includes("María")) return false; 
+                     return true; // Keep link for Joseph the father
+                }
+                return false; // Hide other siblings
+            }
+            return true;
+         });
+
+        g.selectAll(".genealogia-link")
+            .data(filteredLinks)
+            .enter()
+            .append("path")
+            .attr("class", "genealogia-link")
+            .attr("d", d3.linkVertical()
+                .x(d => d.x + width/2)
+                .y(d => d.y + 50)
+            );
+            
+         // Draw Union Lines and Child Drops (Always attempt to draw Holy Family structure)
+         {
+             const jesusNode = descendants.find(d => d.data.name === "JESUCRISTO");
+             // Re-find hsNode if it was pushed to descendants (it should be)
+             const hsNode = descendants.find(d => d.data.name === "Espíritu Santo");
+             const mariaNode = descendants.find(d => d.data.name && d.data.name.includes("María"));
+             
+             // Disambiguate: Joseph the father is exactly "José", sibling is also "José" but as child of Mary
+             // Father José should have partner "María" or be at sibling level of Mary, not a child.
+             // Match by: José who is NOT a child of Mary.
+             const fatherJoseNode = descendants.find(d => d.data.name === "José" && d.data.parent_id !== mariaNode?.data?.id);
+             
+             // 1. Divine Union: HS + Mary -> Jesus
+             if (hsNode && mariaNode && jesusNode) {
+                 const unionCenterX = (hsNode.x + mariaNode.x) / 2 + width/2;
+                 const unionCenterY = hsNode.y + 50 + nodeHeight/2; 
+                 
+                 // Horizontal Union Line
+                 g.append("line")
+                    .attr("x1", hsNode.x + width/2)
+                    .attr("y1", unionCenterY)
+                    .attr("x2", mariaNode.x + width/2)
+                    .attr("y2", unionCenterY)
+                    .style("stroke", "#00bcd4") 
+                    .style("stroke-width", "2px")
+                    .style("filter", "drop-shadow(0 0 4px #00bcd4)");
+                    
+                 // Vertical + Horizontal Drop to Jesus (Elbow)
+                 const midY = (unionCenterY + jesusNode.y + 50) / 2;
+                 g.append("path")
+                    .attr("d", `M${unionCenterX},${unionCenterY} V${midY} H${jesusNode.x + width/2} V${jesusNode.y + 50}`)
+                    .style("stroke", "#00bcd4")
+                    .style("stroke-width", "2px")
+                    .style("fill", "none")
+                    .style("filter", "drop-shadow(0 0 4px #00bcd4)");
+             }
+             
+             // 2. Legal Union: Mary + Joseph (Father) -> Siblings
+             if (mariaNode && fatherJoseNode) {
+                 const unionCenterX = (mariaNode.x + fatherJoseNode.x) / 2 + width/2;
+                 const unionCenterY = mariaNode.y + 50 + nodeHeight/2;
+                 
+                 // Horizontal Union Line (Solid for Marriage)
+                 g.append("line")
+                    .attr("x1", mariaNode.x + width/2)
+                    .attr("y1", unionCenterY)
+                    .attr("x2", fatherJoseNode.x + width/2)
+                    .attr("y2", unionCenterY)
+                    .style("stroke", "#b8860b") // Dark Goldenrod
+                    .style("stroke-width", "2px");
+                 
+                 // Union Marker (Circle)
+                 g.append("circle")
+                    .attr("cx", unionCenterX)
+                    .attr("cy", unionCenterY)
+                    .attr("r", 4)
+                    .style("fill", "#b8860b");
+
+                 // Vertical Drop to Siblings
+                 // User request: Move siblings to the left so only Jesus is on the right
+                 // We will manually distribute them to the left of the union center
+                 const spacing = nodeWidth + 10;
+                 // Shift further left to avoid overlapping Jesus (who is on the right)
+                 const startX = unionCenterX - (siblingsNames.length * spacing) - 60; 
+                 // Logic: Start X is far left enough that the last sibling ends near the union center
+                 
+                 siblingsNames.forEach((sibName, index) => {
+                     const sibNode = descendants.find(d => d.data.name === sibName);
+                     if (sibNode) {
+                         // Override X position
+                         sibNode.x = startX + (index * spacing);
+                         
+                         const midY = (unionCenterY + sibNode.y + 50) / 2;
+                         const d = `M${unionCenterX},${unionCenterY} V${midY} H${sibNode.x + width/2} V${sibNode.y + 50}`;
+                         
+                         g.append("path")
+                            .attr("d", d)
+                            .style("stroke", "#b8860b")
+                            .style("stroke-width", "1.5px")
+                            .style("fill", "none");
+                     }
+                 });
+             }
+        }
+        
+         // Draw standard extra converging links (if any others exist)
+         if (data.converging_nodes) {
+            data.converging_nodes.forEach(linkInfo => {
+                // Skip our custom drawn ones to avoid duplication if they still exist in data
+                if (linkInfo.type === 'divine_father' || linkInfo.type === 'legal_father') return;
+
+                 const sourceNode = descendants.find(d => d.data.id === linkInfo.source);
+                 const targetNode = descendants.find(d => d.data.id === linkInfo.target);
+                 
+                 if (sourceNode && targetNode) {
+                     const pathD = d3.linkVertical()({
+                            source: {x: sourceNode.x + width/2, y: sourceNode.y + 50},
+                            target: {x: targetNode.x + width/2, y: targetNode.y + 50}
+                        });
+                        
+                     g.append("path")
+                        .attr("class", "genealogia-link extra-link")
+                        .attr("d", pathD)
+                        .style("stroke-dasharray", "5,5")
+                        .style("stroke", "#ff5722"); 
+                 }
+            });
+        }
+        
+        // Draw nodes
+        const nodes = g.selectAll(".genealogia-node")
+            .data(descendants)
+            .enter()
+            .append("g")
+            .attr("class", d => "genealogia-node" + (d.data.important ? " important" : ""))
+            .attr("transform", d => `translate(${d.x + width/2 - nodeWidth/2}, ${d.y + 50})`);
+        
+        nodes.append("rect")
+            .attr("width", nodeWidth)
+            .attr("height", nodeHeight)
+            .attr("rx", 6);
+            
+        // Avatar circle
+        const avatarRadius = 24;
+        const avatarGroup = nodes.append("g")
+             .attr("transform", `translate(${nodeWidth/2}, 0)`); // Top center
+             
+        avatarGroup.append("circle")
+             .attr("r", avatarRadius)
+             .attr("cy", 0)
+             .attr("fill", "#f0f0f0")
+             .attr("stroke", "#d4af37")
+             .attr("stroke-width", "2");
+             
+        // Avatar Image
+        avatarGroup.append("image")
+             .attr("xlink:href", d => d.data.img || "")
+             .attr("x", -avatarRadius)
+             .attr("y", -avatarRadius)
+             .attr("width", avatarRadius * 2)
+             .attr("height", avatarRadius * 2)
+             .attr("clip-path", "circle(24px at 24px 24px)"); // Simple CSS clip
+        
+        // Name
+        nodes.append("text")
+            .attr("x", nodeWidth / 2)
+            .attr("y", nodeHeight / 2 + 10)
+            .attr("text-anchor", "middle")
+            .style("font-weight", "bold")
+            .text(d => d.data.name);
+            
+        // Partner (Wife)
+        nodes.append("text")
+            .attr("x", nodeWidth / 2)
+            .attr("y", nodeHeight / 2 + 25)
+            .attr("text-anchor", "middle")
+            .style("font-size", "9px")
+            .style("fill", "#666")
+            .text(d => {
+                if (!d.data.partner) return "";
+                let text = `& ${d.data.partner}`;
+                if (d.data.partner_reference) text += ` ${d.data.partner_reference}`;
+                return text;
+            });
+        
+        nodes.append("text")
+            .attr("x", nodeWidth / 2)
+            .attr("y", nodeHeight - 8)
+            .attr("text-anchor", "middle")
+            .attr("class", "text-muted")
+            .style("font-size", "9px")
+            .text(d => d.data.reference || "");
+        
+        // Add tooltip on hover
+        nodes.append("title")
+            .text(d => `${d.data.name}\n${d.data.bio ? d.data.bio + '\n' : ''}${d.data.partner ? 'Esposa: ' + d.data.partner : ''}\n${d.data.years || ''}\n${d.data.reference || ''}`);
+        
+        // Center initially
+        const bounds = g.node().getBBox();
+        const dx = width / 2 - bounds.x - bounds.width / 2;
+        const dy = 20;
+        svg.call(zoom.transform, d3.zoomIdentity.translate(dx, dy).scale(0.8));
+    }
+    
+    // Expose zoom controls globally
+    window["zoomIn_" + containerId.replace(/-/g, "_")] = function() {
+        const svg = window["svg_" + containerId.replace(/-/g, "_")];
+        const zoom = window["zoom_" + containerId.replace(/-/g, "_")];
+        if (svg && zoom) svg.transition().call(zoom.scaleBy, 1.3);
+    };
+    
+    window["zoomOut_" + containerId.replace(/-/g, "_")] = function() {
+        const svg = window["svg_" + containerId.replace(/-/g, "_")];
+        const zoom = window["zoom_" + containerId.replace(/-/g, "_")];
+        if (svg && zoom) svg.transition().call(zoom.scaleBy, 0.7);
+    };
+    
+    window["resetZoom_" + containerId.replace(/-/g, "_")] = function() {
+        const svg = window["svg_" + containerId.replace(/-/g, "_")];
+        const zoom = window["zoom_" + containerId.replace(/-/g, "_")];
+        if (svg && zoom) svg.transition().call(zoom.transform, d3.zoomIdentity);
+    };
+})();
+</script>

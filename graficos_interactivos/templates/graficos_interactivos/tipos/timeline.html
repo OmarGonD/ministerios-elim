@@ -1,0 +1,262 @@
+{% load static %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+{# Timeline Chart using D3.js - For Eschatology and Historical Events #}
+
+<div id="{{ unique_id }}" class="timeline-container" style="height: {{ height }}; width: {{ width|default:'100%' }}; overflow: hidden; position: relative;">
+    <div class="timeline-controls" style="position: absolute; top: 10px; right: 10px; z-index: 100;">
+        <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="zoomInTimeline_{{ unique_id|slugify }}()">
+            <i class="fas fa-plus"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="zoomOutTimeline_{{ unique_id|slugify }}()">
+            <i class="fas fa-minus"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetTimelineZoom_{{ unique_id|slugify }}()">
+            <i class="fas fa-home"></i>
+        </button>
+    </div>
+    <svg id="{{ unique_id }}-svg" width="100%" height="100%"></svg>
+</div>
+
+    /* Modern Timeline Styles */
+    .timeline-container {
+        background: linear-gradient(135deg, #1e1e24 0%, #29323c 100%); /* Deep sleek dark background */
+        border-radius: 12px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    [data-theme="light"] .timeline-container {
+         background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+         border: 1px solid #e1e4e8;
+    }
+    
+    .timeline-event {
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    
+    .timeline-event:hover {
+        transform: translateY(-5px);
+    }
+    
+    .timeline-event:hover rect {
+        stroke-opacity: 1;
+        stroke-width: 3px;
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
+    }
+    
+    .timeline-event rect {
+        rx: 12px;
+        stroke-width: 1.5px;
+        stroke-opacity: 0.8;
+        /* Glassmorphism attempt in SVG props happens in JS, here base styles */
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+    }
+    
+    .timeline-event text {
+        font-family: 'Inter', sans-serif;
+        fill: white;
+        pointer-events: none;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+    
+    [data-theme="light"] .timeline-event text {
+        text-shadow: none;
+        fill: #333;
+    }
+    
+    .timeline-axis text {
+        font-family: 'Inter', sans-serif;
+        font-size: 11px;
+        fill: rgba(255,255,255,0.6);
+    }
+    
+     [data-theme="light"] .timeline-axis text {
+        fill: #666;
+     }
+    
+    .timeline-connector {
+        stroke: rgba(255, 255, 255, 0.2);
+        stroke-width: 4px;
+        stroke-linecap: round;
+        fill: none;
+    }
+    
+     [data-theme="light"] .timeline-connector {
+        stroke: #ccc;
+     }
+    
+    .timeline-label {
+        font-family: 'Playfair Display', serif;
+        font-size: 20px;
+        font-weight: 700;
+        fill: rgba(255,255,255,0.9);
+        letter-spacing: 1px;
+    }
+    
+    [data-theme="light"] .timeline-label {
+        fill: #333;
+    }
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+(function() {
+    const containerId = "{{ unique_id }}";
+    const svgId = "{{ unique_id }}-svg";
+    const data = {{ datos_json|safe }};
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        initTimeline(containerId, svgId, data);
+    });
+    
+    if (document.readyState !== 'loading') {
+        setTimeout(() => initTimeline(containerId, svgId, data), 100);
+    }
+    
+    function initTimeline(containerId, svgId, data) {
+        const container = document.getElementById(containerId);
+        const svg = d3.select("#" + svgId);
+        
+        if (!container || svg.empty()) return;
+        
+        const width = container.clientWidth || 1000;
+        const height = container.clientHeight || 400;
+        const margin = { top: 60, right: 40, bottom: 40, left: 40 };
+        
+        svg.selectAll("*").remove();
+        
+        const g = svg.append("g");
+        
+        // Setup zoom
+        const zoom = d3.zoom()
+            .scaleExtent([0.3, 3])
+            .on("zoom", (event) => {
+                g.attr("transform", event.transform);
+            });
+        
+        svg.call(zoom);
+        
+        window["zoom_tl_" + containerId.replace(/-/g, "_")] = zoom;
+        window["svg_tl_" + containerId.replace(/-/g, "_")] = svg;
+        
+        if (!data || !data.events || data.events.length === 0) {
+            g.append("text")
+                .attr("x", width / 2)
+                .attr("y", height / 2)
+                .attr("text-anchor", "middle")
+                .style("fill", "var(--text-muted)")
+                .text("Configure los eventos del timeline en el admin");
+            return;
+        }
+        
+        // Color palette for events
+        const colors = {
+            'iglesia': '#4CAF50',
+            'arrebatamiento': '#FFD700',
+            'tribulacion': '#f44336',
+            'segunda_venida': '#2196F3',
+            'milenio': '#9C27B0',
+            'juicio': '#FF5722',
+            'eternidad': '#00BCD4',
+            'default': '#d4af37'
+        };
+        
+        // Calculate positions
+        const eventWidth = 150;
+        const eventHeight = 80;
+        const gapBetweenEvents = 30;
+        
+        // Draw timeline connector line
+        const totalWidth = data.events.length * (eventWidth + gapBetweenEvents);
+        const centerY = height / 2;
+        
+        g.append("line")
+            .attr("class", "timeline-connector")
+            .attr("x1", margin.left)
+            .attr("y1", centerY)
+            .attr("x2", margin.left + totalWidth)
+            .attr("y2", centerY);
+        
+        // Draw events
+        const events = g.selectAll(".timeline-event")
+            .data(data.events)
+            .enter()
+            .append("g")
+            .attr("class", "timeline-event")
+            .attr("transform", (d, i) => {
+                const x = margin.left + i * (eventWidth + gapBetweenEvents);
+                const y = centerY - eventHeight / 2;
+                return `translate(${x}, ${y})`;
+            });
+        
+        events.append("rect")
+            .attr("width", eventWidth)
+            .attr("height", eventHeight)
+            .attr("fill", d => colors[d.type] || colors.default)
+            .attr("stroke", d => d3.color(colors[d.type] || colors.default).darker(0.5));
+        
+        events.append("text")
+            .attr("x", eventWidth / 2)
+            .attr("y", eventHeight / 2 - 8)
+            .attr("text-anchor", "middle")
+            .style("font-size", "12px")
+            .style("font-weight", "bold")
+            .text(d => d.name);
+        
+        events.append("text")
+            .attr("x", eventWidth / 2)
+            .attr("y", eventHeight / 2 + 10)
+            .attr("text-anchor", "middle")
+            .style("font-size", "10px")
+            .style("opacity", 0.9)
+            .text(d => d.duration || "");
+        
+        // Add scripture references below
+        events.append("text")
+            .attr("x", eventWidth / 2)
+            .attr("y", eventHeight + 20)
+            .attr("text-anchor", "middle")
+            .style("font-size", "9px")
+            .style("fill", "var(--text-muted)")
+            .text(d => d.reference || "");
+        
+        // Add title
+        if (data.title) {
+            g.append("text")
+                .attr("class", "timeline-label")
+                .attr("x", width / 2)
+                .attr("y", 35)
+                .attr("text-anchor", "middle")
+                .style("font-size", "18px")
+                .text(data.title);
+        }
+        
+        // Tooltips
+        events.append("title")
+            .text(d => `${d.name}\n${d.description || ''}\n${d.reference || ''}`);
+        
+        // Initial centering
+        svg.call(zoom.transform, d3.zoomIdentity.translate(0, 0).scale(0.9));
+    }
+    
+    // Expose zoom controls
+    window["zoomInTimeline_" + containerId.replace(/-/g, "_")] = function() {
+        const svg = window["svg_tl_" + containerId.replace(/-/g, "_")];
+        const zoom = window["zoom_tl_" + containerId.replace(/-/g, "_")];
+        if (svg && zoom) svg.transition().call(zoom.scaleBy, 1.3);
+    };
+    
+    window["zoomOutTimeline_" + containerId.replace(/-/g, "_")] = function() {
+        const svg = window["svg_tl_" + containerId.replace(/-/g, "_")];
+        const zoom = window["zoom_tl_" + containerId.replace(/-/g, "_")];
+        if (svg && zoom) svg.transition().call(zoom.scaleBy, 0.7);
+    };
+    
+    window["resetTimelineZoom_" + containerId.replace(/-/g, "_")] = function() {
+        const svg = window["svg_tl_" + containerId.replace(/-/g, "_")];
+        const zoom = window["zoom_tl_" + containerId.replace(/-/g, "_")];
+        if (svg && zoom) svg.transition().call(zoom.transform, d3.zoomIdentity);
+    };
+})();
+</script>

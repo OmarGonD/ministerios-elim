@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "pastores.apps.PastoresConfig",
     "miembros.apps.MiembrosConfig",
     "foros.apps.ForosConfig",
+    "graficos_interactivos.apps.GraficosInteractivosConfig",
 ]
 
 # ----------------------------------------------------------------------
