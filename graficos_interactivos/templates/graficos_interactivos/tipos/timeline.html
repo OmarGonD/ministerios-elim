@@ -4,13 +4,13 @@
 
 <div id="{{ unique_id }}" class="timeline-container" style="height: {{ height }}; width: {{ width|default:'100%' }}; overflow: hidden; position: relative;">
     <div class="timeline-controls" style="position: absolute; top: 10px; right: 10px; z-index: 100;">
-        <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="zoomInTimeline_{{ unique_id|slugify }}()">
+        <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="zoomInTimeline_{{ unique_id }}()">
             <i class="fas fa-plus"></i>
         </button>
-        <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="zoomOutTimeline_{{ unique_id|slugify }}()">
+        <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="zoomOutTimeline_{{ unique_id }}()">
             <i class="fas fa-minus"></i>
         </button>
-        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetTimelineZoom_{{ unique_id|slugify }}()">
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetTimelineZoom_{{ unique_id }}()">
             <i class="fas fa-home"></i>
         </button>
     </div>

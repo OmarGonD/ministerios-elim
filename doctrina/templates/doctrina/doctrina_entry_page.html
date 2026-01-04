@@ -316,11 +316,7 @@
                             {% if grafico.nombre %}
                             <h5 class="text-center mb-3">{{ grafico.nombre }}</h5>
                             {% endif %}
-                            {% if grafico.descripcion %}
-                            <div class="grafico-descripcion mb-3 text-muted">
-                                {{ grafico.descripcion|safe }}
-                            </div>
-                            {% endif %}
+                            <!-- Description is handled by the grafico_con_descripcion tag -->
                             {% grafico_con_descripcion grafico.slug height="550px" %}
                         </div>
                         {% endif %}

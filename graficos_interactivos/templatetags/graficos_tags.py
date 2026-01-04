@@ -23,7 +23,7 @@ def grafico(slug, height='500px', width='100%'):
             'datos_json': json.dumps(grafico_obj.datos_json),
             'height': height,
             'width': width,
-            'unique_id': f"grafico-{grafico_obj.slug.replace('-', '_')}",
+            'unique_id': f"grafico_{grafico_obj.slug.replace('-', '_')}",
         }
         
         html = render_to_string(template_name, context)
@@ -45,7 +45,7 @@ def grafico_con_descripcion(slug, height='500px'):
             'grafico': grafico_obj,
             'datos_json': json.dumps(grafico_obj.datos_json),
             'height': height,
-            'unique_id': f"grafico-{grafico_obj.slug.replace('-', '_')}",
+            'unique_id': f"grafico_{grafico_obj.slug.replace('-', '_')}",
         }
     except GraficoInteractivo.DoesNotExist:
         return {'grafico': None, 'slug': slug}

@@ -3,21 +3,72 @@
 {# Genealogy Tree using D3.js #}
 
 <div id="{{ unique_id }}" class="genealogia-container" style="height: {{ height }}; width: {{ width|default:'100%' }}; overflow: hidden; position: relative;">
-    <div class="genealogia-controls" style="position: absolute; top: 10px; right: 10px; z-index: 100;">
-        <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="zoomIn_{{ unique_id|slugify }}()">
-            <i class="fas fa-plus"></i>
+    <div class="genealogia-controls" style="position: absolute; top: 10px; right: 10px; z-index: 100; display: flex; gap: 5px; align-items: start;">
+        <!-- Search Control -->
+        <div class="input-group input-group-sm" style="width: 200px;">
+            <input type="text" id="search-{{ unique_id }}" class="form-control" placeholder="Buscar personaje..." onkeyup="searchNode_{{ unique_id }}(this.value)">
+            <button class="btn btn-outline-secondary bg-white" type="button" onclick="clearSearch_{{ unique_id }}()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Export Control -->
+        <button type="button" class="btn btn-sm btn-outline-secondary bg-white" title="Descargar Imagen" onclick="downloadChart_{{ unique_id }}()">
+            <i class="fas fa-camera"></i>
         </button>
-        <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="zoomOut_{{ unique_id|slugify }}()">
-            <i class="fas fa-minus"></i>
-        </button>
-        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetZoom_{{ unique_id|slugify }}()">
-            <i class="fas fa-home"></i>
-        </button>
+
+        <!-- Zoom Controls -->
+        <div class="btn-group btn-group-sm">
+            <button type="button" class="btn btn-outline-secondary bg-white" onclick="zoomIn_{{ unique_id }}()">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button type="button" class="btn btn-outline-secondary bg-white" onclick="zoomOut_{{ unique_id }}()">
+                <i class="fas fa-minus"></i>
+            </button>
+            <button type="button" class="btn btn-outline-secondary bg-white" onclick="resetZoom_{{ unique_id }}()">
+                <i class="fas fa-home"></i>
+            </button>
+        </div>
+    </div>
+    <div id="side-panel-{{ unique_id }}" class="genealogia-side-panel">
+        <button type="button" class="btn-close float-end" aria-label="Close" onclick="closeSidePanel_{{ unique_id }}()"></button>
+        <div class="panel-content">
+            <h4 id="panel-title-{{ unique_id }}" class="mb-3">Personaje</h4>
+            <div id="panel-body-{{ unique_id }}">
+                <p class="text-muted">Selecciona un personaje para ver detalles.</p>
+            </div>
+        </div>
     </div>
     <svg id="{{ unique_id }}-svg" width="100%" height="100%"></svg>
+    
+    <!-- Minimap -->
+    <div id="minimap-{{ unique_id }}" style="position: absolute; bottom: 20px; left: 20px; width: 150px; height: 100px; border: 2px solid #d4af37; background: rgba(255,255,255,0.8); z-index: 90; border-radius: 4px; overflow: hidden; pointer-events: none;">
+        <svg width="100%" height="100%" id="minimap-svg-{{ unique_id }}"></svg>
+        <div id="minimap-rect-{{ unique_id }}" style="position: absolute; top: 0; left: 0; border: 2px solid #b8860b; box-shadow: 0 0 4px rgba(0,0,0,0.3); background: rgba(184, 134, 11, 0.1);"></div>
+    </div>
 </div>
 
 <style>
+    .genealogia-side-panel {
+        position: absolute;
+        top: 0;
+        right: -320px; /* Hidden */
+        width: 300px;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-left: 1px solid #d4af37;
+        box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+        padding: 20px;
+        transition: right 0.3s ease-in-out;
+        z-index: 200;
+        overflow-y: auto;
+    }
+    
+    .genealogia-side-panel.open {
+        right: 0;
+    }
+
     .genealogia-container {
         background-color: #fdfbf7;
         background-image: url('{% static "graficos_interactivos/img/parchment.png" %}');
@@ -26,6 +77,7 @@
         border-radius: 12px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         border: 4px double #d4af37;
+        overflow: hidden; /* Ensure panel stays inside */
     }
     
     [data-theme="dark"] .genealogia-container {
@@ -34,6 +86,12 @@
         border-color: #8a6d25;
     }
     
+    [data-theme="dark"] .genealogia-side-panel {
+        background: rgba(44, 36, 27, 0.95);
+        border-left-color: #8a6d25;
+        color: #e0e0e0;
+    }
+
     .genealogia-node rect {
         fill: #fff9f0;
         stroke: #d4af37;
@@ -123,6 +181,7 @@
             .scaleExtent([0.1, 4])
             .on("zoom", (event) => {
                 g.attr("transform", event.transform);
+                updateMinimapRect(event.transform); // Sync minimap
             });
         
         svg.call(zoom);
@@ -224,7 +283,47 @@
              }
         }
 
-         // Draw standard links
+         // Implement Timeline/Generational Bands (Background)
+         const depths = d3.group(descendants, d => d.depth);
+         const depthBands = [];
+         
+         depths.forEach((nodes, depth) => {
+             // Find min/max Y for this depth (actually min/max X since tree flows down, but Y is depth in vertical tree)
+             // In d3.tree() vertical: x is horizontal position, y is depth (vertical position)
+             // We want horizontal bands across the width.
+             // Min Y is usually consistent per depth level in standard tree, but with manual tweaks might vary.
+             
+             // Get bounds of nodes at this depth
+             const minY = d3.min(nodes, d => d.y); 
+             const maxY = d3.max(nodes, d => d.y);
+             
+             // Define band height
+             const bandY = minY + 50 - verticalSpacing/2;
+             const bandHeight = nodeHeight + verticalSpacing;
+             
+             depthBands.push({
+                 depth: depth,
+                 y: bandY,
+                 height: bandHeight
+             });
+         });
+         
+         // Draw bands
+         g.selectAll(".gen-band")
+            .data(depthBands)
+            .enter()
+            .insert("rect", ":first-child") // Insert behind everything
+            .attr("class", "gen-band")
+            .attr("x", -width * 2) // Extend widely
+            .attr("width", width * 5)
+            .attr("y", d => d.y)
+            .attr("height", d => d.height)
+            .attr("fill", (d, i) => i % 2 === 0 ? "rgba(212, 175, 55, 0.05)" : "rgba(212, 175, 55, 0.0)")
+            .style("pointer-events", "none");
+            
+
+
+         // --- Draw Standard Links ---
          // Filter out links that we will draw manually:
          // 1. To Jesus (from Mary) - we'll draw from HS-Mary union
          // 2. To Siblings (from Mary) - we'll draw from Mary-Joseph union
@@ -430,17 +529,164 @@
             .style("font-size", "9px")
             .text(d => d.data.reference || "");
         
-        // Add tooltip on hover
-        nodes.append("title")
-            .text(d => `${d.data.name}\n${d.data.bio ? d.data.bio + '\n' : ''}${d.data.partner ? 'Esposa: ' + d.data.partner : ''}\n${d.data.years || ''}\n${d.data.reference || ''}`);
+        // Add Side Panel Logic
+        nodes.on("click", function(event, d) {
+            event.stopPropagation(); // Prevent zoom/pan on svg when clicking node
+            showSidePanel(d.data);
+        });
+        
+        // Close panel when clicking background
+        svg.on("click", function() {
+            closeSidePanel();
+        });
+
+        // Initialize Minimap
+        initMinimap(descendants, width, height);
         
         // Center initially
         const bounds = g.node().getBBox();
         const dx = width / 2 - bounds.x - bounds.width / 2;
         const dy = 20;
-        svg.call(zoom.transform, d3.zoomIdentity.translate(dx, dy).scale(0.8));
+        const initialTransform = d3.zoomIdentity.translate(dx, dy).scale(0.8);
+        svg.call(zoom.transform, initialTransform);
+        
+        // Initial minimap update
+        updateMinimapRect(initialTransform);
     }
     
+    function initMinimap(descendants, fullW, fullH) {
+        const miniSvg = d3.select("#minimap-svg-" + containerId);
+        
+        // Check if minimap exists
+        if (miniSvg.empty()) return;
+
+        // Calculate bounds of the tree
+        const xExtent = d3.extent(descendants, d => d.x);
+        const yExtent = d3.extent(descendants, d => d.y);
+        
+        const treeWidth = (xExtent[1] - xExtent[0]) + 400; // Add padding
+        const treeHeight = (yExtent[1] - yExtent[0]) + 400;
+        
+        // Fit tree into 150x100
+        const miniWidth = 150;
+        const miniHeight = 100;
+        const scaleX = miniWidth / treeWidth;
+        const scaleY = miniHeight / treeHeight;
+        const miniScale = Math.min(scaleX, scaleY) * 0.8; 
+        
+        const offsetX = (miniWidth - treeWidth * miniScale) / 2 - (xExtent[0] - 200) * miniScale;
+        const offsetY = (miniHeight - treeHeight * miniScale) / 2 - (yExtent[0] - 200) * miniScale;
+        
+        const gMini = miniSvg.append("g")
+            .attr("transform", `translate(0, 0)`); // We will apply scale to nodes
+            
+        // Draw simplified nodes
+        gMini.selectAll("circle")
+            .data(descendants)
+            .enter()
+            .append("circle")
+            .attr("cx", d => (d.x + 70) * miniScale + offsetX) 
+            .attr("cy", d => (d.y + 90) * miniScale + offsetY) 
+            .attr("r", 3)
+            .attr("fill", "#d4af37");
+            
+        // Save scales for update
+        window["minimap_" + containerId] = {
+            scale: miniScale,
+            offsetX: offsetX,
+            offsetY: offsetY,
+            treeW: treeWidth,
+            treeH: treeHeight
+        };
+    }
+    
+    function updateMinimapRect(transform) {
+        const miniState = window["minimap_" + containerId];
+        if (!miniState) return;
+        
+        const miniRect = document.getElementById("minimap-rect-" + containerId);
+        const container = document.getElementById(containerId);
+        if (!container || !miniRect) return;
+        
+        const viewW = container.clientWidth;
+        const viewH = container.clientHeight;
+        
+        const k = transform.k;
+        const tx = transform.x;
+        const ty = transform.y;
+        
+        // Inverted transform to find visible area in tree coords
+        const visibleX = -tx / k;
+        const visibleY = -ty / k;
+        const visibleW = viewW / k;
+        const visibleH = viewH / k;
+        
+        // Map to minimap coords
+        const rectX = (visibleX + 200) * miniState.scale + miniState.offsetX; // +200 because we added padding in treeWidth calculation assumption
+        // Actually simpler: 
+        // nodeX_mini = nodeX_tree * scale + offsetX
+        // visibleX_mini = visibleX_tree * scale + offsetX
+        
+        // Re-calced offset logic:
+        // offset includes shift of tree origin.
+        // Let's rely on the fact that 0,0 in tree coords maps to ...
+        
+        // Use simpler mapping:
+        // The transform applied to nodes in minimap was `(d.x) * scale + offset`.
+        // So rect definition:
+        const rX = (visibleX) * miniState.scale + miniState.offsetX + (70 * miniState.scale); // +center adjustment
+        const rY = (visibleY) * miniState.scale + miniState.offsetY + (90 * miniState.scale);
+        
+        const rW = visibleW * miniState.scale;
+        const rH = visibleH * miniState.scale;
+        
+        miniRect.style.left = Math.max(0, rX) + "px";
+        miniRect.style.top = Math.max(0, rY) + "px";
+        miniRect.style.width = Math.min(150, rW) + "px";
+        miniRect.style.height = Math.min(100, rH) + "px";
+    }
+
+    function showSidePanel(data) {
+        const panel = document.getElementById("side-panel-" + containerId);
+        const title = document.getElementById("panel-title-" + containerId);
+        const body = document.getElementById("panel-body-" + containerId);
+        
+        if (!panel) return;
+        
+        title.innerText = data.name;
+        
+        let content = '';
+        
+        if (data.img) {
+            content += `<div class="text-center mb-3"><img src="${data.img}" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #d4af37;"></div>`;
+        }
+        
+        if (data.bio) content += `<p class="small">${data.bio}</p>`;
+        
+        content += '<hr class="my-2" style="border-top: 1px dashed #d4af37;">';
+        content += '<ul class="list-unstyled small mb-0">';
+        
+        if (data.years) content += `<li><strong>Años:</strong> ${data.years}</li>`;
+        if (data.partner) content += `<li><strong>Pareja:</strong> ${data.partner} ${data.partner_reference ? '<span class="text-muted">(' + data.partner_reference + ')</span>' : ''}</li>`;
+        if (data.reference) content += `<li><strong>Referencia:</strong> ${data.reference}</li>`;
+        
+        content += '</ul>';
+        
+        body.innerHTML = content;
+        panel.classList.add("open");
+    }
+    
+    // Expose close function
+    window["closeSidePanel_" + containerId.replace(/-/g, "_")] = function() {
+        const panel = document.getElementById("side-panel-" + containerId);
+        if (panel) panel.classList.remove("open");
+    };
+    
+    function closeSidePanel() {
+         const panel = document.getElementById("side-panel-" + containerId);
+         if (panel) panel.classList.remove("open");
+    }
+
     // Expose zoom controls globally
     window["zoomIn_" + containerId.replace(/-/g, "_")] = function() {
         const svg = window["svg_" + containerId.replace(/-/g, "_")];
@@ -458,6 +704,128 @@
         const svg = window["svg_" + containerId.replace(/-/g, "_")];
         const zoom = window["zoom_" + containerId.replace(/-/g, "_")];
         if (svg && zoom) svg.transition().call(zoom.transform, d3.zoomIdentity);
+    };
+
+    // --- Search Functionality ---
+    window["searchNode_" + containerId.replace(/-/g, "_")] = function(query) {
+        const svg = window["svg_" + containerId.replace(/-/g, "_")];
+        const zoom = window["zoom_" + containerId.replace(/-/g, "_")];
+        if (!svg || !query) {
+             svg.selectAll(".genealogia-node rect")
+                .style("stroke", "#d4af37")
+                .style("stroke-width", "1.5px");
+             return;
+        }
+        
+        const term = query.toLowerCase();
+        let found = null;
+        
+        svg.selectAll(".genealogia-node").each(function(d) {
+            const node = d3.select(this);
+            const name = d.data.name.toLowerCase();
+            const rect = node.select("rect");
+            
+            if (name.includes(term)) {
+                rect.style("stroke", "#e91e63") // Pink/Red highlight
+                    .style("stroke-width", "4px")
+                    .style("filter", "drop-shadow(0 0 8px rgba(233, 30, 99, 0.6))");
+                    
+                if (!found) found = d; // Capture first match for zoom
+            } else {
+                rect.style("stroke", "#d4af37")
+                    .style("stroke-width", "1.5px")
+                    .style("filter", "drop-shadow(2px 4px 4px rgba(0,0,0,0.1))");
+            }
+        });
+        
+        // Zoom to first result
+        if (found && zoom) {
+             const scale = 1.2;
+             const x = found.x + 140/2; // Center of node width (manual 140)
+             const y = found.y + 80/2 + 50; // Center of node height + margin
+             // Transform: translate(width/2 - x*scale, height/2 - y*scale) scale(scale)
+             const container = document.getElementById(containerId);
+             const width = container.clientWidth;
+             const height = container.clientHeight;
+             
+             svg.transition().duration(750).call(
+                zoom.transform, 
+                d3.zoomIdentity.translate(width/2 - x*scale, height/2 - y*scale).scale(scale)
+             );
+        }
+    };
+
+    window["clearSearch_" + containerId.replace(/-/g, "_")] = function() {
+        document.getElementById("search-" + containerId).value = "";
+        window["searchNode_" + containerId.replace(/-/g, "_")]("");
+    };
+
+    // --- Export Functionality ---
+    // --- Export Functionality ---
+    window["downloadChart_" + containerId.replace(/-/g, "_")] = function() {
+        const svg = document.getElementById(svgId);
+        
+        // 1. Get the bounding box of the CONTENT (the group inside)
+        const g = svg.querySelector("g");
+        const bbox = g.getBBox();
+        
+        // 2. Clone the SVG to modify it for export without touching the live one
+        const clonedSvg = svg.cloneNode(true);
+        
+        // 3. Reset the transform on the main group in the clone to center it
+        const padding = 50;
+        const x = bbox.x - padding;
+        const y = bbox.y - padding;
+        const w = bbox.width + (padding * 2);
+        const h = bbox.height + (padding * 2);
+        
+        clonedSvg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
+        clonedSvg.setAttribute("width", w); 
+        clonedSvg.setAttribute("height", h);
+        
+        // Reset transform of the inner G (remove zoom/pan)
+        const clonedG = clonedSvg.querySelector("g");
+        clonedG.setAttribute("transform", ""); 
+        
+        // 4. Serialize
+        const serializer = new XMLSerializer();
+        let svgString = serializer.serializeToString(clonedSvg);
+        
+        // Fix namespaces
+        if (!svgString.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+            svgString = svgString.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+        }
+        
+        // 5. Canvas setup
+        const scale = 2; // For high resolution
+        const canvas = document.createElement("canvas");
+        canvas.width = w * scale;
+        canvas.height = h * scale;
+        const ctx = canvas.getContext("2d");
+        
+        // Background
+        ctx.fillStyle = "#fdfbf7"; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // 6. Draw
+        const img = new Image();
+        const svgBlob = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"});
+        const url = URL.createObjectURL(svgBlob);
+        
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            URL.revokeObjectURL(url);
+            
+            // 7. Download JPG
+            const jpgUrl = canvas.toDataURL("image/jpeg", 0.9);
+            const a = document.createElement("a");
+            a.download = "genealogia.jpg";
+            a.href = jpgUrl;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        };
+        img.src = url;
     };
 })();
 </script>
