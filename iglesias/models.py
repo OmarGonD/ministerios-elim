@@ -1,10 +1,12 @@
 from django.db import models
 from django.conf import settings
+from django import forms
+
 from wagtail.models import Page
 from wagtail.fields import RichTextField
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
 from wagtail.search import index
-from django import forms
+
 from django_countries.fields import CountryField
 
 # ==============================================================================
@@ -163,7 +165,6 @@ class IglesiaPage(Page):
     @property
     def country(self):
         # Find the CountryIndexPage ancestor
-        from .models import CountryIndexPage
         country_page = self.get_ancestors().type(CountryIndexPage).specific().first()
         return country_page.country if country_page else None
 
@@ -290,26 +291,7 @@ class PreachMaterial(models.Model):
     def __str__(self):
         return f"{self.title} ({self.get_category_display()})"
 
-class Sermon(models.Model):
-    """Model for storing YouTube sermon links for a church."""
-    iglesia = models.ForeignKey('IglesiaPage', on_delete=models.CASCADE, related_name='sermons')
-    title = models.CharField('Título', max_length=255)
-    youtube_url = models.URLField('URL de YouTube')
-    is_live = models.BooleanField('En Vivo', default=False)
-    date_added = models.DateTimeField('Fecha de publicación', auto_now_add=True)
-
-    class Meta:
-        verbose_name = "Predicación"
-        verbose_name_plural = "Predicaciones"
-        ordering = ['-date_added']
-
-    def __str__(self):
-        return f"{self.title} ({'Live' if self.is_live else 'Recorded'})"
-# or we can remove it if we are sure we want to start fresh. 
-# Given this is 'dev', I will comment it out or leave it if it doesn't conflict.
-# It might conflict if we want to use the name 'Iglesia' everywhere.
-# Renaming old one to LegacyIglesia just in case.
-
+# Legacy Iglesia model (Django-only) - retained for existing data/compatibility
 class Iglesia(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='iglesias')
     nombre = models.CharField(max_length=255)

@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+{% load static wagtailcore_tags wagtailimages_tags user_extras %}
+
+{% block title %}Mis Artículos — Doctrina{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ministerios_elim.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    .dashboard-page {
+        padding-top: 120px;
+        padding-bottom: 80px;
+        min-height: 100vh;
+        background: var(--bg-color);
+    }
+
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-header h1 {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 2.2rem;
+        color: var(--text-color);
+        margin: 0;
+    }
+
+    .dashboard-header .stat-badge {
+        background: var(--bg-alt);
+        border: 1px solid var(--border-color);
+        padding: 8px 20px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    /* Section title */
+    .section-title {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text-muted);
+        margin: 2rem 0 1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title .count {
+        background: #d4af37;
+        color: #000;
+        padding: 2px 10px;
+        font-size: 0.75rem;
+        font-weight: 800;
+    }
+
+    /* Entry row */
+    .entry-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem 1.5rem;
+        background: var(--card-bg, #fff);
+        border: 1px solid var(--border-color);
+        margin-bottom: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .entry-row:hover {
+        border-color: #d4af37;
+        transform: translateX(4px);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    .entry-thumb {
+        width: 60px;
+        height: 60px;
+        background: var(--bg-alt);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+
+    .entry-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .entry-thumb i {
+        font-size: 1.5rem;
+        color: var(--text-muted);
+        opacity: 0.3;
+    }
+
+    .entry-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .entry-info h5 {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 1rem;
+        margin: 0 0 4px;
+        color: var(--text-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .entry-info h5 a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .entry-info h5 a:hover {
+        color: #d4af37;
+    }
+
+    .entry-info .entry-meta {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .entry-actions {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .entry-actions .btn {
+        padding: 6px 14px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border-radius: 0;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-live {
+        background: #198754;
+        color: #fff;
+    }
+
+    .status-draft {
+        background: #6c757d;
+        color: #fff;
+    }
+
+    /* Create button dropdown */
+    .create-new-section {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .create-new-section .btn {
+        border-radius: 0;
+        font-weight: 600;
+        padding: 10px 20px;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-muted);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-page { padding-top: 100px; }
+        .entry-row { flex-direction: column; align-items: flex-start; }
+        .entry-actions { width: 100%; justify-content: flex-end; }
+        .dashboard-header { flex-direction: column; align-items: flex-start; }
+    }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="dashboard-page">
+    <div class="container">
+
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div>
+                <h1><i class="fas fa-book-open me-3" style="color: #d4af37;"></i>Mis Artículos</h1>
+                {% if is_privileged %}
+                <p class="text-muted mt-1 mb-0" style="font-size: 0.9rem;">
+                    <i class="fas fa-crown text-warning me-1"></i> Vista de administrador — todos los artículos
+                </p>
+                {% endif %}
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="stat-badge">
+                    <i class="fas fa-file-alt me-1"></i> {{ total }} artículo{{ total|pluralize:"s" }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Create new -->
+        <div class="form-card p-4 mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color);">
+            <h6 class="fw-bold mb-3"><i class="fas fa-plus-circle text-warning me-2"></i> Crear nueva lección en:</h6>
+            <div class="create-new-section">
+                {% if doctrina_basica_page %}
+                <a href="{% url 'doctrina:frontend_create' 'basica' %}" class="btn btn-outline-success">
+                    <i class="fas fa-seedling me-1"></i> Básica
+                </a>
+                {% endif %}
+                {% if doctrina_intermedia_page %}
+                <a href="{% url 'doctrina:frontend_create' 'intermedia' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-tree me-1"></i> Intermedia
+                </a>
+                {% endif %}
+                {% if doctrina_avanzada_page %}
+                <a href="{% url 'doctrina:frontend_create' 'avanzada' %}" class="btn btn-outline-warning">
+                    <i class="fas fa-mountain me-1"></i> Avanzada
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} border-0 shadow-sm mb-3" style="border-radius: 0;">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Drafts -->
+        {% if draft_entries %}
+        <div class="section-title">
+            <i class="fas fa-pencil-alt"></i> Borradores
+            <span class="count">{{ draft_entries|length }}</span>
+        </div>
+        {% for entry in draft_entries %}
+        <div class="entry-row">
+            <div class="entry-thumb">
+                {% if entry.image %}
+                    <img src="{{ entry.image.file.url }}" alt="">
+                {% else %}
+                    <i class="fas fa-book"></i>
+                {% endif %}
+            </div>
+            <div class="entry-info">
+                <h5>
+                    {{ entry.title }}
+                    <span class="status-badge status-draft ms-2">Borrador</span>
+                </h5>
+                <div class="entry-meta">
+                    <span><i class="far fa-calendar me-1"></i> {{ entry.latest_revision_created_at|date:"d M Y" }}</span>
+                    <span><i class="far fa-folder me-1"></i> {{ entry.get_parent.title }}</span>
+                    {% if is_privileged and entry.owner %}
+                    <span><i class="far fa-user me-1"></i> {{ entry.owner.get_full_name|default:entry.owner.username }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="entry-actions">
+                <a href="{% url 'doctrina:frontend_edit' entry.id %}" class="btn btn-dark btn-sm">
+                    <i class="fas fa-pen me-1"></i> Editar
+                </a>
+                <a href="{% url 'doctrina:frontend_delete' entry.id %}" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- Published -->
+        <div class="section-title">
+            <i class="fas fa-check-circle text-success"></i> Publicados
+            <span class="count">{{ live_entries|length }}</span>
+        </div>
+        {% for entry in live_entries %}
+        <div class="entry-row">
+            <div class="entry-thumb">
+                {% if entry.image %}
+                    <img src="{{ entry.image.file.url }}" alt="">
+                {% else %}
+                    <i class="fas fa-book"></i>
+                {% endif %}
+            </div>
+            <div class="entry-info">
+                <h5>
+                    <a href="{{ entry.url }}">{{ entry.title }}</a>
+                    <span class="status-badge status-live ms-2">Publicado</span>
+                    {% if entry.apostle_last_edit_date %}
+                    <span class="status-badge ms-1" style="background: #d4af37; color: #000;">
+                        <i class="fas fa-crown"></i> Sellado
+                    </span>
+                    {% endif %}
+                </h5>
+                <div class="entry-meta">
+                    <span><i class="far fa-calendar me-1"></i> {{ entry.first_published_at|date:"d M Y" }}</span>
+                    <span><i class="far fa-folder me-1"></i> {{ entry.get_parent.title }}</span>
+                    <span><i class="far fa-comments me-1"></i> {{ entry.comments.count }} comentarios</span>
+                    {% if is_privileged and entry.owner %}
+                    <span><i class="far fa-user me-1"></i> {{ entry.owner.get_full_name|default:entry.owner.username }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="entry-actions">
+                <a href="{{ entry.url }}" class="btn btn-outline-dark btn-sm" target="_blank">
+                    <i class="fas fa-eye me-1"></i> Ver
+                </a>
+                <a href="{% url 'doctrina:frontend_edit' entry.id %}" class="btn btn-dark btn-sm">
+                    <i class="fas fa-pen me-1"></i> Editar
+                </a>
+                <a href="{% url 'doctrina:frontend_delete' entry.id %}" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <i class="fas fa-feather-alt d-block"></i>
+            <h5 class="fw-bold">Aún no tienes artículos publicados</h5>
+            <p>Crea tu primera lección usando los botones de arriba.</p>
+        </div>
+        {% endfor %}
+
+    </div>
+</div>
+{% endblock content %}

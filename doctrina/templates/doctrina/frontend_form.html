@@ -1,0 +1,676 @@
+{% extends "base.html" %}
+{% load static wagtailcore_tags user_extras %}
+
+{% block title %}
+{% if is_edit %}Editar: {{ entry.title }}{% else %}Nueva Lección — {{ parent.title }}{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ministerios_elim.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --form-bg: var(--bg-color);
+        --input-bg: var(--card-bg, #fff);
+        --input-border: var(--border-color, #dee2e6);
+    }
+
+    .doctrina-form-page {
+        padding-top: 120px;
+        padding-bottom: 80px;
+        min-height: 100vh;
+        background: var(--form-bg);
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .form-header h1 {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 2.5rem;
+        color: var(--text-color);
+    }
+
+    .form-header .section-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #d4af37, #c5960c);
+        color: #000;
+        padding: 6px 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 1rem;
+    }
+
+    /* Form Card */
+    .form-card {
+        background: var(--input-bg);
+        border: 1px solid var(--input-border);
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+
+    [data-theme="dark"] .form-card {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .form-card h3 {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--text-color);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #d4af37;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .form-card h3 i {
+        color: #d4af37;
+    }
+
+    /* Input overrides */
+    .form-card .form-control,
+    .form-card .form-select {
+        border-radius: 0;
+        border: 1.5px solid var(--input-border);
+        background: var(--input-bg);
+        color: var(--text-color);
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        padding: 0.75rem 1rem;
+    }
+
+    .form-card .form-control:focus {
+        border-color: #d4af37;
+        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+    }
+
+    .form-card label {
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-card .form-text {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    /* Image preview */
+    .image-preview-area {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-top: 0.75rem;
+    }
+
+    .image-preview-area img {
+        max-height: 120px;
+        border: 2px solid var(--input-border);
+    }
+
+    /* YouTube list */
+    .yt-video-list {
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0 0;
+    }
+
+    .yt-video-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        background: var(--bg-alt);
+        border: 1px solid var(--input-border);
+        margin-bottom: 6px;
+        font-size: 0.9rem;
+        color: var(--text-color);
+    }
+
+    .yt-video-item .yt-url {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .yt-video-item button {
+        background: transparent;
+        border: none;
+        color: #dc3545;
+        cursor: pointer;
+        font-size: 1rem;
+        padding: 2px 8px;
+    }
+
+    /* Action buttons */
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .btn-publish {
+        background: linear-gradient(135deg, #d4af37, #c5960c);
+        color: #000;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 14px 40px;
+        border: none;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+    }
+
+    .btn-publish:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
+        color: #000;
+    }
+
+    .btn-draft {
+        background: var(--bg-alt);
+        color: var(--text-color);
+        font-weight: 600;
+        padding: 14px 30px;
+        border: 2px solid var(--border-color);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-draft:hover {
+        border-color: #d4af37;
+        color: #d4af37;
+    }
+
+    .btn-cancel {
+        color: var(--text-muted);
+        padding: 14px 20px;
+        background: transparent;
+        border: none;
+        font-size: 0.95rem;
+        text-decoration: underline;
+    }
+
+    /* Radio display style */
+    .image-style-options {
+        display: flex;
+        gap: 1.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .image-style-options label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .doctrina-form-page { padding-top: 100px; }
+        .form-card { padding: 1.5rem; }
+        .form-actions { flex-direction: column; }
+        .form-actions button, .form-actions a { width: 100%; text-align: center; }
+    }
+
+    /* TinyMCE dark mode */
+    [data-theme="dark"] .tox .tox-edit-area__iframe {
+        background: var(--card-bg) !important;
+    }
+    [data-theme="dark"] .tox-tinymce {
+        border-color: var(--border-color) !important;
+    }
+    [data-theme="dark"] .tox .tox-toolbar,
+    [data-theme="dark"] .tox .tox-toolbar__primary,
+    [data-theme="dark"] .tox .tox-toolbar__overflow,
+    [data-theme="dark"] .tox .tox-menubar,
+    [data-theme="dark"] .tox .tox-statusbar {
+        background: var(--card-bg) !important;
+        border-color: var(--border-color) !important;
+    }
+    [data-theme="dark"] .tox .tox-tbtn {
+        color: var(--text-color) !important;
+    }
+
+    /* Floating help */
+    .form-tip {
+        background: rgba(212, 175, 55, 0.08);
+        border-left: 3px solid #d4af37;
+        padding: 12px 16px;
+        font-size: 0.85rem;
+        color: var(--text-color);
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="doctrina-form-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9 col-xl-8">
+
+                <!-- Header -->
+                <div class="form-header">
+                    {% if is_edit %}
+                        <div class="section-badge">
+                            <i class="fas fa-pen me-1"></i> Editando
+                        </div>
+                        <h1>{{ entry.title }}</h1>
+                        <p class="text-muted mt-2">Modifica tu artículo y guárdalo o publícalo.</p>
+                    {% else %}
+                        <div class="section-badge">
+                            <i class="fas fa-plus me-1"></i> {{ parent.title }}
+                        </div>
+                        <h1>Nueva Lección</h1>
+                        <p class="text-muted mt-2">Crea un nuevo artículo de doctrina. Puedes guardarlo como borrador y terminarlo después.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Tip -->
+                <div class="form-tip">
+                    <i class="fas fa-lightbulb me-1 text-warning"></i>
+                    <strong>Consejo:</strong> Puedes guardar como <strong>borrador</strong> y continuar editando más tarde desde tu panel <em>"Mis Artículos"</em>.
+                </div>
+
+                <!-- Errors -->
+                {% if form.errors %}
+                <div class="alert alert-danger border-0 shadow-sm" style="border-radius: 0;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Por favor corrige los siguientes errores:</strong>
+                    <ul class="mb-0 mt-2">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} border-0 shadow-sm" style="border-radius: 0;">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data" id="doctrinaForm">
+                    {% csrf_token %}
+
+                    <!-- Section 1: Basic Info -->
+                    <div class="form-card">
+                        <h3><i class="fas fa-heading"></i> Información Principal</h3>
+                        <div class="mb-4">
+                            <label for="id_title">{{ form.title.label }} <span class="text-danger">*</span></label>
+                            {{ form.title }}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-7 mb-3">
+                                <label for="id_subtitle">{{ form.subtitle.label }}</label>
+                                {{ form.subtitle }}
+                            </div>
+                            <div class="col-md-5 mb-3">
+                                <label for="id_slug">{{ form.slug.label }}</label>
+                                {{ form.slug }}
+                                <div class="form-text mt-1" style="font-size: 0.75rem;">URL del artículo.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Abstract / Intro -->
+                    <div class="form-card">
+                        <h3><i class="fas fa-align-left"></i> Resumen Introductorio</h3>
+                        <p class="form-text mb-3">Aparecerá destacado al inicio del artículo en cursiva.</p>
+                        <div class="mb-3">
+                            {{ form.abstract }}
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Body -->
+                    <div class="form-card">
+                        <h3><i class="fas fa-file-alt"></i> Contenido del Artículo <span class="text-danger">*</span></h3>
+                        <div class="mb-3">
+                            <textarea id="id_body" name="body" class="form-control richtext-editor" rows="15">{{ form.body.value|default_if_none:"" }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Image -->
+                    <div class="form-card">
+                        <h3><i class="fas fa-image"></i> Imagen Principal</h3>
+                        <div class="mb-3">
+                            <label for="id_image">Subir imagen</label>
+                            {{ form.image }}
+                            <div class="form-text">Formatos: JPG, PNG, WEBP — Recomendado: 1600×600 px para Hero Banner</div>
+                        </div>
+                        {% if is_edit and entry.image %}
+                        <div class="image-preview-area">
+                            <img src="{{ entry.image.file.url }}" alt="Imagen actual" class="img-fluid shadow-sm">
+                            <span class="text-muted small">Imagen actual. Sube una nueva para reemplazarla.</span>
+                        </div>
+                        {% endif %}
+                        <div class="mt-3">
+                            <label>Estilo de visualización</label>
+                            <div class="image-style-options">
+                                {% for radio in form.image_display_style %}
+                                    <label>
+                                        {{ radio.tag }}
+                                        <span>{{ radio.choice_label }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 5: YouTube Videos -->
+                    <div class="form-card">
+                        <h3><i class="fab fa-youtube text-danger"></i> Videos de YouTube</h3>
+                        <p class="form-text mb-3">Agrega enlaces de YouTube relacionados con la lección.</p>
+                        <div class="input-group mb-3">
+                            <input type="url" class="form-control" id="ytUrlInput" placeholder="https://www.youtube.com/watch?v=..." style="border-radius: 0;">
+                            <button type="button" class="btn btn-dark" id="addYtBtn" style="border-radius: 0;">
+                                <i class="fas fa-plus me-1"></i> Agregar
+                            </button>
+                        </div>
+                        <ul class="yt-video-list" id="ytVideoList"></ul>
+                        <input type="hidden" name="youtube_urls" id="id_youtube_urls" value="{{ form.youtube_urls.value|default_if_none:'' }}">
+                    </div>
+
+                    <!-- Section 6: Study Materials (Documents) -->
+                    <div class="form-card">
+                        <h3><i class="fas fa-file-download"></i> Materiales de Estudio</h3>
+                        <p class="form-text mb-3">Sube presentaciones (PowerPoint), documentos (Word) o PDFs para tus alumnos.</p>
+                        <div class="mb-3">
+                            {{ form.study_materials }}
+                            <div class="form-text mt-1">
+                                <i class="fas fa-info-circle me-1"></i> Puedes seleccionar varios archivos a la vez.
+                            </div>
+                        </div>
+
+                         {% if is_edit and entry.documents.all %}
+                        <div class="mt-4">
+                            <label class="small text-muted mb-2 d-block">Documentos actualmente adjuntos:</label>
+                            <div class="list-group list-group-sm">
+                                {% for doc_item in entry.documents.all %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center bg-light-theme border-0 mb-1 py-2">
+                                    <span class="small">
+                                        <i class="far fa-file-alt me-2 text-gold"></i> {{ doc_item.document.title }}
+                                    </span>
+                                    <span class="badge bg-secondary rounded-pill font-monospace" style="font-size: 0.7rem;">
+                                        {{ doc_item.document.file.size|filesizeformat }}
+                                    </span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <p class="form-text x-small mt-2"><em>* Los archivos nuevos se añadirán a la lista existente.</em></p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- SEO Preview -->
+                    <div class="form-card">
+                        <h3><i class="fas fa-search"></i> Vista Previa de Google y Redes Sociales</h3>
+                        <p class="form-text mb-4">Así es como verán tu artículo en los buscadores y al compartir el link.</p>
+                        
+                        <div class="seo-preview-card" style="border: 1px solid #dfe1e5; padding: 20px; border-radius: 8px; font-family: arial, sans-serif; background: #fff;">
+                            <div class="google-preview mb-4">
+                                <div style="font-size: 14px; color: #202124; margin-bottom: 4px;">ministerioselim.org > doctrina > ...</div>
+                                <div id="seo-preview-title" style="font-size: 20px; color: #1a0dab; margin-bottom: 4px; cursor: pointer;">{{ form.title.value|default:"Título del Artículo" }}</div>
+                                <div id="seo-preview-desc" style="font-size: 14px; color: #4d5156; line-height: 1.58;">{{ form.abstract.value|default:"Este es un resumen de cómo se verá tu artículo en los resultados de búsqueda de Google..." }}</div>
+                            </div>
+                            
+                            <hr style="border-top: 1px solid #eee;">
+                            
+                            <div class="facebook-preview mt-4" style="border: 1px solid #dddfe2; border-radius: 0 0 8px 8px; max-width: 500px; overflow: hidden; background: #f2f3f5;">
+                                <div id="fb-preview-img" style="height: 260px; background: #ddd; background-size: cover; background-position: center; border-bottom: 1px solid #dddfe2;">
+                                    {% if is_edit and entry.image %}
+                                        <style>#fb-preview-img { background-image: url('{{ entry.image.file.url }}'); }</style>
+                                    {% endif %}
+                                </div>
+                                <div style="padding: 12px; background: #f2f3f5;">
+                                    <div style="font-size: 12px; color: #606770; text-transform: uppercase;">MINISTERIOSELIM.ORG</div>
+                                    <div id="fb-preview-title" style="font-size: 16px; font-weight: bold; color: #1d2129; margin: 4px 0;">{{ form.title.value|default:"Título del Artículo" }}</div>
+                                    <div id="fb-preview-desc" style="font-size: 14px; color: #606770; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ form.abstract.value|default:"Resumen de la lección..." }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 7: References -->
+
+                    <!-- Actions -->
+                    <div class="form-actions">
+                        <button type="submit" name="action" value="draft" class="btn btn-draft">
+                            <i class="fas fa-save me-2"></i> Guardar Borrador
+                        </button>
+                        <button type="submit" name="action" value="publish" class="btn btn-publish">
+                            <i class="fas fa-rocket me-2"></i> Publicar
+                        </button>
+                        <a href="{% if is_edit %}{{ entry.url }}{% else %}{% pageurl parent %}{% endif %}" class="btn btn-cancel">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TinyMCE CDN -->
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // ─── TinyMCE Init ───────────────────────────────────
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    tinymce.init({
+        selector: '#id_body',
+        height: 600,
+        menubar: true,
+        branding: false,
+        promotion: false,
+        skin: isDark ? 'oxide-dark' : 'oxide',
+        content_css: isDark ? 'dark' : 'default',
+        plugins: 'lists link image table code blockquote hr charmap emoticons media searchreplace visualblocks visualchars fullscreen preview help wordcount autosave',
+        toolbar: 'undo redo | blocks fontfamily fontsize | ' +
+                 'bold italic underline strikethrough | forecolor backcolor | ' +
+                 'alignleft aligncenter alignright alignjustify | ' +
+                 'bullist numlist blockquote | link image media | ' +
+                 'removeformat | charmap emoticons | fullscreen preview code help',
+        block_formats: 'Párrafo=p; Título 2=h2; Título 3=h3; Título 4=h4; Cita=blockquote; Código=pre',
+        font_size_formats: '12px 14px 16px 18px 20px 24px 28px 32px 36px',
+        placeholder: 'Escribe el contenido de tu artículo aquí...',
+        autosave_ask_before_unload: true,
+        autosave_interval: '30s',
+        autosave_prefix: 'tinymce-autosave-{path}{query}-{id}-',
+        autosave_restore_when_empty: false,
+        autosave_retention: '2m',
+        content_style: `
+            @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lora:ital,wght@0,400;0,700;1,400&display=swap');
+            body {
+                font-family: 'Lora', 'Georgia', serif;
+                font-size: 18px;
+                line-height: 1.8;
+                color: ${isDark ? '#e0e0e0' : '#1a1a1a'};
+                padding: 40px;
+                max-width: 800px;
+                margin: auto;
+                background-color: ${isDark ? '#1a1a1a' : '#fff'};
+            }
+            h2, h3, h4 {
+                font-family: 'Playfair Display', serif;
+                margin-top: 2rem;
+                margin-bottom: 1rem;
+                color: ${isDark ? '#fff' : '#000'};
+            }
+            h2 { font-size: 2.2rem; text-align: center; border-bottom: 2px solid #d4af37; padding-bottom: 0.5rem; }
+            h3 { font-size: 1.8rem; }
+            blockquote {
+                border-left: 4px solid #d4af37;
+                padding: 1rem 2rem;
+                margin: 2rem 0;
+                color: ${isDark ? '#bbb' : '#444'};
+                font-style: italic;
+                background: ${isDark ? '#252525' : '#f9f9f9'};
+                font-size: 1.1rem;
+            }
+            img { max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        `,
+        setup: function(editor) {
+            // Before form submit, sync editor content to textarea
+            document.getElementById('doctrinaForm').addEventListener('submit', function(e) {
+                editor.save();
+                
+                // Track article creation
+                const action = e.submitter ? e.submitter.value : 'unknown';
+                const title = document.getElementById('id_title') ? document.getElementById('id_title').value : '';
+                
+                elimTrackEvent('create_content', {
+                    content_type: 'doctrine_article',
+                    action: action,
+                    title: title
+                });
+            });
+        }
+    });
+
+    // ─── YouTube Management ─────────────────────────────
+    const ytInput = document.getElementById('ytUrlInput');
+    const ytAddBtn = document.getElementById('addYtBtn');
+    const ytList = document.getElementById('ytVideoList');
+    const ytHidden = document.getElementById('id_youtube_urls');
+
+    // Parse existing URLs
+    let ytUrls = [];
+    const existingStr = ytHidden.value;
+    if (existingStr) {
+        ytUrls = existingStr.split(',').filter(u => u.trim());
+        renderYtList();
+    }
+
+    function renderYtList() {
+        ytList.innerHTML = '';
+        ytUrls.forEach(function(url, idx) {
+            const li = document.createElement('li');
+            li.className = 'yt-video-item';
+            li.innerHTML = `
+                <i class="fab fa-youtube text-danger"></i>
+                <span class="yt-url">${url}</span>
+                <button type="button" data-idx="${idx}" title="Eliminar"><i class="fas fa-times"></i></button>
+            `;
+            li.querySelector('button').addEventListener('click', function() {
+                ytUrls.splice(idx, 1);
+                syncHidden();
+                renderYtList();
+            });
+            ytList.appendChild(li);
+        });
+    }
+
+    function syncHidden() {
+        ytHidden.value = ytUrls.join(',');
+    }
+
+    ytAddBtn.addEventListener('click', function() {
+        const url = ytInput.value.trim();
+        if (!url) return;
+        if (!/youtube\.com|youtu\.be/i.test(url)) {
+            alert('Por favor ingresa una URL de YouTube válida.');
+            return;
+        }
+        ytUrls.push(url);
+        syncHidden();
+        renderYtList();
+        ytInput.value = '';
+        ytInput.focus();
+    });
+
+    ytInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            ytAddBtn.click();
+        }
+    });
+
+    // ─── Smart Slug & SEO Preview ──────────────────────
+    const titleInput = document.getElementById('id_title');
+    const slugInput = document.getElementById('id_slug');
+    const abstractInput = document.getElementById('id_abstract');
+    const imageInput = document.getElementById('id_image');
+    
+    // SEO Preview Elements
+    const seoTitle = document.getElementById('seo-preview-title');
+    const seoDesc = document.getElementById('seo-preview-desc');
+    const fbTitle = document.getElementById('fb-preview-title');
+    const fbDesc = document.getElementById('fb-preview-desc');
+    const fbImg = document.getElementById('fb-preview-img');
+
+    function slugify(text) {
+        return text.toString().toLowerCase().trim()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove accents
+            .replace(/\s+/g, '-')           // Replace spaces with -
+            .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+            .replace(/\-\-+/g, '-');        // Replace multiple - with single -
+    }
+
+    if (titleInput && slugInput) {
+        titleInput.addEventListener('input', function() {
+            // Only auto-generate slug if it's not set to manual OR if the input is empty
+            if (slugInput.dataset.manual !== 'true' || slugInput.value === '') {
+                slugInput.value = slugify(this.value);
+            }
+            // Update SEO Previews
+            const val = this.value || 'Título del Artículo';
+            if (seoTitle) seoTitle.textContent = val;
+            if (fbTitle) fbTitle.textContent = val;
+        });
+
+        slugInput.addEventListener('input', function() {
+            if (this.value !== '') {
+                this.dataset.manual = 'true';
+            } else {
+                this.dataset.manual = 'false';
+            }
+        });
+    }
+
+    if (abstractInput) {
+        abstractInput.addEventListener('input', function() {
+            const val = this.value || 'Resumen de la lección...';
+            seoDesc.textContent = val;
+            fbDesc.textContent = val;
+        });
+    }
+
+    if (imageInput) {
+        imageInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    fbImg.style.backgroundImage = `url('${e.target.result}')`;
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+
+});
+</script>
+{% endblock content %}

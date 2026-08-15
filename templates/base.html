@@ -1,4 +1,4 @@
-{% load static wagtailcore_tags wagtailuserbar %}
+{% load static wagtailcore_tags wagtailuserbar user_extras %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -31,6 +31,20 @@
         {% if page.search_description %}
         <meta name="description" content="{{ page.search_description }}" />
         {% endif %}
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{{ request.build_absolute_uri }}">
+        <meta property="og:title" content="{% block og_title %}{% if page.seo_title %}{{ page.seo_title }}{% else %}{{ page.title }}{% endif %}{% endblock %}">
+        <meta property="og:description" content="{% block og_description %}{{ page.search_description }}{% endblock %}">
+        <meta property="og:image" content="{% block og_image %}{% endblock %}">
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image">
+        <meta property="twitter:url" content="{{ request.build_absolute_uri }}">
+        <meta property="twitter:title" content="{% block twitter_title %}{% if page.seo_title %}{{ page.seo_title }}{% else %}{{ page.title }}{% endif %}{% endblock %}">
+        <meta property="twitter:description" content="{% block twitter_description %}{{ page.search_description }}{% endblock %}">
+        <meta property="twitter:image" content="{% block twitter_image %}{% endblock %}">
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="referrer" content="strict-origin-when-cross-origin">
 
@@ -41,100 +55,19 @@
 
   {# Global stylesheets #}
     <link rel="stylesheet" href="{% static 'css/ministerios_elim.css' %}">
+    <script src="{% static 'js/ministerios_elim_ui.js' %}"></script>
+    
+    {% block extra_css %}
+    {# Override this in templates to add extra css #}
+    {% endblock %}
     
     <!-- Theme Detection & Apply (Prevent Flash) -->
-    <script>
-        (function() {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                document.documentElement.setAttribute('data-theme', savedTheme);
-            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-            }
-        })();
-    </script>
-  
-  {% block extra_css %}
-  {# Override this in templates to add extra css #}
-  {% endblock %}
-
-        <style>
-            /* Welcome Modal - Premium Elegance */
-            .welcome-modal-content {
-                background-color: var(--card-bg) !important;
-                border: none;
-                border-radius: 0 !important;
-                box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
-                overflow: hidden;
-                border-top: 5px solid var(--primary-color);
-            }
-
-            .welcome-modal-header {
-                border-bottom: none;
-                text-align: center;
-                padding-top: 2.5rem;
-                display: block !important;
-            }
-
-            .welcome-modal-header .welcome-icon {
-                font-size: 3.5rem;
-                background: var(--gold-gradient);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                margin-bottom: 1.5rem;
-            }
-
-            .welcome-modal-title {
-                font-family: 'Playfair Display', serif;
-                font-weight: 700;
-                font-size: 2.2rem;
-                color: var(--text-color) !important;
-                margin-bottom: 0.5rem;
-            }
-
-            .modal-body.welcome-modal-body {
-                padding: 1rem 3rem 2.5rem;
-                text-align: center;
-            }
-
-            .welcome-modal-message {
-                font-family: 'Inter', sans-serif;
-                font-size: 1.1rem;
-                line-height: 1.6;
-                color: var(--text-muted) !important;
-                margin-bottom: 2rem;
-            }
-
-            .welcome-gold-btn {
-                background: var(--gold-gradient);
-                color: #000 !important;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 1.5px;
-                padding: 12px 40px;
-                border: none;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
-            }
-
-            .welcome-gold-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
-                color: #000 !important;
-            }
-
-            [data-theme="dark"] .welcome-modal-content {
-                background-color: #1a1a1a !important;
-            }
-
-            @media (max-width: 576px) {
-                .welcome-modal-title { font-size: 1.8rem; }
-                .modal-body.welcome-modal-body { padding: 1rem 1.5rem 2rem; }
-            }
-        </style>
     </head>
 
     <body class="{% block body_class %}{% endblock %}">
+        {% load cache %}
+        
+        {% cache 600 navbar request.user.username request.path %}
         <!-- Navbar agregada aquí -->
         <nav class="navbar navbar-expand-lg navbar-custom">
             <div class="container">
@@ -166,6 +99,12 @@
                                 {% endif %}
                                 {% if doctrina_avanzada_page %}
                                 <li><a class="dropdown-item" href="{% pageurl doctrina_avanzada_page %}">Doctrina Avanzada</a></li>
+                                {% endif %}
+                                {% if user.is_authenticated %}
+                                    {% if user|is_pastor or user|is_superpastor or user|is_apostle or user.is_superuser %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item fw-bold" href="{% url 'doctrina:mis_articulos' %}"><i class="fas fa-book-open me-2 text-warning"></i>Mis Artículos</a></li>
+                                    {% endif %}
                                 {% endif %}
                             </ul>
                         </li>
@@ -258,6 +197,7 @@
                 </div>
             </div>
         </nav>
+        {% endcache %}
         <!-- Fin navbar -->
 
         <!-- Search Modal -->
@@ -280,209 +220,23 @@
                         <a href="{% url 'iglesias:index' %}" class="search-category-tag"><i class="fas fa-church me-1"></i>Iglesias</a>
                         <a href="{% url 'foros:forum_list' %}" class="search-category-tag"><i class="fas fa-comments me-1"></i>Foros</a>
                     </div>
+                    
+                    <div id="searchSuggestions" class="search-suggestions-container mt-4" style="display:none;">
+                        <h6 class="text-uppercase small fw-bold mb-3 opacity-50" style="letter-spacing:1px; color:var(--text-color);">Resultados Instantáneos</h6>
+                        <div id="searchSuggestionsList" class="search-suggestions-list">
+                            <!-- Instant results will be injected here -->
+                        </div>
+                        <div id="searchLoading" class="text-center py-4" style="display:none;">
+                            <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+                        </div>
+                        <div id="searchNoResults" class="text-center py-3" style="display:none;">
+                            <p class="small text-muted mb-0">No se encontraron resultados directos.</p>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
 
-        <style>
-        /* Theme Toggle Button */
-        .btn-theme-toggle {
-            background: transparent;
-            border: 1.5px solid var(--border-color);
-            color: var(--text-color);
-            padding: 8px 12px;
-            display: flex;
-            align-items: center;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        .btn-theme-toggle:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-            background: rgba(212, 175, 55, 0.05);
-        }
-
-        /* Search Button in Navbar */
-        .btn-search-nav {
-            background: transparent;
-            border: 1.5px solid var(--border-color);
-            color: var(--text-color);
-            padding: 8px 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-        .btn-search-nav:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-            background: rgba(212, 175, 55, 0.05);
-        }
-        .search-shortcut {
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            background: var(--bg-alt);
-            border-radius: 3px;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 600;
-            color: var(--text-muted);
-        }
-
-        /* Search Modal Overlay */
-        .search-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: 9999;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            padding-top: 15vh;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-        .search-modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* Search Modal Container */
-        .search-modal-container {
-            background: var(--card-bg);
-            width: 90%;
-            max-width: 650px;
-            border-radius: 0;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
-            transform: translateY(-20px) scale(0.95);
-            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-            overflow: hidden;
-            border-top: 4px solid var(--primary-color);
-        }
-        .search-modal-overlay.active .search-modal-container {
-            transform: translateY(0) scale(1);
-        }
-
-        /* Search Modal Header */
-        .search-modal-header {
-            display: flex;
-            justify-content: flex-end;
-            padding: 15px 20px 0;
-        }
-        .search-modal-close {
-            background: none;
-            border: none;
-            font-size: 1.25rem;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: color 0.2s;
-            padding: 5px;
-        }
-        .search-modal-close:hover {
-            color: var(--primary-color);
-        }
-
-        /* Search Form */
-        .search-modal-form {
-            padding: 20px 30px 30px;
-        }
-        .search-input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        .search-input-icon {
-            position: absolute;
-            left: 20px;
-            font-size: 1.3rem;
-            color: var(--primary-color);
-        }
-        .search-modal-input {
-            width: 100%;
-            padding: 20px 20px 20px 55px;
-            font-size: 1.25rem;
-            border: 2px solid var(--border-color);
-            border-radius: 0;
-            outline: none;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-        }
-        .search-modal-input:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
-        }
-        .search-modal-input::placeholder {
-            color: var(--text-muted);
-            opacity: 0.6;
-        }
-        .search-input-hint {
-            position: absolute;
-            right: 15px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            background: var(--bg-alt);
-            padding: 4px 10px;
-            border-radius: 3px;
-        }
-
-        /* Search Categories */
-        .search-categories {
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .search-category-label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-        .search-category-tag {
-            display: inline-flex;
-            align-items: center;
-            padding: 8px 15px;
-            background: var(--bg-alt);
-            color: var(--text-color);
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 500;
-            border: 1px solid var(--border-color);
-            transition: all 0.2s ease;
-        }
-        .search-category-tag:hover {
-            background: var(--primary-color);
-            color: #fff;
-            border-color: var(--primary-color);
-        }
-
-        @media (max-width: 768px) {
-            .search-modal-container {
-                width: 95%;
-            }
-            .search-modal-form {
-                padding: 15px 20px 25px;
-            }
-            .search-modal-input {
-                font-size: 1rem;
-                padding: 15px 15px 15px 45px;
-            }
-            .search-input-hint {
-                display: none;
-            }
-            .search-categories {
-                justify-content: center;
-            }
-        }
-        </style>
 
         <!-- Register Modal (fuera de cualquier otro modal) -->
         <div class="modal fade elim-modal" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
@@ -525,55 +279,19 @@
                     </datalist>
                     <script>
                       (function() {
-                        const normalizeStr = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-                        
-                        const rawCountriesMap = JSON.parse('{{ ALL_COUNTRIES_MAP_JSON|escapejs }}');
-                        const rawPhoneMap = JSON.parse('{{ ALL_COUNTRIES_PHONE_JSON|escapejs }}');
-                        
-                        const normalizedPhoneMap = {};
-                        for (const [name, code] of Object.entries(rawPhoneMap)) {
-                          normalizedPhoneMap[normalizeStr(name)] = code;
-                        }
-                        
-                        window.COUNTRIES_MAP = rawCountriesMap; // Keep for other scripts
-                        window.COUNTRIES_PHONE_MAP = rawPhoneMap;
-                        
-                        const countryInput = document.getElementById('id_country');
-                        const datalist = document.getElementById('countries_list');
-                        const allOfficialNames = Array.from(datalist.options).map(o => o.value);
-
-                        const updatePhoneCode = function() {
-                          const typedVal = this.value;
-                          const normalizedTyped = normalizeStr(typedVal);
-                          
-                          // Find official name for auto-correction
-                          const officialName = allOfficialNames.find(name => normalizeStr(name) === normalizedTyped);
-                          if (officialName && officialName !== typedVal) {
-                            this.value = officialName; // Auto-correct to version with accents!
-                          }
-
-                          const finalVal = normalizeStr(this.value);
-                          const phoneCode = normalizedPhoneMap[finalVal];
-                          if (phoneCode) {
-                            const countryCodeDisplay = document.getElementById('country-code-display');
-                            const countryCodeInput = document.getElementById('id_country_code');
-                            countryCodeDisplay.textContent = '+' + phoneCode;
-                            countryCodeInput.value = '+' + phoneCode;
-                          }
-                        };
-                        
-                        countryInput.addEventListener('input', updatePhoneCode);
-                        countryInput.addEventListener('change', updatePhoneCode);
+                        const countriesMap = JSON.parse('{{ ALL_COUNTRIES_MAP_JSON|escapejs }}');
+                        initCountryFlags('id_country', 'countries_list', 'countryFlag', countriesMap);
                         
                         // Sync username_display with hidden username field
-                        document.getElementById('id_usernick').addEventListener('input', function() {
-                          const usernameField = document.getElementById('id_username');
-                          if (this.value.trim()) {
-                            usernameField.value = this.value.trim();
-                          } else {
-                            usernameField.value = '';
-                          }
-                        });
+                        const userNick = document.getElementById('id_usernick');
+                        if (userNick) {
+                          userNick.addEventListener('input', function() {
+                            const usernameField = document.getElementById('id_username');
+                            if (usernameField) {
+                              usernameField.value = this.value.trim();
+                            }
+                          });
+                        }
                       })();
                     </script>
                   </div>
@@ -622,72 +340,15 @@
                 </form>
                 
                 <script>
-                document.getElementById('registerForm').addEventListener('submit', function(e) {
-                    e.preventDefault(); // Prevent default form submission
-                    
-                    const formData = new FormData(this);
-                    const submitButton = this.querySelector('button[type="submit"]');
-                    const originalText = submitButton.textContent;
-                    
-                    // Disable button and show loading
-                    submitButton.disabled = true;
-                    submitButton.textContent = 'Procesando...';
-                    
-                    fetch(this.action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Success - show message and close modal
-                            showSuccess(data.message || '¡Registro exitoso! Has sido registrado correctamente.');
-                            // Close modal
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
-                            if (modal) {
-                                modal.hide();
-                            }
-                            // Reset form
-                            this.reset();
-                            // Reset country code display
-                            document.getElementById('country-code-display').textContent = '+34';
-                            document.getElementById('id_country_code').value = '+34';
-                            
-                            // Redirect to the specified URL or refresh the page
-                            setTimeout(() => {
-                                if (data.redirect) {
-                                    window.location.href = data.redirect;
-                                } else {
-                                    window.location.reload();
-                                }
-                            }, 1500); // Wait 1.5 seconds for user to see the success message
-                        } else {
-                            // Error - show error messages
-                            let errorMessage = 'Por favor corrige los siguientes errores:\n';
-                            if (data.errors) {
-                                for (const [field, errors] of Object.entries(data.errors)) {
-                                    errorMessage += `${field}: ${errors.join(', ')}\n`;
-                                }
-                            } else {
-                                errorMessage = data.message || 'Ha ocurrido un error. Inténtalo de nuevo.';
-                            }
-                            showError(errorMessage);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showError('Ha ocurrido un error de conexión. Inténtalo de nuevo.');
-                    })
-                    .finally(() => {
-                        // Re-enable button
-                        submitButton.disabled = false;
-                        submitButton.textContent = originalText;
-                    });
-                });
+                handleAjaxForm('registerForm', function(data) {
+                    showSuccess(data.message || '¡Registro exitoso!');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
+                    if (modal) modal.hide();
+                    setTimeout(() => {
+                        if (data.redirect) window.location.href = data.redirect;
+                        else window.location.reload();
+                    }, 1500);
+                }, 'sign_up');
                 </script>
                 <div style="text-align:center; margin:1.5rem 0 0.5rem 0; color:#666;">o regístrate con</div>
                 <div class="d-flex flex-column align-items-center gap-2" style="margin-bottom:1rem;">
@@ -779,85 +440,15 @@
                 </form>
                 
                 <script>
-                document.getElementById('loginForm').addEventListener('submit', function(e) {
-                    e.preventDefault(); // Prevent default form submission
-                    console.log('Login form submitted');
-                    
-                    const formData = new FormData(this);
-                    const submitButton = this.querySelector('button[type="submit"]');
-                    const originalText = submitButton.textContent;
-                    
-                    // Disable button and show loading
-                    submitButton.disabled = true;
-                    submitButton.textContent = 'Ingresando...';
-                    
-                    fetch(this.action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                        }
-                    })
-                    .then(response => {
-                        console.log('Response status:', response.status);
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('Response data:', data);
-                        if (data.success) {
-                            // Success - show message and redirect
-                            showSuccess(data.message || '¡Inicio de sesión exitoso!');
-                            // Close modal
-                            const modalElement = document.getElementById('loginModal');
-                            if (modalElement) {
-                                const modal = bootstrap.Modal.getInstance(modalElement);
-                                if (modal) {
-                                    modal.hide();
-                                } else {
-                                    // Fallback: hide modal manually
-                                    modalElement.style.display = 'none';
-                                    document.body.classList.remove('modal-open');
-                                    const backdrop = document.querySelector('.modal-backdrop');
-                                    if (backdrop) {
-                                        backdrop.remove();
-                                    }
-                                }
-                            }
-                            // Reset form
-                            this.reset();
-                            
-                            // Redirect to the specified URL or reload the page
-                            setTimeout(() => {
-                                if (data.redirect) {
-                                    window.location.href = data.redirect;
-                                } else {
-                                    window.location.reload();
-                                }
-                            }, 1500); // Wait 1.5 seconds for user to see the success message
-                        } else {
-                            // Error - show error messages
-                            let errorMessage = 'Por favor corrige los siguientes errores:\n';
-                            if (data.errors) {
-                                for (const [field, errors] of Object.entries(data.errors)) {
-                                    errorMessage += `${field}: ${errors.join(', ')}\n`;
-                                }
-                            } else {
-                                errorMessage = data.message || 'Ha ocurrido un error. Inténtalo de nuevo.';
-                            }
-                            showError(errorMessage);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showError('Ha ocurrido un error de conexión. Inténtalo de nuevo.');
-                    })
-                    .finally(() => {
-                        // Re-enable button
-                        submitButton.disabled = false;
-                        submitButton.textContent = originalText;
-                    });
-                });
+                handleAjaxForm('loginForm', function(data) {
+                    showSuccess(data.message || '¡Inicio de sesión exitoso!');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                    if (modal) modal.hide();
+                    setTimeout(() => {
+                        if (data.redirect) window.location.href = data.redirect;
+                        else window.location.reload();
+                    }, 1500);
+                }, 'login');
                 </script>
                 <div id="forgotPasswordForm" style="display:none; margin-bottom:1rem;">
                   <form method="post" action="{% url 'password_reset' %}">
@@ -958,6 +549,7 @@
 
         {% block content %}{% endblock %}
 
+        {% cache 600 footer %}
         <!-- Global Footer -->
         <footer class="academic-footer text-center text-white" style="background-color: #000; padding: 3rem 0; border-top: 5px solid var(--academic-gold); box-shadow: 0 -5px 20px rgba(0,0,0,0.5);">
             <div class="container">
@@ -985,21 +577,10 @@
                 </div>
             </div>
         </footer>
+        {% endcache %}
 
-        <!-- Verse Logic -->
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                // Use RVR (Reina Valera) if available in bible-api.com, or fallback to a hardcoded list if API fails
-                // bible-api.com doesn't have an official 'random' endpoint for RVR free without limits sometimes, 
-                // but let's try a standard endpoint or a fallback list for reliability.
-                // Actually bible-api.com is great. Let's use it.
-                // Endpoint: https://bible-api.com/?random=verse&translation=rvr (unofficial support for some versions, but 'almeida' is user friendly).
-                // Let's use a predefined list of Verses for 100% reliability and speed (no API rate/cors issues), 
-                // OR fetch. Let's try fetch first with a fallback.
-                
-                const verseText = document.getElementById('verse-text');
-                const verseRef = document.getElementById('verse-ref');
-                
                 const fallbackVerses = [
                     { text: "Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.", ref: "Juan 3:16" },
                     { text: "Todo lo puedo en Cristo que me fortalece.", ref: "Filipenses 4:13" },
@@ -1017,198 +598,18 @@
                     { text: "Lámpara es a mis pies tu palabra, Y lumbrera a mi camino.", ref: "Salmos 119:105" },
                     { text: "Mas el fruto del Espíritu es amor, gozo, paz, paciencia, benignidad, bondad, fe, mansedumbre, templanza.", ref: "Gálatas 5:22-23" }
                 ];
-
-                function setVerse(text, ref) {
-                    verseText.style.opacity = 0;
-                    setTimeout(() => {
-                        verseText.textContent = `"${text}"`;
-                        verseRef.textContent = ref;
-                        verseText.style.transition = 'opacity 1s ease';
-                        verseText.style.opacity = 1;
-                    }, 300);
-                }
-
-                // Try fetching form an API, if fails, use random fallback
-                // Using 'bible-api.com' with 'almeida' (Portuguese) is closest standard, but we need Spanish.
-                // 'https://bible-api.com/?random=verse' gives English.
-                // We will use the fallback array for now to ensure SPANISH content immediately without complex translation API issues.
-                // It's faster and guaranteed to be correct RVR1960.
-                
-                const randomVerse = fallbackVerses[Math.floor(Math.random() * fallbackVerses.length)];
-                setVerse(randomVerse.text, randomVerse.ref);
-                
-                // Optional: We could expand this list or hit a specific Spanish API if available. 
-                // But a local list of 50+ verses is often better for performance.
-                // For now, let's stick to the high-quality local list pattern.
+                initVerse(fallbackVerses);
             });
         </script>
-
         {# Global javascript #}
         <script type="text/javascript" src="{% static 'js/mysite.js' %}"></script>
 
         {% block extra_js %}
         {# Override this in templates to add extra javascript #}
         {% endblock %}
+
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
-        <!-- Custom JavaScript for modal messages -->
-        <script>
-        function showMessageModal(message, isSuccess = true) {
-          const modalElement = document.getElementById('messageModal');
-          const modalBody = document.getElementById('messageModalBody');
-          const modalHeader = document.getElementById('messageModalHeader');
-
-          // Ensure modal is properly initialized
-          if (modalElement.hasAttribute('aria-hidden')) {
-            modalElement.removeAttribute('aria-hidden');
-          }
-
-          modalBody.textContent = message;
-
-          if (isSuccess) {
-            modalHeader.className = 'modal-header bg-success text-white';
-          } else {
-            modalHeader.className = 'modal-header bg-danger text-white';
-          }
-
-          const modal = new bootstrap.Modal(modalElement, {
-            backdrop: 'static',
-            keyboard: true
-          });
-
-          // Show modal and handle events properly
-          modal.show();
-
-          // Clean up when modal is hidden
-          modalElement.addEventListener('hidden.bs.modal', function() {
-            // Ensure proper cleanup
-            modalElement.setAttribute('aria-hidden', 'true');
-          }, { once: true });
-        }
-
-        // Override alert function to use modal instead
-        window.alert = function(message) {
-          showMessageModal(message, false);
-        };
-
-        // Function to show success messages (Elegant Welcome)
-        function showSuccess(message) {
-          if (message.includes('éxito') || message.includes('bienvenido')) {
-            showWelcomeModal(message);
-          } else {
-            showMessageModal(message, true);
-          }
-        }
-
-        function showWelcomeModal(message) {
-          const modalElement = document.getElementById('welcomeModal');
-          const messageElement = document.getElementById('welcomeModalMessage');
-          
-          if (message) {
-            messageElement.textContent = message;
-          }
-          
-          const modal = new bootstrap.Modal(modalElement, {
-            backdrop: 'static'
-          });
-          modal.show();
-        }
-
-        // Function to show error messages
-        function showError(message) {
-          showMessageModal(message, false);
-        }
-
-        // Elegant Navbar Scroll Effect
-        window.addEventListener('scroll', function() {
-          const nav = document.querySelector('.navbar-custom');
-          if (window.scrollY > 50) {
-            nav.classList.add('navbar-scrolled');
-          } else {
-            nav.classList.remove('navbar-scrolled');
-          }
-        });
-
-        // Search Modal Functionality
-        (function() {
-            const searchModal = document.getElementById('searchModal');
-            const searchInput = document.getElementById('searchInput');
-            const openBtn = document.getElementById('openSearchBtn');
-            const closeBtn = document.getElementById('closeSearchBtn');
-
-            function openSearchModal() {
-                searchModal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                setTimeout(() => searchInput.focus(), 100);
-            }
-
-            function closeSearchModal() {
-                searchModal.classList.remove('active');
-                document.body.style.overflow = '';
-                searchInput.value = '';
-            }
-
-            // Open modal on button click
-            openBtn.addEventListener('click', openSearchModal);
-
-            // Close modal on X button click
-            closeBtn.addEventListener('click', closeSearchModal);
-
-            // Close modal on overlay click (outside the container)
-            searchModal.addEventListener('click', function(e) {
-                if (e.target === searchModal) {
-                    closeSearchModal();
-                }
-            });
-
-            // Keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                // Ctrl+K or Cmd+K to open
-                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                    e.preventDefault();
-                    if (searchModal.classList.contains('active')) {
-                        closeSearchModal();
-                    } else {
-                        openSearchModal();
-                    }
-                }
-                // ESC to close
-                if (e.key === 'Escape' && searchModal.classList.contains('active')) {
-                    closeSearchModal();
-                }
-            });
-        })();
-
-        // Theme Toggle Logic
-        (function() {
-            const themeToggleBtn = document.getElementById('themeToggleBtn');
-            const iconDark = themeToggleBtn.querySelector('.theme-icon-dark');
-            const iconLight = themeToggleBtn.querySelector('.theme-icon-light');
-            
-            function updateIcons(theme) {
-                if (theme === 'dark') {
-                    iconDark.style.display = 'none';
-                    iconLight.style.display = 'inline-block';
-                } else {
-                    iconDark.style.display = 'inline-block';
-                    iconLight.style.display = 'none';
-                }
-            }
-
-            // Initial icon state
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-            updateIcons(currentTheme);
-
-            themeToggleBtn.addEventListener('click', () => {
-                const theme = document.documentElement.getAttribute('data-theme');
-                const newTheme = theme === 'dark' ? 'light' : 'dark';
-                
-                document.documentElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-                updateIcons(newTheme);
-            });
-        })();
-        </script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
       AOS.init({

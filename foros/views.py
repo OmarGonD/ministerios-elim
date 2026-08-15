@@ -2,8 +2,10 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.core.paginator import Paginator
-from .models import Forum, Topic, Post
+from django.core.paginator import Paginator
+from .models import Forum, Topic, Post, Vote
 from django import forms
+from django.db.models import Count
 
 
 class TopicForm(forms.ModelForm):
@@ -25,7 +27,8 @@ def forum_list(request):
 
 def forum_detail(request, pk):
     forum = get_object_or_404(Forum, pk=pk)
-    topics_qs = forum.topics.filter(is_published=True).order_by('-created_at')
+    # Pinned topics first
+    topics_qs = forum.topics.filter(is_published=True).order_by('-is_pinned', '-created_at')
     paginator = Paginator(topics_qs, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -34,11 +37,49 @@ def forum_detail(request, pk):
 
 def topic_detail(request, forum_pk, topic_pk):
     topic = get_object_or_404(Topic, pk=topic_pk, forum__pk=forum_pk)
-    posts_qs = topic.posts.filter(is_public=True).order_by('created_at')
+    
+    # Increment views
+    # Use session to prevent counting refresh as new view
+    session_key = f'viewed_topic_{topic.pk}'
+    if not request.session.get(session_key, False):
+        topic.views += 1
+        topic.save()
+        request.session[session_key] = True
+
+    posts_qs = topic.posts.filter(is_public=True).annotate(vote_count=Count('votes')).order_by('created_at')
     paginator = Paginator(posts_qs, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'foros/topic_detail.html', {'topic': topic, 'page_obj': page_obj})
+    
+    # Get user votes for these posts if logged in
+    user_votes = set()
+    if request.user.is_authenticated:
+        user_votes = set(Vote.objects.filter(user=request.user, post__in=page_obj.object_list).values_list('post_id', flat=True))
+
+    return render(request, 'foros/topic_detail.html', {
+        'topic': topic, 
+        'page_obj': page_obj,
+        'user_votes': user_votes
+    })
+
+
+@login_required
+def vote_post(request, post_pk):
+    post = get_object_or_404(Post, pk=post_pk)
+    vote, created = Vote.objects.get_or_create(user=request.user, post=post)
+    
+    if not created:
+        # Toggle: if exists, delete (unlike)
+        vote.delete()
+        is_liked = False
+    else:
+        is_liked = True
+
+    return JsonResponse({
+        'status': 'ok', 
+        'is_liked': is_liked, 
+        'total_votes': post.votes.count()
+    })
 
 
 @login_required
@@ -50,9 +91,9 @@ def create_topic(request, forum_pk):
             topic = form.save(commit=False)
             topic.forum = forum
             topic.created_by = request.user
-            topic.is_published = False  # require moderation by default
+            topic.is_published = True  # Verified: auto-publish for now
             topic.save()
-            return render(request, 'foros/create_submitted.html', {'object': topic, 'type': 'topic'})
+            return redirect('foros:topic_detail', forum_pk=forum.pk, topic_pk=topic.pk)
     else:
         form = TopicForm()
     return render(request, 'foros/create_topic.html', {'form': form, 'forum': forum})

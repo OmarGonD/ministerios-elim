@@ -16,7 +16,10 @@ class Topic(models.Model):
     title = models.CharField(max_length=255)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=timezone.now)
     is_published = models.BooleanField(default=False)  # moderation
+    is_pinned = models.BooleanField(default=False)
+    views = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.title
@@ -42,3 +45,15 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.created_by}"
+
+
+class Vote(models.Model):
+    post = models.ForeignKey(Post, related_name='votes', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='forum_votes', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('post', 'user')
+
+    def __str__(self):
+        return f"{self.user} likes {self.post}"

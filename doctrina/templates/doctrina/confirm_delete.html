@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Eliminar: {{ entry.title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ministerios_elim.css' %}">
+<style>
+    .delete-page {
+        padding-top: 160px;
+        padding-bottom: 100px;
+        min-height: 100vh;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        background: var(--bg-color);
+    }
+
+    .delete-card {
+        background: var(--card-bg, #fff);
+        border: 1px solid var(--border-color);
+        padding: 3rem;
+        max-width: 550px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+
+    .delete-card .icon-circle {
+        width: 80px;
+        height: 80px;
+        background: rgba(220, 53, 69, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+
+    .delete-card .icon-circle i {
+        font-size: 2rem;
+        color: #dc3545;
+    }
+
+    .delete-card h2 {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 1.4rem;
+        color: var(--text-color);
+        margin-bottom: 0.75rem;
+    }
+
+    .delete-card .entry-title {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: #dc3545;
+        margin-bottom: 1.5rem;
+    }
+
+    .delete-card p {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    .delete-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .delete-actions .btn {
+        padding: 12px 30px;
+        font-weight: 700;
+        border-radius: 0;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="delete-page">
+    <div class="delete-card">
+        <div class="icon-circle">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h2>¿Eliminar esta entrada?</h2>
+        <div class="entry-title">"{{ entry.title }}"</div>
+        <p>Esta acción no se puede deshacer. Se eliminarán todos los comentarios y videos asociados.</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="delete-actions">
+                <a href="{% url 'doctrina:mis_articulos' %}" class="btn btn-outline-dark">
+                    <i class="fas fa-arrow-left me-1"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash-alt me-1"></i> Eliminar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}

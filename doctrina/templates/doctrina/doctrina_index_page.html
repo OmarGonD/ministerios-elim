@@ -81,7 +81,7 @@
                         {% if user.is_authenticated %}
                             {% if user|is_apostle or user|is_superpastor %}
                             <div class="ms-3">
-                                <a href="{% url 'wagtailadmin_pages:delete' entry.id %}" class="btn btn-sm btn-danger rounded-circle shadow-sm" title="Eliminar Entrada" onclick="return confirm('¿Estás seguro de eliminar esta entrada?');">
+                                <a href="{% url 'doctrina:frontend_delete' entry.id %}" class="btn btn-sm btn-danger rounded-circle shadow-sm" title="Eliminar Entrada">
                                     <i class="fas fa-trash-alt"></i>
                                 </a>
                             </div>

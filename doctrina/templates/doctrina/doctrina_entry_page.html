@@ -133,13 +133,32 @@
 
         .entry-body-elegant h2, .entry-body-elegant h3 {
             font-family: 'Playfair Display', serif;
-            margin-top: 2.5rem;
+            margin-top: 3.5rem;
             margin-bottom: 1.5rem;
             color: var(--text-color);
         }
 
+        .entry-body-elegant h2 {
+            text-align: center;
+            font-size: 2.2rem;
+            border-bottom: 2px solid var(--gold-accent);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+
         .entry-body-elegant p {
             margin-bottom: 1.8rem;
+        }
+
+        .entry-body-elegant blockquote {
+            border-left: 4px solid var(--gold-accent);
+            padding: 1.5rem 2.5rem;
+            margin: 3rem 0;
+            color: var(--text-muted);
+            font-style: italic;
+            background: var(--gold-light);
+            font-size: 1.2rem;
+            line-height: 1.6;
         }
 
         /* Abstract/Intro */
@@ -250,11 +269,14 @@
             {% if user.is_authenticated %}
                 {% if page.owner == user or user|is_apostle or user|is_superpastor or user|is_pastor %}
                 <div class="admin-controls-header mt-4">
-                    <a href="{% url 'wagtailadmin_pages:edit' page.id %}" target="_blank" class="btn btn-dark btn-sm px-4 py-2 me-2">
+                    <a href="{% url 'doctrina:frontend_edit' page.id %}" class="btn btn-dark btn-sm px-4 py-2 me-2">
                         <i class="fas fa-pen me-2"></i> Editar Entrada
                     </a>
+                    <a href="{% url 'doctrina:mis_articulos' %}" class="btn btn-outline-light btn-sm px-4 py-2 me-2">
+                        <i class="fas fa-book-open me-2"></i> Mis Artículos
+                    </a>
                     {% if user|is_apostle or user|is_superpastor %}
-                    <a href="{% url 'wagtailadmin_pages:delete' page.id %}" target="_blank" class="btn btn-outline-danger btn-sm px-4 py-2" onclick="return confirm('¿Está seguro que desea eliminar esta entrada?');">
+                    <a href="{% url 'doctrina:frontend_delete' page.id %}" class="btn btn-outline-danger btn-sm px-4 py-2">
                         <i class="fas fa-trash-alt me-2"></i> Eliminar
                     </a>
                     {% endif %}
@@ -279,7 +301,7 @@
     <!-- Featured Image (Hero Style) -->
     {% if page.image and page.image_display_style == 'hero' %}
     <div class="container-fluid p-0 hero-image-wrap">
-        {% image page.image fill-1600x600 class="img-fluid w-100 shadow-sm" %}
+        {% image page.image fill-1600x600 class="img-fluid w-100 shadow-sm" loading="lazy" %}
     </div>
     {% endif %}
 
@@ -298,7 +320,7 @@
                 <div class="entry-body-elegant rich-text">
                     {% if page.image and page.image_display_style == 'wrapped' %}
                     <div class="image-wrapped-container">
-                        {% image page.image width-800 class="img-fluid rounded shadow-sm" %}
+                        {% image page.image width-800 class="img-fluid rounded shadow-sm" loading="lazy" %}
                     </div>
                     {% endif %}
                     {{ page.body|richtext }}
@@ -357,6 +379,38 @@
                 </div>
                 {% endif %}
 
+                <!-- Study Materials (Downloads) -->
+                {% if page.documents.all %}
+                <div class="materiales-section p-4 bg-light my-5" style="border-left: 4px solid var(--gold-accent) !important;">
+                    <h5 class="fw-bold mb-3 font-playfair" style="font-family: 'Playfair Display', serif;">
+                        <i class="fas fa-file-download me-2 text-gold"></i> Materiales de Estudio
+                    </h5>
+                    {% if user.is_authenticated %}
+                        <div class="list-group list-group-flush bg-transparent">
+                            {% for doc_item in page.documents.all %}
+                            <a href="{{ doc_item.document.url }}" class="list-group-item list-group-item-action bg-transparent d-flex justify-content-between align-items-center border-0 px-0 py-2">
+                                <span>
+                                    <i class="far 
+                                        {% if '.doc' in doc_item.document.filename %}fa-file-word text-primary
+                                        {% elif '.ppt' in doc_item.document.filename %}fa-file-powerpoint text-danger
+                                        {% else %}fa-file-pdf text-danger{% endif %} me-2"></i>
+                                    {{ doc_item.document.title }}
+                                </span>
+                                <span class="badge bg-gold rounded-pill px-3 py-1">Descargar <i class="fas fa-cloud-download-alt ms-1"></i></span>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3 px-3 bg-white border rounded shadow-sm">
+                            <p class="mb-2 text-muted small">Los materiales de estudio están reservados para usuarios registrados.</p>
+                            <a href="{% url 'login' %}?next={{ page.url }}" class="btn btn-sm btn-outline-dark px-4 rounded-pill">
+                                <i class="fas fa-sign-in-alt me-2"></i> Iniciar Sesión para Descargar
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
                 <!-- References -->
                 {% if page.references %}
                 <div class="p-4 bg-light border-start border-gold border-4 my-5" style="border-color: var(--gold-accent) !important;">
@@ -381,6 +435,67 @@
                     </div>
                 </div>
                 {% endif %}
+
+                <!-- Comments Section -->
+                <div class="comments-section my-5 pt-5 border-top">
+                    <h4 class="fw-bold mb-4 font-playfair">
+                        <i class="far fa-comments text-gold me-2"></i> Comentarios ({{ comments.count }})
+                    </h4>
+
+                    <!-- Comment Form / Login Trigger -->
+                    <div class="card bg-light border-0 shadow-sm mb-5">
+                        <div class="card-body p-4">
+                            {% if user.is_authenticated %}
+                                <h6 class="mb-3 fw-bold">Deja un comentario como {{ user.get_full_name|default:user.username }}</h6>
+                                <form method="post" action="{% pageurl page %}">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        {{ comment_form.text }}
+                                    </div>
+                                    <button type="submit" class="btn btn-dark px-4">
+                                        Publicar Comentario
+                                    </button>
+                                </form>
+                            {% else %}
+                                <div class="text-center py-3">
+                                    <p class="mb-3 text-muted">Debes iniciar sesión para participar en la conversación.</p>
+                                    <a href="{% url 'login' %}?next={{ page.url }}" class="btn btn-outline-dark px-4 rounded-pill">
+                                        <i class="fas fa-sign-in-alt me-2"></i> Iniciar Sesión para Comentar
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Comments List -->
+                    <div class="comments-list">
+                        {% for comment in comments %}
+                        <div class="d-flex gap-3 mb-4">
+                            <div class="flex-shrink-0">
+                                <div class="avatar-circle bg-gold text-white fw-bold d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border-radius: 50%; background-color: var(--gold-accent);">
+                                    {{ comment.author.first_name|first|default:comment.author.username|first|upper }}
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="bg-white p-3 rounded shadow-sm border">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold mb-0">
+                                            {% if comment.author|is_apostle %}Ap. {% elif comment.author|is_pastor or comment.author|is_superpastor %}Pr. {% endif %}{{ comment.author.get_full_name|default:comment.author.username }}
+                                        </h6>
+                                        <small class="text-muted">{{ comment.created_at|date:"d M Y, H:i" }}</small>
+                                    </div>
+                                    <p class="mb-0 text-secondary">{{ comment.text|linebreaksbr }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-4 text-muted border rounded bg-light">
+                            <i class="far fa-comment-dots fa-2x mb-2 d-block"></i>
+                            Aún no hay comentarios. ¡Sé el primero en comentar!
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
 
                 <!-- Back Navigation -->
                 <div class="text-center mt-5 mb-5 pt-5">

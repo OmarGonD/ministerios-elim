@@ -9,6 +9,7 @@ urlpatterns = [
     path('<int:forum_pk>/topics/<int:topic_pk>/', views.topic_detail, name='topic_detail'),
     path('<int:forum_pk>/topics/create/', views.create_topic, name='create_topic'),
     path('<int:forum_pk>/topics/<int:topic_pk>/posts/create/', views.create_post, name='create_post'),
+    path('posts/<int:post_pk>/vote/', views.vote_post, name='vote_post'),
     # API endpoints
     path('<int:forum_pk>/api/topics/', views.topics_api, name='topics_api'),
     path('<int:forum_pk>/api/topics/<int:topic_pk>/posts/', views.posts_api, name='posts_api'),

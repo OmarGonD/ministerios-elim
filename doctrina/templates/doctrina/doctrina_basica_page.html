@@ -9,7 +9,7 @@
 <!-- Level Header -->
 <div class="level-header position-relative mb-5 overflow-hidden" style="min-height: 400px; background: #121212; padding-top: 150px; padding-bottom: 3rem;">
     {% if page.image %}
-        {% image page.image fill-1920x600 class="position-absolute w-100 h-100 top-0 start-0 opacity-50" style="object-fit: cover; z-index: 1;" %}
+        {% image page.image fill-1600x600 class="position-absolute w-100 h-100 top-0 start-0 opacity-50" style="object-fit: cover; z-index: 1;" loading="lazy" %}
     {% endif %}
     <div class="container position-relative py-5" style="z-index: 2;">
         <div class="row">
@@ -26,8 +26,11 @@
                 {% if user.is_authenticated %}
                     {% if user|is_pastor or user|is_superpastor or user|is_apostle %}
                     <div class="mb-4">
-                        <a href="{% url 'wagtailadmin_pages:add_subpage' page.id %}" class="btn btn-warning rounded-0 fw-bold px-4 py-2 border-0 shadow-lg text-dark">
+                        <a href="{% url 'doctrina:frontend_create' 'basica' %}" class="btn btn-warning rounded-0 fw-bold px-4 py-2 border-0 shadow-lg text-dark">
                             <i class="fas fa-plus-circle me-2"></i> Crear Nueva Lección
+                        </a>
+                        <a href="{% url 'doctrina:mis_articulos' %}" class="btn btn-outline-light rounded-0 fw-bold px-4 py-2 ms-2">
+                            <i class="fas fa-book-open me-2"></i> Mis Artículos
                         </a>
                     </div>
                     {% endif %}
@@ -52,7 +55,7 @@
                     {% if user.is_authenticated %}
                         {% if user|is_apostle or user|is_superpastor %}
                         <div class="position-absolute top-0 end-0 p-2" style="z-index: 10;">
-                             <a href="{% url 'wagtailadmin_pages:delete' entry.id %}" class="btn btn-danger btn-sm rounded-0 shadow" title="Eliminar Lección" onclick="return confirm('¿Estás seguro de eliminar esta lección?');">
+                             <a href="{% url 'doctrina:frontend_delete' entry.id %}" class="btn btn-danger btn-sm rounded-0 shadow" title="Eliminar Lección">
                                 <i class="fas fa-trash-alt"></i> Eliminar
                             </a>
                         </div>
@@ -61,7 +64,7 @@
                     <div class="row g-0">
                         <div class="col-md-4">
                             {% if entry.image %}
-                                {% image entry.image fill-400x300 class="img-fluid h-100" style="object-fit: cover;" %}
+                                {% image entry.image fill-400x300 class="img-fluid h-100" style="object-fit: cover;" loading="lazy" %}
                             {% else %}
                                 <div class="bg-light d-flex align-items-center justify-content-center h-100" style="min-height: 200px;">
                                     <i class="fas fa-book-open fa-3x text-muted opacity-25"></i>

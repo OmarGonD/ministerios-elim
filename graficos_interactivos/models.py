@@ -15,6 +15,9 @@ class GraficoInteractivo(models.Model):
         ('timeline', 'Línea de Tiempo'),
         ('diagrama', 'Diagrama de Relaciones'),
         ('mapa', 'Mapa Bíblico'),
+        ('chiastic', 'Estructura Quiástica'),
+        ('tabernaculo', 'Explorador del Tabernáculo'),
+        ('armonia', 'Armonía de los Evangelios'),
     ]
     
     nombre = models.CharField(
@@ -77,5 +80,8 @@ class GraficoInteractivo(models.Model):
             'timeline': 'graficos_interactivos/tipos/timeline.html',
             'diagrama': 'graficos_interactivos/tipos/diagrama.html',
             'mapa': 'graficos_interactivos/tipos/mapa.html',
+            'chiastic': 'graficos_interactivos/tipos/chiastic.html',
+            'tabernaculo': 'graficos_interactivos/tipos/tabernacle.html',
+            'armonia': 'graficos_interactivos/tipos/harmony.html',
         }
         return templates.get(self.tipo, 'graficos_interactivos/tipos/diagrama.html')

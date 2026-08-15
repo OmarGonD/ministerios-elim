@@ -1,0 +1,171 @@
+<div class="tabernacle-container my-5 text-center">
+    <h3 class="font-playfair mb-3">{{ grafico.nombre }}</h3>
+    <div class="position-relative d-inline-block shadow-lg rounded overflow-hidden">
+        <!-- SVG Map of the Tabernacle -->
+        <svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+            <!-- Courtyard -->
+            <rect x="10" y="10" width="780" height="380" fill="#f4e4bc" stroke="#8d6e63" stroke-width="5" />
+            
+            <!-- Tent of Meeting (Holy Place + Holy of Holies) -->
+            <rect x="450" y="100" width="250" height="200" fill="#a1887f" stroke="#5d4037" stroke-width="3" />
+            
+            <!-- Holy of Holies Divider (The Veil) -->
+            <g class="tabernacle-item" onclick="showItemInfo('veil')" style="cursor: pointer;">
+                <title>El Velo</title>
+                <!-- Thicker line/rect for easier clicking -->
+                <rect x="548" y="100" width="4" height="200" fill="#9c27b0" stroke="#5d4037" stroke-width="1" />
+                <!-- Dashed line visual -->
+                <line x1="550" y1="100" x2="550" y2="300" stroke="#f3e5f5" stroke-width="2" stroke-dasharray="5,3" style="pointer-events: none;" />
+            </g>
+
+            <!-- Furniture Objects (Interactable) -->
+            
+            <!-- Brazen Altar -->
+            <g class="tabernacle-item" onclick="showItemInfo('altar')" style="cursor: pointer;">
+                <rect x="150" y="170" width="60" height="60" fill="#8d6e63" />
+                <text x="180" y="250" font-size="12" text-anchor="middle">Altar de Bronce</text>
+            </g>
+
+            <!-- Laver -->
+            <g class="tabernacle-item" onclick="showItemInfo('laver')" style="cursor: pointer;">
+                <circle cx="350" cy="200" r="20" fill="#b0bec5" stroke="#78909c" />
+                <text x="350" y="240" font-size="12" text-anchor="middle">Fuente</text>
+            </g>
+
+            <!-- Menorah -->
+            <g class="tabernacle-item" onclick="showItemInfo('menorah')" style="cursor: pointer;">
+                <circle cx="500" cy="250" r="10" fill="#ffd700" />
+                <text x="500" y="280" font-size="12" text-anchor="middle" fill="white">Candelabro</text>
+            </g>
+
+            <!-- Table of Showbread -->
+            <g class="tabernacle-item" onclick="showItemInfo('table')" style="cursor: pointer;">
+                <rect x="490" y="120" width="20" height="30" fill="#ffd700" />
+                <text x="500" y="110" font-size="12" text-anchor="middle" fill="white">Mesa Panes</text>
+            </g>
+
+            <!-- Altar of Incense -->
+            <g class="tabernacle-item" onclick="showItemInfo('incense')" style="cursor: pointer;">
+                <rect x="530" y="190" width="15" height="15" fill="#ffd700" />
+            </g>
+
+            <!-- Ark of the Covenant -->
+            <g class="tabernacle-item" onclick="showItemInfo('ark')" style="cursor: pointer;">
+                <rect x="600" y="180" width="40" height="40" fill="#ffd700" stroke="#ffeb3b" />
+                <text x="620" y="240" font-size="12" text-anchor="middle" fill="#5d4037">Arca</text>
+            </g>
+        </svg>
+    </div>
+
+    <!-- Info Modal / Overlay -->
+    <div id="tabernacle-info" class="mt-4 p-4 border rounded bg-light" style="display: none; transition: all 0.3s;">
+        <div class="row align-items-center">
+            <div class="col-md-5 mb-3 mb-md-0 text-center" id="images-container">
+                <!-- Images will be injected here -->
+                <img id="item-image-placeholder" src="" class="img-fluid rounded shadow-sm" style="display: none;"> 
+            </div>
+            <div class="col-md-7">
+                <h4 id="item-title" class="font-playfair text-primary"></h4>
+                <p id="item-desc" class="lead"></p>
+                <div id="item-scripture" class="bg-white p-3 border-start border-4 border-primary fst-italic shadow-sm"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tabernacleData = {
+            'veil': {
+                title: 'El Velo del Templo',
+                desc: 'Separaba el Lugar Santo del Lugar Santísimo. Estaba hecho de lino fino torcido con colores de gran significado: AZUL (Su origen celestial), PÚRPURA (Su realeza), CARMESÍ (Su sacrificio y sangre), y BLANCO (Su justicia perfecta). Los querubines bordados recordaban la santidad de Dios. El velo se rasgó de arriba abajo cuando Cristo murió, abriendo el camino acceso a la presencia de Dios.',
+                scripture: '"Harás un velo de azul, púrpura, carmesí y lino fino torcido... (Éxodo 26:31) | "Y he aquí, el velo del templo se rasgó en dos, de arriba abajo..." (Mateo 27:51) | "Así que, hermanos, teniendo libertad para entrar en el Lugar Santísimo por la sangre de Jesucristo, por el camino nuevo... a través del velo, esto es, de su carne..." (Hebreos 10:19-20)',
+                image: '/media/tabernaculo/velo_tabernaculo.png'
+            },
+            'altar': {
+                title: 'El Altar de Bronce',
+                desc: 'Ubicado en el atrio, era el primer objeto que se encontraba. Aquí se realizaban los sacrificios continuos para la expiación del pecado. Representa el juicio de Dios sobre el pecado y la necesidad absoluta de un sacrificio de sangre para acercarse a Él. Simboliza la cruz de Cristo, donde Él se ofreció a sí mismo como sacrificio perfecto.',
+                scripture: '"Harás también un altar de madera de acacia... y lo cubrirás de bronce... Y harás sus cuernos en sus cuatro esquinas... Y harás todos sus utensilios de bronce." (Éxodo 27:1-3) | "Hebreos 9:13-14: Porque si la sangre de los toros y de los machos cabríos... santifica para la purificación de la carne, ¿cuánto más la sangre de Cristo... limpiará vuestras conciencias?"',
+                image: '/media/tabernaculo/altar_bronce.png'
+            },
+            'laver': {
+                title: 'La Fuente de Bronce',
+                desc: 'Situada entre el altar y el tabernáculo, llena de agua para que los sacerdotes se lavaran manos y pies antes de ministrar. Simboliza la santificación y la limpieza diaria del creyente a través de la Palabra de Dios y el Espíritu Santo, necesaria para el servicio y la comunión.',
+                scripture: '"Harás también una fuente de bronce... y pondrás agua en ella. Y de ella se lavarán Aarón y sus hijos sus manos y sus pies." (Éxodo 30:18-19) | "Efesios 5:26: ...para santificarla, habiéndola purificado en el lavamiento del agua por la palabra."',
+                image: '/media/tabernaculo/fuente_bronce.png'
+            },
+            'menorah': {
+                title: 'El Candelabro de Oro',
+                desc: 'En el Lugar Santo, a la izquierda. Hecho de una sola pieza de oro puro batido, con siete lámparas alimentadas por aceite de oliva puro. Era la única fuente de luz. Simboliza a Jesucristo como la "Luz del mundo" y al Espíritu Santo iluminando a la Iglesia para dar testimonio.',
+                scripture: '"Harás además un candelero de oro puro... Y harás sus siete lamparillas... para que alumbren hacia adelante." (Éxodo 25:31, 37) | "Juan 8:12: Otra vez Jesús les habló, diciendo: Yo soy la luz del mundo; el que me sigue, no andará en tinieblas, sino que tendrá la luz de la vida."',
+                image: '/media/tabernaculo/candelabro_oro.png'
+            },
+            'table': {
+                title: 'La Mesa de los Panes',
+                desc: 'A la derecha en el Lugar Santo. Hecha de acacia cubierta de oro, sosteniendo doce panes de la proposición, renovados cada día de reposo. Representa la provisión constante de Dios y la comunión con Él. Simboliza a Jesús como el "Pan de Vida" que sustenta a su pueblo.',
+                scripture: '"Harás asimismo una mesa de madera de acacia... Y la cubrirás de oro puro... Y pondrás sobre la mesa el pan de la proposición delante de mí continuamente." (Éxodo 25:23-24, 30) | "Juan 6:35: Jesús les dijo: Yo soy el pan de vida; el que a mí viene, nunca tendrá hambre..."',
+                image: '/media/tabernaculo/mesa_panes.png'
+            },
+            'incense': {
+                title: 'El Altar del Incienso',
+                desc: 'Ubicado frente al velo, antes del Lugar Santísimo. Se quemaba incienso aromático perpetuamente mañana y tarde. Representa la oración y la intercesión continua. Simboliza las oraciones de los santos y la intercesión de Cristo como nuestro Sumo Sacerdote.',
+                scripture: '"Harás asimismo un altar para quemar el incienso... Y Aarón quemará incienso aromático sobre él cada mañana... y al anochecer." (Éxodo 30:1, 7-8) | "Apocalipsis 8:4: Y de la mano del ángel subió a la presencia de Dios el humo del incienso con las oraciones de los santos."',
+                image: '/media/tabernaculo/altar_incienso.png'
+            },
+            'ark': {
+                title: 'El Arca del Pacto y Su Contenido',
+                desc: 'En el Lugar Santísimo. Un cofre de madera cubierto de oro donde moraba la Shekinah. Contenía tres objetos sagrados de gran significado: 1. Las Tablas de la Ley (la justicia de Dios). 2. El Maná (la provisión divina). 3. La Vara de Aarón que reverdeció (la resurrección y elección divina). Su tapa, el Propiciatorio, cubría la Ley con la sangre del sacrificio. Representa a Cristo, quien cumplió la Ley, es nuestro Pan de Vida y es el Sumo Sacerdote resucitado.',
+                scripture: '"Y pondrás en el arca el testimonio que yo te daré... (Éxodo 25:16) | "En la cual había una urna de oro que contenía el maná, la vara de Aarón que reverdeció, y las tablas del pacto." (Hebreos 9:4)',
+                images: [
+                    {src: '/media/tabernaculo/arca_pacto.png', label: 'Exterior: Arca y Querubines'},
+                    {src: '/media/tabernaculo/arca_contenidos.png', label: 'Interior: Tablas, Maná y Vara'}
+                ]
+            }
+        };
+
+        function showItemInfo(key) {
+            const data = tabernacleData[key];
+            if (data) {
+                document.getElementById('item-title').textContent = data.title;
+                document.getElementById('item-desc').textContent = data.desc;
+                document.getElementById('item-scripture').textContent = data.scripture;
+                
+                const imgContainer = document.getElementById('images-container');
+                imgContainer.innerHTML = ''; // Clear previous images
+
+                if (data.images && data.images.length > 0) {
+                    // Render multiple images
+                    data.images.forEach(imgData => {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'mb-3';
+                        
+                        const img = document.createElement('img');
+                        img.src = imgData.src;
+                        img.className = 'img-fluid rounded shadow-sm mb-1';
+                        img.style.maxHeight = '200px';
+                        
+                        const label = document.createElement('small');
+                        label.className = 'd-block text-muted fst-italic';
+                        label.textContent = imgData.label;
+                        
+                        wrapper.appendChild(img);
+                        wrapper.appendChild(label);
+                        imgContainer.appendChild(wrapper);
+                    });
+                } else if (data.image) {
+                    // Single image fallback
+                    const img = document.createElement('img');
+                    img.src = data.image;
+                    img.className = 'img-fluid rounded shadow-sm';
+                    img.style.maxHeight = '250px';
+                    imgContainer.appendChild(img);
+                } else {
+                    // No image
+                    imgContainer.innerHTML = '<span class="text-muted">Imagen no disponible</span>';
+                }
+                
+                const infoDiv = document.getElementById('tabernacle-info');
+                infoDiv.style.display = 'block';
+                infoDiv.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    </script>
+</div>

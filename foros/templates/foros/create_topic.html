@@ -1,10 +1,39 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container py-4">
-  <h1>Crear tema en {{ forum.title }}</h1>
-  <form method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <button class="btn btn-primary">Crear</button>
-  </form>
+<div class="container py-4" style="margin-top: 100px;">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-5">
+          <h2 class="mb-4 font-playfair">Crear Nuevo Tema</h2>
+          <p class="text-muted mb-4">En el foro: <strong>{{ forum.title }}</strong></p>
+          
+          <form method="post">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div class="mb-4">
+              <label for="{{ field.id_for_label }}" class="form-label fw-bold">{{ field.label }}</label>
+              {{ field.errors }}
+              <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-control form-control-lg" required>
+              {% if field.help_text %}
+              <div class="form-text">{{ field.help_text }}</div>
+              {% endif %}
+            </div>
+            {% endfor %}
+
+            <div class="d-flex justify-content-between align-items-center mt-5">
+              <a href="{% url 'foros:forum_detail' forum.pk %}" class="text-decoration-none text-muted">
+                <i class="fas fa-arrow-left me-2"></i> Cancelar
+              </a>
+              <button type="submit" class="btn btn-primary px-5 py-2 elim-gradient-btn">
+                <i class="fas fa-paper-plane me-2"></i> Publicar Tema
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

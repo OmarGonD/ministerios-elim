@@ -1,18 +1,23 @@
 from django.db import models
+from django.contrib.auth.models import User
+from django.conf import settings
+from django import forms
+from django.shortcuts import redirect, render
+from django.utils.text import slugify
+from django.utils import timezone
+
 from wagtail.models import Page, Orderable
 from wagtail.fields import RichTextField
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel, InlinePanel
-from django.contrib.auth.models import User
 from wagtail.search import index
 from wagtail.images.models import Image
+from wagtail.documents.models import Document
+
 from taggit.models import TaggedItemBase
 from modelcluster.fields import ParentalKey
 from modelcluster.contrib.taggit import ClusterTaggableManager
-from django import forms
-from django.utils.text import slugify
 
 # Base class for shared fields and settings
-import django.utils.timezone
 class DoctrinaBasePage(Page):
     introduction = RichTextField(blank=True, help_text="Introduction text for the page")
     image = models.ForeignKey(
@@ -147,10 +152,55 @@ class DoctrinaYouTubeVideo(Orderable):
         verbose_name = "Video de YouTube"
         verbose_name_plural = "Videos de YouTube"
 
+
+class DoctrinaDocument(Orderable):
+    """Model for linking documents (Word, PPT, etc.) to a DoctrinaEntryPage."""
+    page = ParentalKey(
+        'DoctrinaEntryPage',
+        on_delete=models.CASCADE,
+        related_name='documents'
+    )
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name='+'
+    )
+
+    panels = [
+        FieldPanel('document'),
+    ]
+
+    class Meta(Orderable.Meta):
+        verbose_name = "Documento de Doctrina"
+        verbose_name_plural = "Documentos de Doctrina"
+
+class DoctrinaComment(models.Model):
+    page = ParentalKey(
+        'DoctrinaEntryPage',
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='doctrina_comments'
+    )
+    text = models.TextField("Comentario")
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_public = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Comentario de {self.author} en {self.page.title}"
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Comentario de Doctrina"
+        verbose_name_plural = "Comentarios de Doctrina"
+
 class DoctrinaEntryPage(Page):
     date = models.DateField(
         "Fecha de Publicación",
-        default=django.utils.timezone.now,
+        default=timezone.now,
         blank=True,
         null=True,
         help_text="Fecha de creación de la entrada"
@@ -255,6 +305,7 @@ class DoctrinaEntryPage(Page):
         FieldPanel('abstract'),
         FieldPanel('body'),
         InlinePanel('youtube_videos', label="Videos de YouTube", heading="Videos Relacionados"),
+        InlinePanel('documents', label="Documentos de Estudio", heading="Materiales Descargables"),
         FieldPanel('references'),
         MultiFieldPanel([
             FieldPanel('graficos_embebidos', widget=forms.CheckboxSelectMultiple),
@@ -262,29 +313,6 @@ class DoctrinaEntryPage(Page):
         ], heading="Gráficos Interactivos"),
         # Slug is auto-generated from title, no need to show it
     ]
-    # content_panels = Page.content_panels + [
-    #     MultiFieldPanel(
-    #         [
-    #             FieldPanel('slug'), # Debugging: Expose slug to check for validation
-    #             FieldPanel('image'),
-    #             FieldPanel('abstract'),
-    #             FieldPanel('tags'),
-    #             FieldPanel('body'),
-    #             FieldPanel('references'),
-    #         ],
-    #         heading="Contenido",
-    #     ),
-    #     MultiFieldPanel(
-    #         [
-    #             FieldPanel('date'),
-    #             FieldPanel('created_by', read_only=True),
-    #             FieldPanel('last_modified_by', read_only=True),
-    #             # FieldPanel('last_modified_date', read_only=True),
-    #             FieldPanel('apostle_last_edit_date', read_only=True),
-    #         ],
-    #         heading="Metadatos",
-    #     ),
-    # ]
 
     # Set default values for required fields
     def __init__(self, *args, **kwargs):
@@ -348,3 +376,41 @@ class DoctrinaEntryPage(Page):
 
     class Meta:
         verbose_name = "Doctrina Entry"
+
+    def get_context(self, request):
+        context = super().get_context(request)
+        context['comments'] = self.comments.filter(is_public=True)
+        
+        if request.user.is_authenticated:
+            # Import form here to avoid circular dependencies if defined in same file
+            # or usually it's better to define it in forms.py and import at top.
+            # Choosing to do inline import if I haven't created forms.py yet 
+            # or if I move it to models for simplicity, but cleaner is separate file.
+            # Let's assume I'll put it in forms.py as planned.
+            from .forms import DoctrinaCommentForm
+            context['comment_form'] = DoctrinaCommentForm()
+            
+        return context
+
+    def serve(self, request):
+        if request.method == 'POST':
+            if request.user.is_authenticated:
+                from .forms import DoctrinaCommentForm
+                form = DoctrinaCommentForm(request.POST)
+                if form.is_valid():
+                    comment = form.save(commit=False)
+                    comment.page = self
+                    comment.author = request.user
+                    comment.save()
+                    return redirect(self.url)
+                else:
+                    # If form is invalid, re-render page with form errors
+                    request.is_preview = False
+                    context = self.get_context(request)
+                    context['comment_form'] = form
+                    return render(request, self.template, context)
+            else:
+                # Should not happen if UI is correct, but safe fallback
+                return redirect(f'/login/?next={self.url}')
+
+        return super().serve(request)

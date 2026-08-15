@@ -173,6 +173,7 @@ body {
 
 .navbar-custom .navbar-brand {
     font-weight: 800;
+
     color: var(--primary-color);
     font-size: 1.5rem;
     letter-spacing: -0.5px;
@@ -674,4 +675,376 @@ footer .social-links a:hover {
     justify-content: center;
     color: var(--primary-color);
     font-size: 3rem;
+}
+
+/* --- Added from base.html --- */
+
+/* Welcome Modal - Premium Elegance */
+.welcome-modal-content {
+    background-color: var(--card-bg) !important;
+    border: none;
+    border-radius: 0 !important;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    border-top: 5px solid var(--primary-color);
+}
+
+.welcome-modal-header {
+    border-bottom: none;
+    text-align: center;
+    padding-top: 2.5rem;
+    display: block !important;
+}
+
+.welcome-modal-header .welcome-icon {
+    font-size: 3.5rem;
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1.5rem;
+}
+
+.welcome-modal-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 2.2rem;
+    color: var(--text-color) !important;
+    margin-bottom: 0.5rem;
+}
+
+.modal-body.welcome-modal-body {
+    padding: 1rem 3rem 2.5rem;
+    text-align: center;
+}
+
+.welcome-modal-message {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--text-muted) !important;
+    margin-bottom: 2rem;
+}
+
+.welcome-gold-btn {
+    background: var(--gold-gradient);
+    color: #000 !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 12px 40px;
+    border: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+}
+
+.welcome-gold-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
+    color: #000 !important;
+}
+
+[data-theme="dark"] .welcome-modal-content {
+    background-color: #1a1a1a !important;
+}
+
+@media (max-width: 576px) {
+    .welcome-modal-title {
+        font-size: 1.8rem;
+    }
+
+    .modal-body.welcome-modal-body {
+        padding: 1rem 1.5rem 2rem;
+    }
+}
+
+/* Theme Toggle Button */
+.btn-theme-toggle {
+    background: transparent;
+    border: 1.5px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-theme-toggle:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: rgba(212, 175, 55, 0.05);
+}
+
+/* Search Button in Navbar */
+.btn-search-nav {
+    background: transparent;
+    border: 1.5px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-search-nav:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: rgba(212, 175, 55, 0.05);
+}
+
+.search-shortcut {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    background: var(--bg-alt);
+    border-radius: 3px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* Search Modal Overlay */
+.search-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 15vh;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.search-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Search Modal Container */
+.search-modal-container {
+    background: var(--card-bg);
+    width: 90%;
+    max-width: 650px;
+    border-radius: 0;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+    transform: translateY(-20px) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    overflow: hidden;
+    border-top: 4px solid var(--primary-color);
+}
+
+.search-modal-overlay.active .search-modal-container {
+    transform: translateY(0) scale(1);
+}
+
+/* Search Modal Header */
+.search-modal-header {
+    display: flex;
+    justify-content: flex-end;
+    padding: 15px 20px 0;
+}
+
+.search-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 5px;
+}
+
+.search-modal-close:hover {
+    color: var(--primary-color);
+}
+
+/* Search Form */
+.search-modal-form {
+    padding: 20px 30px 30px;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-input-icon {
+    position: absolute;
+    left: 20px;
+    font-size: 1.3rem;
+    color: var(--primary-color);
+}
+
+.search-modal-input {
+    width: 100%;
+    padding: 20px 20px 20px 55px;
+    font-size: 1.25rem;
+    border: 2px solid var(--border-color);
+    border-radius: 0;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s ease;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.search-modal-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+}
+
+.search-modal-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+.search-input-hint {
+    position: absolute;
+    right: 15px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: var(--bg-alt);
+    padding: 4px 10px;
+    border-radius: 3px;
+}
+
+/* Search Categories */
+.search-categories {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.search-category-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.search-category-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 15px;
+    background: var(--bg-alt);
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.search-category-tag:hover {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+    .search-modal-container {
+        width: 95%;
+    }
+
+    .search-modal-form {
+        padding: 15px 20px 25px;
+    }
+
+    .search-modal-input {
+        font-size: 1rem;
+        padding: 15px 15px 15px 45px;
+    }
+
+    .search-input-hint {
+        display: none;
+    }
+
+    .search-categories {
+        justify-content: center;
+    }
+}
+
+/* --- Instant Search Results --- */
+
+.search-suggestions-container {
+    border-top: 1px solid var(--border-color);
+}
+
+.search-suggestions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.search-suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 15px;
+    background: var(--bg-alt);
+    border: 1px solid var(--border-color);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+}
+
+.search-suggestion-item:hover {
+    background: var(--bg-color);
+    border-color: var(--gold-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.search-suggestion-item img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 4px;
+    background: #eee;
+}
+
+.search-suggestion-item .suggestion-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--gold-accent);
+    border-radius: 4px;
+    font-size: 1.2rem;
+}
+
+.suggestion-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.suggestion-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.suggestion-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }

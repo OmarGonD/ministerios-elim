@@ -1,0 +1,88 @@
+<div class="chiastic-structure-container my-5 p-4 bg-white rounded shadow-sm">
+    <div class="text-center mb-4">
+        <h3 class="font-playfair text-dark">{{ grafico.nombre }}</h3>
+        {% if grafico.descripcion %}
+        <div class="text-muted fst-italic">{{ grafico.descripcion|safe }}</div>
+        {% endif %}
+    </div>
+
+    <div class="chiastic-visualizer" id="chiastic-{{ grafico.slug }}">
+        <!-- Content will be rendered here by JS -->
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('chiastic-{{ grafico.slug }}');
+            const data = {{ grafico.datos_json|safe }};
+            
+            if (data && data.structure) {
+                renderChiasticStructure(container, data.structure);
+            } else {
+                container.innerHTML = '<div class="alert alert-warning">No structure data found in JSON. Format: {"structure": [{"label": "A", "text": "..."}, {"label": "B", "text": "..."}]}</div>';
+            }
+        });
+
+        function renderChiasticStructure(container, items) {
+            let html = '<div class="chiastic-list" style="font-family: \'Lora\', serif; line-height: 1.8;">';
+            
+            // Calculate indentation depth based on label (A, B, C...)
+            // Simple logic: A=0, B=1, ... X (center)=max
+            
+            items.forEach(item => {
+                const label = item.label;
+                const text = item.text;
+                const ref = item.ref || '';
+                
+                // Determine indent level. 
+                // A -> 0, B -> 1, A' -> 0, B' -> 1
+                // We'll trust the JSON data to provide 'indent' or infer it from label char code
+                let indent = 0;
+                if (item.indent !== undefined) {
+                    indent = item.indent;
+                } else {
+                    // Simple inference: 'A' or "A'" -> 0
+                    const cleanLabel = label.replace(/['’]/g, '').toUpperCase();
+                    if (cleanLabel.length === 1 && cleanLabel >= 'A' && cleanLabel <= 'Z') {
+                        indent = cleanLabel.charCodeAt(0) - 65;
+                    }
+                }
+                
+                const marginLeft = indent * 40; // 40px per level
+                const color = getLevelColor(indent);
+                
+                html += `
+                    <div class="chiastic-item d-flex align-items-baseline mb-2 chiastic-hover" 
+                         style="margin-left: ${marginLeft}px; border-left: 3px solid ${color}; padding-left: 15px; transition: all 0.2s;">
+                        <div class="chiastic-label fw-bold me-3" style="color: ${color}; min-width: 30px;">${label}</div>
+                        <div class="chiastic-text flex-grow-1">
+                            ${text} 
+                            ${ref ? `<span class="text-muted small ms-2">(${ref})</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function getLevelColor(level) {
+            const colors = [
+                '#d4af37', // Gold (A)
+                '#2c3e50', // Dark Blue (B)
+                '#e74c3c', // Red (C)
+                '#27ae60', // Green (D)
+                '#8e44ad', // Purple (E)
+                '#d35400'  // Orange (F)
+            ];
+            return colors[level % colors.length];
+        }
+    </script>
+    
+    <style>
+        .chiastic-hover:hover {
+            background-color: rgba(0,0,0,0.02);
+            transform: translateX(5px);
+        }
+    </style>
+</div>

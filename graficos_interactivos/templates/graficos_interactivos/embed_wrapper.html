@@ -9,7 +9,7 @@
     </div>
     {% endif %}
     
-    <div class="grafico-container" style="height: {{ height }}; width: 100%;">
+    <div class="grafico-container" style="min-height: {{ height }}; width: 100%;">
         {% include grafico.get_template_name with grafico=grafico datos_json=datos_json unique_id=unique_id %}
     </div>
     

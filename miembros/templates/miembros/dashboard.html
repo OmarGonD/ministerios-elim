@@ -1,150 +1,255 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static wagtailimages_tags %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --dash-bg: var(--bg-color, #f8f9fa);
+        --dash-card: var(--card-bg, #ffffff);
+        --dash-navy: #1a365d;
+        --dash-gold: #D4AF37;
+        --dash-text: var(--text-color, #2d3748);
+        --dash-muted: var(--text-muted, #718096);
+    }
+
+    .dashboard-container {
+        padding-top: 120px;
+        padding-bottom: 60px;
+        background: var(--dash-bg);
+        min-height: 100vh;
+    }
+
+    .dashboard-header-card {
+        background: linear-gradient(135deg, var(--dash-navy) 0%, #2c5282 100%);
+        border: none;
+        border-radius: 15px;
+        padding: 3rem 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: -60px;
+        box-shadow: 0 10px 30px rgba(26, 54, 93, 0.2);
+    }
+
+    .dashboard-header-card::before {
+        content: "";
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 200px;
+        height: 200px;
+        background: rgba(212, 175, 55, 0.1);
+        border-radius: 50%;
+    }
+
+    .profile-section-card {
+        background: var(--dash-card);
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 15px;
+        margin-top: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+
+    .profile-img-styled {
+        width: 130px;
+        height: 130px;
+        object-fit: cover;
+        border: 4px solid #fff;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        border-radius: 50%;
+    }
+
+    .placeholder-img {
+        width: 130px;
+        height: 130px;
+        background: var(--dash-gold);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        font-weight: 700;
+        border: 4px solid #fff;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        border-radius: 50%;
+    }
+
+    .action-card {
+        background: var(--dash-card);
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        text-align: center;
+        text-decoration: none;
+        color: var(--dash-text);
+        display: block;
+        height: 100%;
+    }
+
+    .action-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--dash-gold);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        color: var(--dash-gold);
+    }
+
+    .action-card i {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--dash-navy);
+        transition: color 0.3s ease;
+    }
+
+    .action-card:hover i {
+        color: var(--dash-gold);
+    }
+
+    .info-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--dash-muted);
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: var(--dash-navy);
+        margin-bottom: 15px;
+    }
+
+    [data-theme="dark"] .info-value {
+        color: #fff;
+    }
+
+    .badge-premium {
+        background: var(--dash-gold);
+        color: #000;
+        padding: 5px 15px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 900px; margin: 2rem auto;">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-success text-white">
-                    <h4 class="card-title mb-0">
-                        {% if is_member %}
-                            Panel de Miembro
-                        {% else %}
-                            Panel de Visitante
-                        {% endif %}
-                    </h4>
+<div class="dashboard-container">
+    <div class="container" style="max-width: 1000px;">
+        <!-- Welcome Header -->
+        <div class="dashboard-header-card" data-aos="fade-down">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 class="opacity-75 mb-1" style="text-transform: uppercase; letter-spacing: 2px;">Bienvenido al Portal</h5>
+                    <h1 style="font-family: 'Playfair Display', serif; font-weight: 700;">{{ user.get_full_name|default:user.username }}</h1>
+                    <p class="mb-0 opacity-75">
+                        <i class="fas fa-calendar-alt me-2"></i> Hoy es {% now "d \d\e F, Y" %}
+                    </p>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 text-center">
-                            {% if profile.foto %}
-                                {% load wagtailimages_tags %}
-                                {% image profile.foto fill-150x150 as profile_img %}
-                                <img src="{{ profile_img.url }}" class="rounded-circle border mb-3" alt="Foto de perfil" style="width: 120px; height: 120px; object-fit: cover;">
-                            {% else %}
-                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 120px; height: 120px;">
-                                    <span class="text-white fw-bold fs-1">{{ user.get_full_name|default:user.username|first|upper }}</span>
-                                </div>
-                            {% endif %}
-                            <h5>{{ user.get_full_name|default:user.username }}</h5>
-                            <span class="badge {% if is_member %}bg-success{% else %}bg-info{% endif %}">
-                                {% if is_member %}Miembro{% else %}Visitante{% endif %}
-                            </span>
-                        </div>
-                        <div class="col-md-8">
-                            <h6 class="text-primary mb-3">Información Personal</h6>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p><strong>Email:</strong> {{ user.email }}</p>
-                                    {% if profile.country %}
-                                        <p><strong>País:</strong> {{ profile.country }}</p>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6">
-                                    {% if profile.phone_number %}
-                                        <p><strong>Teléfono:</strong> {{ profile.phone_number }}</p>
-                                    {% endif %}
-                                    {% if profile.iglesia_afiliada %}
-                                        <p><strong>Iglesia:</strong> {{ profile.iglesia_afiliada }}</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            {% if is_member %}
-                            <hr>
-                            <h6 class="text-primary mb-3">Información de Membresía</h6>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    {% if profile.fecha_afiliacion %}
-                                        <p><strong>Fecha de Afiliación:</strong> {{ profile.fecha_afiliacion|date:"d/m/Y" }}</p>
-                                    {% endif %}
-                                    {% if profile.estado_civil %}
-                                        <p><strong>Estado Civil:</strong> {{ profile.get_estado_civil_display }}</p>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6">
-                                    {% if profile.fecha_nacimiento %}
-                                        <p><strong>Fecha de Nacimiento:</strong> {{ profile.fecha_nacimiento|date:"d/m/Y" }}</p>
-                                    {% endif %}
-                                    {% if profile.ocupacion %}
-                                        <p><strong>Ocupación:</strong> {{ profile.ocupacion }}</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <span class="badge-premium">
+                        {% if is_member %}Miembro Activo{% else %}Visitante{% endif %}
+                    </span>
                 </div>
             </div>
+        </div>
 
-            <!-- Acciones rápidas -->
+        <!-- Profile Section -->
+        <div class="profile-section-card" data-aos="fade-up" data-aos-delay="100">
             <div class="row">
-                <div class="col-md-6">
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-light">
-                            <h6 class="card-title mb-0">Acciones</h6>
+                <div class="col-lg-3 text-center mb-4 mb-lg-0">
+                    {% if profile.foto %}
+                        {% image profile.foto fill-300x300 as profile_img %}
+                        <img src="{{ profile_img.url }}" class="profile-img-styled" alt="Foto de perfil">
+                    {% else %}
+                        <div class="placeholder-img mx-auto">
+                            {{ user.get_full_name|default:user.username|first|upper }}
                         </div>
-                        <div class="card-body">
-                            <a href="{% url 'miembros:profile' %}" class="btn btn-outline-success btn-sm d-block mb-2">
-                                <i class="fas fa-user-edit"></i> Editar Perfil
-                            </a>
-                            <a href="{% url 'iglesias:index' %}" class="btn btn-outline-primary btn-sm d-block mb-2">
-                                <i class="fas fa-church"></i> Ver Iglesias
-                            </a>
-                            {% if is_member %}
-                            <a href="#" class="btn btn-outline-info btn-sm d-block">
-                                <i class="fas fa-users"></i> Miembros
-                            </a>
-                            {% endif %}
-                        </div>
+                    {% endif %}
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'miembros:profile' %}" class="btn btn-sm btn-outline-primary px-4" style="border-radius: 50px;">
+                            <i class="fas fa-edit me-1"></i> Perfil
+                        </a>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-light">
-                            <h6 class="card-title mb-0">Estadísticas</h6>
+
+                <div class="col-lg-9">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="info-label">Correo Electrónico</div>
+                            <div class="info-value">{{ user.email }}</div>
+
+                            <div class="info-label">País de Residencia</div>
+                            <div class="info-value">{{ profile.country|default:"No especificado" }}</div>
+                            
+                            {% if profile.iglesia_afiliada %}
+                            <div class="info-label">Iglesia Afiliada</div>
+                            <div class="info-value"><i class="fas fa-church me-2"></i> {{ profile.iglesia_afiliada }}</div>
+                            {% endif %}
                         </div>
-                        <div class="card-body text-center">
-                            <div class="row">
-                                <div class="col-6">
-                                    <h4 class="text-primary">{{ user.iglesias.count }}</h4>
-                                    <small class="text-muted">Iglesias</small>
+                        <div class="col-md-6 border-md-start">
+                            {% if is_member %}
+                                <div class="info-label">Fecha de Afiliación</div>
+                                <div class="info-value">{{ profile.fecha_afiliacion|date:"d M Y"|default:"Pendiente" }}</div>
+                                
+                                <div class="info-label">Estado Civil</div>
+                                <div class="info-value">{{ profile.get_estado_civil_display|default:"No especificado" }}</div>
+                                
+                                <div class="info-label">Ocupación</div>
+                                <div class="info-value">{{ profile.ocupacion|default:"No especificado" }}</div>
+                            {% else %}
+                                <div class="bg-light p-3 rounded" style="border-left: 4px solid var(--dash-navy);">
+                                    <p class="small mb-0 text-muted">Aún no eres miembro oficial. Contacta con tu pastor para afiliarte y acceder a más beneficios.</p>
                                 </div>
-                                <div class="col-6">
-                                    <h4 class="text-success">
-                                        {% if is_member %}M{% else %}V{% endif %}
-                                    </h4>
-                                    <small class="text-muted">
-                                        {% if is_member %}Miembro{% else %}Visitante{% endif %}
-                                    </small>
-                                </div>
-                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Quick Actions Grid -->
+        <h5 class="mt-5 mb-4" style="font-family: 'Playfair Display', serif; color: var(--dash-navy); font-weight: 700;">Acciones Rápidas</h5>
+        <div class="row g-4">
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="200">
+                <a href="{% url 'iglesias:index' %}" class="action-card">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <h6>Directorio<br>de Iglesias</h6>
+                </a>
+            </div>
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="300">
+                <a href="{% url 'doctrina:doctrina_basica' %}" class="action-card">
+                    <i class="fas fa-bible"></i>
+                    <h6>Estudios<br>Básicos</h6>
+                </a>
+            </div>
+            {% if is_member %}
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="400">
+                <a href="{% url 'iglesias:materiales_index' %}" class="action-card">
+                    <i class="fas fa-cloud-download-alt"></i>
+                    <h6>Material de<br>Apoyo</h6>
+                </a>
+            </div>
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="500">
+                <a href="{% url 'foros:forum_list' %}" class="action-card">
+                    <i class="fas fa-comments"></i>
+                    <h6>Foros de<br>Conversación</h6>
+                </a>
+            </div>
+            {% endif %}
+            <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="600">
+                <a href="{% url 'miembros:profile' %}" class="action-card">
+                    <i class="fas fa-cog"></i>
+                    <h6>Ajustes de<br>Cuenta</h6>
+                </a>
+            </div>
+        </div>
     </div>
 </div>
-
-<style>
-.card {
-    border: none;
-    border-radius: 10px;
-}
-
-.card-header {
-    border-radius: 10px 10px 0 0 !important;
-    border: none;
-}
-
-.btn {
-    border-radius: 6px;
-}
-
-.badge {
-    font-size: 0.8em;
-}
-</style>
 {% endblock %}

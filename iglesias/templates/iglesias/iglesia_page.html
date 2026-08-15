@@ -187,7 +187,7 @@
         <div class="d-flex align-items-center w-100">
             {% if page.logo %}
                 <div class="me-4 d-none d-md-block" data-aos="fade-right">
-                    {% image page.logo fill-120x120 class="rounded-circle border border-4 border-white shadow-lg bg-white" %}
+                    {% image page.logo fill-120x120 class="rounded-circle border border-4 border-white shadow-lg bg-white" loading="lazy" %}
                 </div>
             {% endif %}
             <div data-aos="fade-up" data-aos-delay="200">
@@ -332,7 +332,7 @@
                                         <i class="fas fa-file-download text-dark"></i>
                                     </div>
                                     <p class="small text-muted mb-3">{{ material.description|truncatechars:50 }}</p>
-                                    <a href="{% url 'iglesias:preach_material_detail' material.pk %}" class="btn btn-sm btn-link text-dark text-decoration-none p-0 fw-bold">Descargar <i class="fas fa-arrow-right"></i></a>
+                                    <a href="{% url 'iglesias:preach_material_detail' material.pk %}" class="btn btn-sm btn-link text-dark text-decoration-none p-0 fw-bold" onclick="elimTrackEvent('file_download', { file_title: '{{ material.title|escapejs }}', category: '{{ category.grouper|escapejs }}' })">Descargar <i class="fas fa-arrow-right"></i></a>
                                 </div>
                             </div>
                         {% endfor %}
@@ -353,7 +353,7 @@
                                 <div class="col-md-6">
                                     <div class="card h-100 border-0 shadow-none bg-light rounded-0 overflow-hidden">
                                         {% if event.image %}
-                                            {% image event.image fill-400x200 class="card-img-top" %}
+                                            {% image event.image fill-400x200 class="card-img-top" loading="lazy" %}
                                         {% else %}
                                             <div class="bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center" style="height: 150px;">
                                                 <i class="fas fa-calendar-day fa-3x text-muted opacity-25"></i>
@@ -388,7 +388,7 @@
             <div class="academic-card p-4 text-center" data-aos="fade-left" data-aos-delay="300">
                 <div class="pastor-image-container">
                     {% if page.owner.pastores_profile and page.owner.pastores_profile.foto %}
-                        {% image page.owner.pastores_profile.foto fill-150x150 class="rounded-circle" %}
+                        {% image page.owner.pastores_profile.foto fill-150x150 class="rounded-circle" loading="lazy" %}
                     {% else %}
                          <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center border border-4 border-white shadow-sm" style="width: 150px; height: 150px;">
                             <i class="fas fa-user-tie fa-4x text-muted opacity-50"></i>
@@ -448,7 +448,7 @@
                  </h5>
                  {% if page.donation_qr_image %}
                     <div class="text-center mb-3">
-                         {% image page.donation_qr_image width-200 class="img-fluid rounded border p-1" %}
+                         {% image page.donation_qr_image width-200 class="img-fluid rounded border p-1" loading="lazy" %}
                          <small class="d-block text-muted mt-1">Escanea para donar</small>
                     </div>
                  {% endif %}
