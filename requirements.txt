@@ -43,7 +43,7 @@ et-xmlfile==1.1.0
 filetype==1.2.0
 gitdb==4.0.11
 GitPython==3.1.43
-gunicorn==21.2.0
+gunicorn==21.2.0; sys_platform != 'win32'
 html5lib==1.1
 idna==3.6
 imagesize==1.4.1
@@ -102,7 +102,7 @@ urllib3==2.2.1
 wagtail==6.4.1
 wagtailgmaps==1.0.1
 webencodings==0.5.1
-wfastcgi==3.0.0
+wfastcgi==3.0.0; sys_platform == 'win32'
 whitenoise==6.6.0
 Willow==1.9.0
 xlrd==2.0.1

@@ -1,6 +1,6 @@
 # Django project
 /media/
-/static/
+/staticfiles/
 *.sqlite3
 
 # Python and others
@@ -9,6 +9,11 @@ __pycache__
 .DS_Store
 *.swp
 /venv/
+/venv-ministerioselim/
+/venv-ministerioselim-windows/
+/.venv/
+/.git/
+/.env
 /tmp/
 /.vagrant/
 /Vagrantfile.local

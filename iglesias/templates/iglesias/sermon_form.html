@@ -2,13 +2,36 @@
 {% load static %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container content-with-navbar py-5">
   <h2 class="mb-4">Agregar Predicación</h2>
   <form method="post" class="row g-3">
     {% csrf_token %}
     <div class="col-md-6">
       <label class="form-label fw-bold" for="title">Título</label>
       <input type="text" class="form-control" id="title" name="title" required>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label fw-bold" for="speaker">Predicador</label>
+      <input type="text" class="form-control" id="speaker" name="speaker" value="{{ request.user.get_full_name }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label fw-bold" for="topic">Tema</label>
+      <input type="text" class="form-control" id="topic" name="topic" placeholder="Ej. Salvación">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label fw-bold" for="series">Serie</label>
+      <input type="text" class="form-control" id="series" name="series" placeholder="Ej. Fundamentos">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label fw-bold" for="preached_at">Fecha</label>
+      <input type="date" class="form-control" id="preached_at" name="preached_at">
+    </div>
+    <div class="col-md-9">
+      <label class="form-label fw-bold" for="related_doctrine">Doctrina relacionada</label>
+      <select class="form-select" id="related_doctrine" name="related_doctrine">
+        <option value="">Sin relación</option>
+        {% for entry in doctrine_entries %}<option value="{{ entry.pk }}">{{ entry.title }}</option>{% endfor %}
+      </select>
     </div>
     <div class="col-md-6">
       <label class="form-label fw-bold" for="youtube_url">URL de YouTube</label>

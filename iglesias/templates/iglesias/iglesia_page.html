@@ -2,6 +2,10 @@
 {% load wagtailcore_tags wagtailimages_tags user_extras %}
 {% load static %}
 
+{% block structured_data %}
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Church","name":"{{ page.title|escapejs }}","url":"{{ page.full_url|escapejs }}","address":"{{ page.address|escapejs }}","telephone":"{{ page.phone|escapejs }}","email":"{{ page.email|escapejs }}"{% if page.hero_image %},"image":"{{ request.scheme }}://{{ request.get_host }}{{ page.hero_image.file.url|escapejs }}"{% endif %}}</script>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     :root {
@@ -176,12 +180,25 @@
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
 
+    @media (max-width: 767.98px) {
+        .iglesia-hero { height: auto; min-height: 430px; }
+        .iglesia-hero-content { padding: 120px 0 2rem; align-items: flex-end; }
+        .church-title-large { font-size: 2.35rem; overflow-wrap: anywhere; }
+        .iglesia-hero .btn { display: block; width: 100%; margin: .5rem 0 0 !important; }
+        .academic-card { padding: 1.25rem !important; }
+        .card-header-academic { font-size: 1.25rem; }
+        .list-group-item { align-items: flex-start !important; gap: .75rem; }
+        .list-group-item .btn { min-width: 72px; }
+        .academic-card iframe { width: 100% !important; min-height: 260px; }
+    }
+
 </style>
 {% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
-<div class="iglesia-hero" style="background-image: url('{% if page.hero_image %}{{ page.hero_image.url }}{% else %}/static/img/default-church.jpg{% endif %}'); background-size: cover; background-position: center;">
+{% if page.hero_image %}{% image page.hero_image fill-1600x800 format-webp as church_hero %}{% endif %}
+<div class="iglesia-hero" style="background-image: url('{% if church_hero %}{{ church_hero.url }}{% else %}/static/img/default-church.jpg{% endif %}'); background-size: cover; background-position: center;">
     <div class="iglesia-hero-overlay"></div>
     <div class="container iglesia-hero-content">
         <div class="d-flex align-items-center w-100">
@@ -195,28 +212,16 @@
                 <div class="row pt-2 text-white opacity-90 mx-auto" style="max-width: 600px; font-size: 1.1rem;" data-aos="fade-up" data-aos-delay="200">
                 <div class="col-12 py-1"><i class="fas fa-map-marker-alt me-2 text-warning"></i> {{ page.address }}</div>
                 <div class="col-12 py-2">
-                    <!-- Dynamic Subdomain Link -->
-                    <script>
-                        // Simple script to generate the localhost subdomain link for demo purposes
-                        // In production, this would be a real domain logic
-                        const currentHost = window.location.hostname;
-                        const churchSlug = "{{ page.slug }}";
-                        const isLocal = currentHost.includes('localhost') || currentHost.includes('127.0.0.1');
-                        const protocol = window.location.protocol;
-                        const port = window.location.port ? ':' + window.location.port : '';
-                        
-                        // Construct the microsite URL
-                        // Default to localhost pattern
-                        let microUrl = `${protocol}//${churchSlug}.localhost${port}/`;
-                        
-                        if (!isLocal) {
-                            // Production pattern example (if we had a wildcart DNS)
-                            // microUrl = `${protocol}//${churchSlug}.ministerioselim.org${port}/`;
-                        }
-                    </script>
-                    <a href="#" onclick="window.location.href=`${window.location.protocol}//{{ page.slug }}.localhost:${window.location.port}/`" class="btn btn-outline-light rounded-pill px-4 mt-2">
-                        <i class="fas fa-external-link-alt me-2"></i> Visitar Sitio Web
+                    {% if page.is_verified %}
+                    <span class="badge bg-success rounded-pill px-3 py-2 me-2"><i class="fas fa-circle-check me-1"></i> Información verificada</span>
+                    {% endif %}
+                    <a href="{{ page.directions_url }}" target="_blank" rel="noopener" class="btn btn-outline-light rounded-pill px-4 mt-2">
+                        <i class="fas fa-route me-2"></i> Cómo llegar
                     </a>
+                    {% if page.whatsapp_url %}
+                    <a href="{{ page.whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-success rounded-pill px-4 mt-2 ms-2">
+                        <i class="fab fa-whatsapp me-2"></i> WhatsApp
+                    </a>{% endif %}
                 </div>
             </div>
             </div>
@@ -304,7 +309,7 @@
                                         <h6 class="fw-bold text-dark mb-1">{{ sermon.title }}</h6>
                                         <small class="text-muted"><i class="far fa-calendar me-1"></i> Publicado recientemente</small>
                                     </div>
-                                    <a href="{{ sermon.youtube_url }}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill">
+                                    <a href="{{ sermon.youtube_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-danger rounded-pill">
                                         Ver <i class="fab fa-youtube ms-1"></i>
                                     </a>
                                 </div>
@@ -424,17 +429,17 @@
             <div class="academic-card p-4 text-center" data-aos="fade-left" data-aos-delay="400">
                 <h5 class="fw-bold text-dark mb-4">Síguenos en Redes</h5>
                 <div class="d-flex justify-content-center flex-wrap">
-                    <a href="{{ page.facebook_url|default:'#' }}" class="social-btn" target="_blank" title="Facebook">
+                    <a href="{{ page.facebook_url|default:'#' }}" class="social-btn" target="_blank" rel="noopener" title="Facebook">
                         <i class="fab fa-facebook-f"></i>
                     </a>
-                    <a href="{{ page.instagram_url|default:'#' }}" class="social-btn" target="_blank" title="Instagram">
+                    <a href="{{ page.instagram_url|default:'#' }}" class="social-btn" target="_blank" rel="noopener" title="Instagram">
                         <i class="fab fa-instagram"></i>
                     </a>
-                    <a href="{{ page.tiktok_url|default:'#' }}" class="social-btn" target="_blank" title="TikTok">
+                    <a href="{{ page.tiktok_url|default:'#' }}" class="social-btn" target="_blank" rel="noopener" title="TikTok">
                         <i class="fab fa-tiktok"></i>
                     </a>
                     {% if page.youtube_url %}
-                        <a href="{{ page.youtube_url }}" class="social-btn" target="_blank" title="YouTube">
+                        <a href="{{ page.youtube_url }}" class="social-btn" target="_blank" rel="noopener" title="YouTube">
                             <i class="fab fa-youtube"></i>
                         </a>
                     {% endif %}
@@ -463,12 +468,10 @@
             </div>
 
             <!-- Map -->
-            {% if page.map_embed_code %}
-                <div class="academic-card overflow-hidden p-0" data-aos="fade-left" data-aos-delay="600">
-                    <div style="height: 300px;">
-                        {{ page.map_embed_code|safe }}
-                    </div>
-                </div>
+            {% if page.address %}
+            <div class="academic-card overflow-hidden p-0" data-aos="fade-left" data-aos-delay="600">
+                <iframe title="Mapa de {{ page.title }}" src="https://www.google.com/maps?q={{ page.address|urlencode }}&output=embed" width="100%" height="300" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
             {% endif %}
 
         </div>

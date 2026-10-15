@@ -5,6 +5,9 @@ __pycache__/
 *.pyd
 .env
 venv/
+.venv/
+venv-ministerioselim/
+venv-ministerioselim-windows/
 venv-ministerios-elim/
 
 # Virtual environment activation scripts

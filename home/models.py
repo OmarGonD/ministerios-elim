@@ -10,6 +10,7 @@ from django.db import models as dj_models
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django_countries.fields import CountryField
+from django.utils import timezone
 
 class HomePageCarouselImages(models.Model):
     page = ParentalKey('home.HomePage', related_name='carousel_images', on_delete=models.CASCADE)
@@ -27,6 +28,35 @@ class HomePageCarouselImages(models.Model):
 
     class Meta:
         verbose_name = "Home Page Carousel Image"
+
+
+class EngagementMetric(models.Model):
+    """Aggregate, privacy-friendly counters without user or device identifiers."""
+    EVENT_SEARCH = 'search'
+    EVENT_CHURCH_VIEW = 'church_view'
+    EVENT_LESSON_COMPLETED = 'lesson_completed'
+    EVENT_CHOICES = [
+        (EVENT_SEARCH, 'Búsqueda'),
+        (EVENT_CHURCH_VIEW, 'Iglesia consultada'),
+        (EVENT_LESSON_COMPLETED, 'Lección completada'),
+    ]
+
+    date = models.DateField(default=timezone.localdate)
+    event_type = models.CharField(max_length=32, choices=EVENT_CHOICES)
+    label = models.CharField(max_length=160, blank=True)
+    count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['date', 'event_type', 'label'],
+                name='unique_daily_engagement_metric',
+            )
+        ]
+        ordering = ['-date', 'event_type', 'label']
+
+    def __str__(self):
+        return f'{self.date}: {self.event_type} / {self.label} ({self.count})'
 
 class HomePage(Page):
     template = "home/home_page.html"
@@ -71,13 +101,34 @@ class HomePage(Page):
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
-        from iglesias.models import PreachMaterial, IglesiaPage, CountryIndexPage
+        from iglesias.models import (
+            PreachMaterial, IglesiaPage, CountryIndexPage,
+            IglesiaEventPage, Sermon,
+        )
+        from django.utils import timezone
         from pastores.models import UserProfile
+        from doctrina.models import DoctrinaEntryPage, DoctrinaIndexPage
         
         context['recent_materials'] = PreachMaterial.objects.all().order_by('-uploaded_at')[:6]
         context['church_count'] = IglesiaPage.objects.live().count()
         context['pastor_count'] = UserProfile.objects.filter(role='pastor_elim').count()
         context['country_count'] = CountryIndexPage.objects.live().count()
+        context['featured_courses'] = (
+            DoctrinaEntryPage.objects.live().descendant_of(self)
+            .order_by('first_published_at', 'pk')[:3]
+        )
+        context['who_we_are_page'] = WhoWeArePage.objects.live().descendant_of(self).first()
+        context['doctrina_index_page'] = DoctrinaIndexPage.objects.live().descendant_of(self).first()
+        context['upcoming_events'] = (
+            IglesiaEventPage.objects.live()
+            .filter(date__gte=timezone.now())
+            .select_related('image')
+            .order_by('date')[:3]
+        )
+        context['recent_sermons'] = (
+            Sermon.objects.select_related('iglesia', 'related_doctrine')
+            .order_by('-preached_at', '-date_added')[:3]
+        )
         
         return context
     parent_page_types = ['wagtailcore.Page']  # Allow HomePage to be created under Root
@@ -88,7 +139,8 @@ class HomePage(Page):
         'doctrina.DoctrinaIntermediaPage',
         'doctrina.DoctrinaAvanzadaPage',
         'home.ChurchPage',
-        'home.WhoWeArePage'
+        'home.WhoWeArePage',
+        'iglesias.CountryIndexPage',
     ]
 
     edit_handler = TabbedInterface([

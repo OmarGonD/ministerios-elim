@@ -5,6 +5,8 @@ app_name = 'iglesias'
 
 urlpatterns = [
     path('', views.iglesias_index, name='index'),
+    path('eventos/', views.events_calendar, name='events_calendar'),
+    path('predicaciones/', views.sermons_index, name='sermons_index'),
     path('panel/', views.pastor_dashboard, name='pastor_dashboard'),
     path('panel/evento/crear/', views.create_event, name='create_event'),
     path('panel/sermon/crear/', views.create_sermon, name='create_sermon'),

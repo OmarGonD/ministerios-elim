@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
-{% load wagtailcore_tags %}
+{% load wagtailcore_tags wagtailimages_tags %}
 
 {% block body_class %}template-homepage{% endblock %}
 
@@ -71,6 +71,63 @@
         color: var(--academic-gold);
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(197, 160, 89, 0.2);
+    }
+
+    .hero-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-academic-secondary {
+        color: #fff;
+        border: 1px solid rgba(255,255,255,.75);
+        padding: 14px 35px;
+        border-radius: 2px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .btn-academic-secondary:hover {
+        color: #111;
+        background: #fff;
+    }
+
+    .home-pathways {
+        margin-top: -2.25rem;
+        position: relative;
+        z-index: 5;
+    }
+
+    .pathway-card {
+        display: block;
+        height: 100%;
+        padding: 1.6rem;
+        color: var(--text-color);
+        background: var(--card-bg);
+        border-top: 4px solid var(--academic-gold);
+        box-shadow: var(--card-shadow);
+        text-decoration: none;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .pathway-card:hover {
+        color: var(--text-color);
+        transform: translateY(-5px);
+        box-shadow: var(--hover-shadow);
+    }
+
+    .pathway-card i {
+        color: var(--academic-gold);
+    }
+
+    @media (max-width: 767px) {
+        .academic-hero { padding: 4.5rem 0 5.5rem; }
+        .hero-title { font-size: 2.6rem; }
+        .hero-actions .btn { width: 100%; }
+        .home-pathways { margin-top: -3rem; }
     }
 
     /* Secondary Banner */
@@ -294,24 +351,48 @@
 
 {% block content %}
 <!-- Main Hero -->
-<section class="academic-hero">
+{% if page.banner_image %}{% image page.banner_image fill-1600x650 format-webp as hero_image %}{% endif %}
+<section class="academic-hero"{% if hero_image %} style="background-image: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.8)), url('{{ hero_image.url }}'); background-size: cover; background-position: center;"{% endif %}>
     <div class="container position-relative z-2">
         <img src="{% static 'img/logo-elim.png' %}" alt="Ministerios Elim" class="hero-logo" data-aos="fade-down">
-        <h1 class="hero-title" data-aos="fade-up" data-aos-delay="200">Bienvenido a Ministerios Elim</h1>
-        <p class="hero-subtitle" data-aos="fade-up" data-aos-delay="400">Descubre los fundamentos de la fe cristiana según la enseñanza de la Iglesia de Cristo Elim. Un legado de doctrina y servicio.</p>
-        <a href="#cursos" class="btn btn-academic-hero" data-aos="zoom-in" data-aos-delay="600">Explorar Cursos</a>
+        <h1 class="hero-title" data-aos="fade-up" data-aos-delay="200">{{ page.banner_title|default:"Bienvenido a Ministerios Elim" }}</h1>
+        <div class="hero-subtitle" data-aos="fade-up" data-aos-delay="400">
+            {% if page.banner_subtitle %}{{ page.banner_subtitle|richtext }}{% else %}Conoce a Cristo, crece en la fe y encuentra una comunidad para caminar contigo.{% endif %}
+        </div>
+        <div class="hero-actions" data-aos="zoom-in" data-aos-delay="600">
+            <a href="{% url 'iglesias:index' %}" class="btn btn-academic-hero">
+                <i class="fas fa-location-dot me-2"></i> Encuentra una iglesia
+            </a>
+            {% if who_we_are_page %}
+            <a href="{% pageurl who_we_are_page %}" class="btn btn-academic-secondary">Conócenos</a>
+            {% endif %}
+        </div>
     </div>
 </section>
 
-<!-- Secondary CTA Banner -->
-<section class="secondary-banner text-center">
+<!-- Clear visitor pathways -->
+<section class="home-pathways" aria-label="Accesos principales">
     <div class="container">
-        <div class="row justify-content-center align-items-center">
-            <div class="col-lg-8">
-                <h2 class="cta-text">¡Únete a nuestra comunidad digital!</h2>
-                <p class="text-muted mb-3">Regístrate con tu cuenta de Gmail para acceder a recursos exclusivos y cursos.</p>
-                <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn btn-outline-dark rounded-pill px-4">
-                    <i class="fab fa-google me-2 text-danger"></i> Registrarse con Gmail
+        <div class="row g-3">
+            <div class="col-md-4">
+                <a href="{% url 'iglesias:index' %}" class="pathway-card">
+                    <i class="fas fa-church fa-2x mb-3"></i>
+                    <h2 class="h5 fw-bold">Quiero visitar una iglesia</h2>
+                    <p class="text-muted mb-0">Busca por país o ciudad y consulta horarios, dirección y contacto.</p>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% if doctrina_index_page %}{% pageurl doctrina_index_page %}{% else %}/doctrina/{% endif %}" class="pathway-card">
+                    <i class="fas fa-book-bible fa-2x mb-3"></i>
+                    <h2 class="h5 fw-bold">Quiero aprender</h2>
+                    <p class="text-muted mb-0">Recorre la doctrina básica, intermedia y avanzada a tu ritmo.</p>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% if user.is_authenticated %}{% url 'miembros:dashboard' %}{% else %}{% url 'register' %}{% endif %}" class="pathway-card">
+                    <i class="fas fa-people-group fa-2x mb-3"></i>
+                    <h2 class="h5 fw-bold">Quiero participar</h2>
+                    <p class="text-muted mb-0">Accede a eventos, materiales y espacios de comunidad.</p>
                 </a>
             </div>
         </div>
@@ -327,41 +408,75 @@
             </div>
             
             <div class="row g-4">
-                <!-- Course 1 -->
-                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                {% for course in featured_courses %}
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter }}00">
                     <div class="card academic-card p-4 text-center">
                         <div class="mb-3">
-                            <i class="fas fa-water fa-3x text-primary opacity-75"></i>
+                            <i class="fas {% cycle 'fa-water' 'fa-cross' 'fa-dove' %} fa-3x text-primary opacity-75"></i>
                         </div>
-                        <h3 class="card-title-academic h4 mb-3">Bautismo en Agua</h3>
-                        <p class="text-muted mb-4">Aprende el significado profundo y la importancia del bautismo como testimonio público de fe según las Escrituras.</p>
-                        <a href="#" class="btn btn-link text-decoration-none fw-bold stretched-link">Leer más <i class="fas fa-arrow-right list-inline-item"></i></a>
+                        <h3 class="card-title-academic h4 mb-3">{{ course.title }}</h3>
+                        <div class="text-muted mb-4">{{ course.abstract|richtext }}</div>
+                        <a href="{% pageurl course %}" class="btn btn-link text-decoration-none fw-bold stretched-link">Leer más <i class="fas fa-arrow-right list-inline-item"></i></a>
                     </div>
                 </div>
-                
-                <!-- Course 2 -->
-                <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="card academic-card p-4 text-center">
-                         <div class="mb-3">
-                            <i class="fas fa-cross fa-3x text-danger opacity-75"></i>
-                        </div>
-                        <h3 class="card-title-academic h4 mb-3">La Salvación</h3>
-                        <p class="text-muted mb-4">Entiende el plan divino de salvación, la gracia redentora y cómo recibir la vida eterna a través de Jesucristo.</p>
-                        <a href="#" class="btn btn-link text-decoration-none fw-bold stretched-link">Leer más <i class="fas fa-arrow-right list-inline-item"></i></a>
-                    </div>
-                </div>
+                {% empty %}
+                <p class="text-muted text-center">Próximamente encontrarás aquí nuestras lecciones.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
 
-                <!-- Course 3 -->
-                <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="card academic-card p-4 text-center">
-                         <div class="mb-3">
-                            <i class="fas fa-dove fa-3x text-warning opacity-75"></i>
-                        </div>
-                        <h3 class="card-title-academic h4 mb-3">El Espíritu Santo</h3>
-                        <p class="text-muted mb-4">Conoce la obra, los deones y el poder transformador del Espíritu Santo en la vida diaria del creyente.</p>
-                        <a href="#" class="btn btn-link text-decoration-none fw-bold stretched-link">Leer más <i class="fas fa-arrow-right list-inline-item"></i></a>
-                    </div>
+    <!-- Upcoming Events -->
+    <section id="eventos" class="py-5 bg-light">
+        <div class="container">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4">
+                <div>
+                    <span class="text-uppercase text-warning fw-bold small">Agenda Elim</span>
+                    <h2 class="section-title mb-0">Próximos eventos</h2>
                 </div>
+                <a href="{% url 'iglesias:events_calendar' %}" class="btn btn-outline-dark">Ver calendario completo</a>
+            </div>
+            <div class="row g-4">
+                {% for event in upcoming_events %}
+                <div class="col-md-4">
+                    <article class="card event-card border-0 shadow-sm h-100">
+                        {% if event.image %}{% image event.image fill-400x225 format-webp as event_small %}{% image event.image fill-800x450 format-webp as event_large %}<img src="{{ event_small.url }}" srcset="{{ event_small.url }} 400w, {{ event_large.url }} 800w" sizes="(max-width: 767px) 100vw, 33vw" class="card-img-top" loading="lazy" width="800" height="450" alt="{{ event.title }}">{% endif %}
+                        <div class="card-body p-4">
+                            <div class="d-flex gap-3">
+                                <div class="event-date text-center"><strong>{{ event.date|date:"d" }}</strong><span>{{ event.date|date:"M" }}</span></div>
+                                <div><h3 class="h5 fw-bold mb-1">{{ event.title }}</h3><p class="small text-muted mb-2">{{ event.get_parent.specific.title }}</p></div>
+                            </div>
+                            <p class="small mt-3 mb-0"><i class="fas fa-location-dot text-warning me-2"></i>{{ event.location }}</p>
+                            <a href="{% pageurl event %}" class="stretched-link"><span class="visually-hidden">Ver {{ event.title }}</span></a>
+                        </div>
+                    </article>
+                </div>
+                {% empty %}<p class="text-muted">Las próximas actividades aparecerán aquí.</p>{% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Sermons -->
+    <section id="predicaciones" class="py-5">
+        <div class="container">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4">
+                <div>
+                    <span class="text-uppercase text-warning fw-bold small">Escucha y comparte</span>
+                    <h2 class="section-title mb-0">Predicaciones recientes</h2>
+                </div>
+                <a href="{% url 'iglesias:sermons_index' %}" class="btn btn-outline-dark">Explorar predicaciones</a>
+            </div>
+            <div class="row g-4">
+                {% for sermon in recent_sermons %}
+                <div class="col-md-4">
+                    <article class="card sermon-card border-0 shadow-sm h-100">
+                        <a href="{{ sermon.youtube_url }}" target="_blank" rel="noopener" class="sermon-video">
+                            {% if sermon.youtube_id %}<img src="https://i.ytimg.com/vi/{{ sermon.youtube_id }}/hqdefault.jpg" loading="lazy" alt="Miniatura de {{ sermon.title }}"><span class="play-button"><i class="fas fa-play"></i></span>{% endif %}
+                        </a>
+                        <div class="card-body p-4"><h3 class="h5 fw-bold">{{ sermon.title }}</h3><p class="small text-muted mb-0">{{ sermon.speaker|default:sermon.iglesia.owner.get_full_name|default:"Ministerios Elim" }} · {{ sermon.iglesia.title }}</p></div>
+                    </article>
+                </div>
+                {% empty %}<p class="text-muted">Las predicaciones publicadas aparecerán aquí.</p>{% endfor %}
             </div>
         </div>
     </section>

@@ -31,5 +31,16 @@ def profile_view(request):
     elif hasattr(request.user, 'member_profile'):
         return redirect('miembros:profile')
     else:
-        # Fallback: redirect to pastor profile (will create if needed)
         return redirect('pastores:profile')
+
+
+def privacy_policy(request):
+    return render(request, 'home/privacy.html')
+
+
+def robots_txt(request):
+    sitemap_url = request.build_absolute_uri('/sitemap.xml')
+    return HttpResponse(
+        f'User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /django-admin/\nSitemap: {sitemap_url}\n',
+        content_type='text/plain',
+    )

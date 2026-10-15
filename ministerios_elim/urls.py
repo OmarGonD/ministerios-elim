@@ -5,13 +5,20 @@ from django.contrib import admin
 
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail import urls as wagtail_urls
+from wagtail import views as wagtail_views
 from wagtail.documents import urls as wagtaildocs_urls
 
 from search import views as search_views
 from django.contrib.auth import views as auth_views
 from django.urls import include
+from home import views as home_views
+from wagtail.contrib.sitemaps.views import sitemap
 
 urlpatterns = [
+
+    path("sitemap.xml", sitemap, name="sitemap"),
+    path("robots.txt", home_views.robots_txt, name="robots_txt"),
+    path("privacidad/", home_views.privacy_policy, name="privacy"),
 
     path("django-admin/", admin.site.urls),
     path("admin/", include(wagtailadmin_urls)),
@@ -43,6 +50,7 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns = urlpatterns + [
+    path("", wagtail_views.serve, {"path": ""}, name="home"),
     # For anything not caught by a more specific rule above, hand over to
     # Wagtail's page serving mechanism. This should be the last pattern in
     # the list:

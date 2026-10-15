@@ -25,7 +25,15 @@
           <hr class="my-3 opacity-25" />
           <p class="mb-3">{{ post.body|linebreaks }}</p>
           
-          <div class="d-flex justify-content-end">
+          <div class="d-flex justify-content-end gap-2 align-items-center flex-wrap">
+              {% if user.is_authenticated %}
+              <form method="post" action="{% url 'foros:report_post' post.pk %}" class="d-flex gap-2">
+                {% csrf_token %}
+                <label for="report-{{ post.pk }}" class="visually-hidden">Motivo del reporte</label>
+                <input id="report-{{ post.pk }}" name="reason" class="form-control form-control-sm" maxlength="500" minlength="5" placeholder="Motivo del reporte" required>
+                <button class="btn btn-sm btn-outline-secondary" type="submit"><i class="far fa-flag me-1"></i>Reportar</button>
+              </form>
+              {% endif %}
               <button class="btn btn-sm btn-vote {% if post.pk in user_votes %}text-danger{% else %}text-muted{% endif %}" 
                       data-post-id="{{ post.pk }}" 
                       onclick="votePost(this, {{ post.pk }})">
@@ -43,7 +51,10 @@
   <script>
     function votePost(btn, postId) {
         {% if user.is_authenticated %}
-        fetch(`/foros/posts/${postId}/vote/`)
+        fetch(`/foros/posts/${postId}/vote/`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': '{{ csrf_token }}'}
+        })
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'ok') {

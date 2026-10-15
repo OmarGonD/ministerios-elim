@@ -1,12 +1,32 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 <div class="container py-5" style="margin-top: 100px;">
+  <img src="{% static 'img/demo/foros.png' %}" alt="Comunidad conversando y estudiando" class="img-fluid w-100 mb-4" style="height: 260px; object-fit: cover;" loading="lazy">
   <div class="row mb-4">
       <div class="col-12 text-center">
           <h1 class="display-4 fw-bold" style="color:var(--primary-color);">Foros de Discusión</h1>
           <p class="lead text-muted">Únete a la conversación y comparte con la comunidad.</p>
       </div>
   </div>
+
+  <div class="alert alert-light border-start border-4 border-warning mb-4">
+    <h2 class="h5 fw-bold"><i class="fas fa-shield-heart me-2"></i>Convivencia y moderación</h2>
+    <p class="mb-2">Conversa con respeto, protege los datos personales y fundamenta las respuestas doctrinales. Los temas y respuestas nuevas pueden requerir aprobación.</p>
+    <small class="text-muted">No se permite acoso, publicidad, suplantación ni contenido que exponga información privada.</small>
+  </div>
+  {% if user.is_authenticated %}
+  <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center mb-4">
+    <form method="post" action="{% url 'foros:update_preferences' %}" class="d-flex flex-wrap gap-3 align-items-center">
+      {% csrf_token %}
+      <strong>Notificaciones:</strong>
+      <label class="form-check-label"><input class="form-check-input me-1" type="checkbox" name="notify_replies" {% if preference.notify_replies %}checked{% endif %}> respuestas</label>
+      <label class="form-check-label"><input class="form-check-input me-1" type="checkbox" name="notify_moderation" {% if preference.notify_moderation %}checked{% endif %}> decisiones de moderación</label>
+      <button class="btn btn-sm btn-outline-dark" type="submit">Guardar</button>
+    </form>
+    {% if is_moderator %}<a href="{% url 'foros:moderation_dashboard' %}" class="btn btn-warning"><i class="fas fa-list-check me-2"></i>Cola de moderación</a>{% endif %}
+  </div>
+  {% endif %}
 
   <div class="row">
     <div class="col-lg-10 mx-auto">

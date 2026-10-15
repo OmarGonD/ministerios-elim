@@ -10,6 +10,10 @@ urlpatterns = [
     path('<int:forum_pk>/topics/create/', views.create_topic, name='create_topic'),
     path('<int:forum_pk>/topics/<int:topic_pk>/posts/create/', views.create_post, name='create_post'),
     path('posts/<int:post_pk>/vote/', views.vote_post, name='vote_post'),
+    path('posts/<int:post_pk>/reportar/', views.report_post, name='report_post'),
+    path('preferencias/', views.update_preferences, name='update_preferences'),
+    path('moderacion/', views.moderation_dashboard, name='moderation_dashboard'),
+    path('moderacion/accion/', views.moderate, name='moderate'),
     # API endpoints
     path('<int:forum_pk>/api/topics/', views.topics_api, name='topics_api'),
     path('<int:forum_pk>/api/topics/<int:topic_pk>/posts/', views.posts_api, name='posts_api'),

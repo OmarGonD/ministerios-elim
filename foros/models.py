@@ -57,3 +57,43 @@ class Vote(models.Model):
 
     def __str__(self):
         return f"{self.user} likes {self.post}"
+
+
+class ForumReport(models.Model):
+    STATUS_PENDING = 'pending'
+    STATUS_REVIEWED = 'reviewed'
+    STATUS_DISMISSED = 'dismissed'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pendiente'),
+        (STATUS_REVIEWED, 'Atendido'),
+        (STATUS_DISMISSED, 'Descartado'),
+    ]
+
+    post = models.ForeignKey(Post, related_name='reports', on_delete=models.CASCADE)
+    reported_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='forum_reports',
+        on_delete=models.CASCADE,
+    )
+    reason = models.CharField(max_length=500)
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['post', 'reported_by'], name='unique_post_report_per_user')
+        ]
+        ordering = ['-created_at']
+
+
+class ForumPreference(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        related_name='forum_preference',
+        on_delete=models.CASCADE,
+    )
+    notify_replies = models.BooleanField(default=False)
+    notify_moderation = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'Preferencias de foro de {self.user}'

@@ -3,6 +3,7 @@
 {% load static %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
 <style>
     :root {
         --academic-navy: #111111; /* Jet Black */
@@ -167,6 +168,61 @@
         border-color: var(--academic-navy);
         color: var(--academic-gold);
     }
+
+    .directory-map {
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+        z-index: 0;
+        height: 430px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--card-shadow);
+        background: var(--bg-alt);
+    }
+
+    /* Keep map tiles contained even if the external stylesheet is unavailable. */
+    .directory-map .leaflet-pane,
+    .directory-map .leaflet-tile,
+    .directory-map .leaflet-marker-icon,
+    .directory-map .leaflet-marker-shadow,
+    .directory-map .leaflet-tile-container,
+    .directory-map .leaflet-pane > svg,
+    .directory-map .leaflet-pane > canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+
+    .directory-map .leaflet-tile {
+        max-width: none !important;
+        max-height: none !important;
+    }
+
+    .result-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .church-meta-badge {
+        background: var(--bg-alt);
+        color: var(--text-muted);
+        border: 1px solid var(--border-color);
+        font-size: .72rem;
+        padding: .35rem .55rem;
+    }
+
+    .verified-badge { color: #236b3b; background: #e9f6ed; border-color: #b9dfc4; }
+
+    @media (max-width: 767.98px) {
+        .directory-map { height: 55vh; min-height: 320px; max-height: 460px; }
+        .iglesias-hero { padding-left: 1rem; padding-right: 1rem; }
+        .church-card .card-body { padding: 1.25rem !important; }
+        .church-card .d-flex.gap-2 { flex-direction: column; }
+        .church-card .d-flex.gap-2 .btn { width: 100%; }
+    }
 </style>
 {% endblock %}
 
@@ -181,8 +237,16 @@
 <div class="container mb-5">
     <!-- Filter Bar -->
     <div class="filter-bar mb-5">
-        <form method="get" class="row g-3 align-items-center">
-            <div class="col-md-4">
+        <form method="get" class="row g-3 align-items-end" aria-label="Buscar iglesias">
+            <div class="col-lg-4">
+                <label for="church-search" class="form-label small fw-bold">Nombre o dirección</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <input id="church-search" type="search" name="q" value="{{ search_query }}" class="form-control border-start-0 ps-0 shadow-none" placeholder="Ej. Lima o Elim Central">
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-2">
+                <label for="country" class="form-label small fw-bold">País</label>
                 <div class="input-group">
                     <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-globe text-muted"></i></span>
                     <select name="country" id="country" class="form-select border-start-0 ps-0 shadow-none">
@@ -195,18 +259,53 @@
                     </select>
                 </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-4 col-lg-2">
+                <label for="city" class="form-label small fw-bold">Ciudad</label>
+                <select name="city" id="city" class="form-select shadow-none">
+                    <option value="">Todas las ciudades</option>
+                    {% for city in cities %}
+                    <option value="{{ city.pk }}" {% if city.pk|stringformat:"s" == selected_city %}selected{% endif %}>{{ city.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 col-lg-2">
+                <label for="language" class="form-label small fw-bold">Idioma</label>
+                <select name="language" id="language" class="form-select shadow-none">
+                    <option value="">Todos los idiomas</option>
+                    {% for code, name in language_choices %}
+                    <option value="{{ code }}" {% if code == selected_language %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 col-lg-2">
                 <button class="filter-btn w-100" type="submit">
-                    <i class="fas fa-filter me-2"></i> Filtrar
+                    <i class="fas fa-search me-2"></i> Buscar
                 </button>
             </div>
-            {% if selected_country %}
-            <div class="col-md-auto">
-                <a href="." class="btn btn-link text-muted text-decoration-none small"><i class="fas fa-times me-1"></i> Limpiar</a>
-            </div>
-            {% endif %}
+            {% if selected_country or selected_city or selected_language or search_query %}
+            <div class="col-12 text-end">
+                <a href="." class="btn btn-link text-muted text-decoration-none small"><i class="fas fa-times me-1"></i> Limpiar filtros</a>
+            </div>{% endif %}
         </form>
     </div>
+
+    <div class="result-summary mb-4">
+        <div>
+            <h2 class="h4 fw-bold mb-1">{{ result_count }} iglesia{{ result_count|pluralize }} encontrada{{ result_count|pluralize }}</h2>
+            <p class="text-muted mb-0">Consulta la lista o explora las ubicaciones verificadas en el mapa.</p>
+        </div>
+        {% if map_churches %}
+        <a href="#mapa-iglesias" class="btn btn-outline-dark rounded-pill px-4"><i class="fas fa-map-marked-alt me-2"></i>Ver mapa</a>
+        {% endif %}
+    </div>
+
+    {% if map_churches %}
+    <section class="mb-5" aria-labelledby="map-title">
+        <h2 id="map-title" class="visually-hidden">Mapa de iglesias</h2>
+        <div id="mapa-iglesias" class="directory-map" role="region" aria-label="Mapa interactivo de iglesias"></div>
+        {{ map_churches|json_script:"church-map-data" }}
+    </section>
+    {% endif %}
 
     <!-- Results Grid -->
     <div class="row g-4">
@@ -215,7 +314,7 @@
                 <div class="iglesia-card">
                     <div class="card-img-container">
                         {% if iglesia.hero_image %}
-                            {% image iglesia.hero_image fill-600x400 as img %}
+                            {% image iglesia.hero_image fill-600x400 format-webp as img %}
                             <img src="{{ img.url }}" class="w-100 h-100 object-fit-cover" alt="{{ iglesia.title }}">
                         {% else %}
                             <div class="bg-light d-flex align-items-center justify-content-center h-100">
@@ -231,6 +330,11 @@
                     
                     <div class="card-body p-4">
                         <h5 class="church-title">{{ iglesia.title }}</h5>
+                        <div class="d-flex gap-2 flex-wrap mb-3">
+                            {% if iglesia.city %}<span class="church-meta-badge"><i class="fas fa-city me-1"></i>{{ iglesia.city.title }}</span>{% endif %}
+                            <span class="church-meta-badge"><i class="fas fa-language me-1"></i>{{ iglesia.get_primary_language_display }}</span>
+                            {% if iglesia.is_verified %}<span class="church-meta-badge verified-badge"><i class="fas fa-circle-check me-1"></i>Verificada</span>{% endif %}
+                        </div>
                         <p class="text-muted small mb-3"><i class="fas fa-map-marker-alt me-2" style="color: var(--academic-gold);"></i> {{ iglesia.address|truncatechars:50 }}</p>
                         
                         <div class="pastor-info-box mb-4">
@@ -251,13 +355,15 @@
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-between align-items-center">
-                            {% if iglesia.phone %}
-                                <span class="text-muted small"><i class="fas fa-phone me-1"></i> {{ iglesia.phone }}</span>
-                            {% else %}
-                                <span></span>
-                            {% endif %}
-                            <a href="{% pageurl iglesia %}" class="btn btn-academic-sm">Explorar <i class="fas fa-arrow-right ms-1"></i></a>
+                        <div class="d-flex gap-2 flex-wrap align-items-center">
+                            <a href="{% pageurl iglesia %}" class="btn btn-academic-sm">Ver iglesia <i class="fas fa-arrow-right ms-1"></i></a>
+                            <a href="{{ iglesia.directions_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary rounded-pill" title="Abrir indicaciones">
+                                <i class="fas fa-route"></i><span class="visually-hidden"> Cómo llegar</span>
+                            </a>
+                            {% if iglesia.whatsapp_url %}
+                            <a href="{{ iglesia.whatsapp_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success rounded-pill" title="Contactar por WhatsApp">
+                                <i class="fab fa-whatsapp"></i><span class="visually-hidden"> WhatsApp</span>
+                            </a>{% endif %}
                         </div>
                     </div>
                 </div>
@@ -276,7 +382,7 @@
         <ul class="pagination justify-content-center">
             {% if page_obj.has_previous %}
                 <li class="page-item">
-                    <a class="page-link shadow-none" href="?page={{ page_obj.previous_page_number }}{% if selected_country %}&country={{ selected_country }}{% endif %}">
+                    <a class="page-link shadow-none" href="?page={{ page_obj.previous_page_number }}&q={{ search_query|urlencode }}&country={{ selected_country }}&city={{ selected_city }}&language={{ selected_language }}">
                         <i class="fas fa-chevron-left"></i>
                     </a>
                 </li>
@@ -286,7 +392,7 @@
             
             {% if page_obj.has_next %}
                 <li class="page-item">
-                    <a class="page-link shadow-none" href="?page={{ page_obj.next_page_number }}{% if selected_country %}&country={{ selected_country }}{% endif %}">
+                    <a class="page-link shadow-none" href="?page={{ page_obj.next_page_number }}&q={{ search_query|urlencode }}&country={{ selected_country }}&city={{ selected_city }}&language={{ selected_language }}">
                         <i class="fas fa-chevron-right"></i>
                     </a>
                 </li>
@@ -294,4 +400,40 @@
         </ul>
     </nav>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+{% if map_churches %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const element = document.getElementById('mapa-iglesias');
+    const dataElement = document.getElementById('church-map-data');
+    if (!element || !dataElement || typeof L === 'undefined') return;
+    const churches = JSON.parse(dataElement.textContent);
+    const map = L.map(element, {scrollWheelZoom: false});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+    const bounds = [];
+    churches.forEach(function (church) {
+        const point = [church.latitude, church.longitude];
+        bounds.push(point);
+        const popup = document.createElement('div');
+        const title = document.createElement('strong');
+        title.textContent = church.title;
+        const address = document.createElement('div');
+        address.textContent = church.address;
+        const link = document.createElement('a');
+        link.href = church.url;
+        link.textContent = 'Ver iglesia';
+        popup.append(title, address, link);
+        L.marker(point).addTo(map).bindPopup(popup);
+    });
+    map.fitBounds(bounds, {padding: [35, 35], maxZoom: 12});
+});
+</script>
+{% endif %}
 {% endblock %}

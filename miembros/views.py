@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import MemberProfileForm
 from .models import MemberProfile
+from django.utils import timezone
 
 
 @login_required
@@ -61,15 +62,37 @@ def create_profile(request):
 @login_required
 def member_dashboard(request):
     """Dashboard for members."""
+    pastor_profile = getattr(request.user, 'pastores_profile', None)
+    if pastor_profile:
+        if pastor_profile.is_apostle or pastor_profile.is_superpastor:
+            return redirect('iglesias:apostol_dashboard')
+        return redirect('iglesias:pastor_dashboard')
+
     try:
         profile = request.user.member_profile
     except MemberProfile.DoesNotExist:
         profile = None
 
+    from doctrina.models import DoctrinaEntryPage, DoctrinaProgress
+    from iglesias.models import IglesiaEventPage, PreachMaterial
+
+    doctrine_total = DoctrinaEntryPage.objects.live().count()
+    completed = DoctrinaProgress.objects.filter(
+        user=request.user, page__live=True
+    ).count()
+    events = IglesiaEventPage.objects.live().filter(date__gte=timezone.now()).order_by('date')
+    if profile and profile.iglesia_id:
+        events = events.descendant_of(profile.iglesia)
+
     context = {
         'profile': profile,
         'is_member': profile.is_member if profile else False,
         'is_visitor': profile.is_visitor if profile else False,
+        'doctrine_total': doctrine_total,
+        'doctrine_completed': completed,
+        'doctrine_progress': round((completed / doctrine_total) * 100) if doctrine_total else 0,
+        'upcoming_events': events[:3],
+        'recent_materials': PreachMaterial.objects.select_related('iglesia').order_by('-uploaded_at')[:3],
     }
 
     return render(request, 'miembros/dashboard.html', context)

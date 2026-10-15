@@ -7,9 +7,9 @@
         <div class="row align-items-center">
             <div class="col-md-8">
                 <h1 class="display-5 fw-bold mb-2">
-                    <i class="fas fa-crown me-3 text-warning"></i>Panel del Apóstol
+                    <i class="fas fa-chart-line me-3 text-warning"></i>{% if is_general_leadership %}Panel de liderazgo general{% else %}Panel de supervisión{% endif %}
                 </h1>
-                <p class="lead opacity-75 mb-0">Gestión de Pastores y Supervisión</p>
+                <p class="lead opacity-75 mb-0">Iglesias, responsables, contenido y aprobaciones</p>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
                 <span class="badge bg-white text-primary fs-6 px-3 py-2 rounded-pill">
@@ -22,35 +22,47 @@
 
 <div class="container pb-5">
     <!-- Stats Cards -->
-    <div class="row mb-5">
-        <div class="col-md-4 mb-3">
+    <div class="row row-cols-2 row-cols-lg-4 g-3 mb-5">
+        <div class="col">
             <div class="card border-0 shadow-sm bg-primary text-white">
                 <div class="card-body text-center py-4">
                     <i class="fas fa-users fa-2x mb-3 opacity-75"></i>
                     <h2 class="display-5 fw-bold mb-1">{{ total_pastores }}</h2>
-                    <p class="mb-0 opacity-75">Pastores Elim</p>
+                    <p class="mb-0 opacity-75">Pastores supervisados</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col">
             <div class="card border-0 shadow-sm bg-success text-white">
                 <div class="card-body text-center py-4">
-                    <i class="fas fa-user-shield fa-2x mb-3 opacity-75"></i>
-                    <h2 class="display-5 fw-bold mb-1">{{ superpastores_count }}</h2>
-                    <p class="mb-0 opacity-75">Pastores de Pastores</p>
+                    <i class="fas fa-church fa-2x mb-3 opacity-75"></i>
+                    <h2 class="display-5 fw-bold mb-1">{{ church_count }}</h2>
+                    <p class="mb-0 opacity-75">Iglesias</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col">
             <div class="card border-0 shadow-sm bg-info text-white">
                 <div class="card-body text-center py-4">
-                    <i class="fas fa-cross fa-2x mb-3 opacity-75"></i>
-                    <h2 class="display-5 fw-bold mb-1">{{ total_pastores|add:superpastores_count }}</h2>
-                    <p class="mb-0 opacity-75">Total Ministerio</p>
+                    <i class="fas fa-calendar-check fa-2x mb-3 opacity-75"></i>
+                    <h2 class="display-5 fw-bold mb-1">{{ upcoming_events_count }}</h2>
+                    <p class="mb-0 opacity-75">Próximos eventos</p>
                 </div>
             </div>
         </div>
+        <div class="col">
+            <div class="card border-0 shadow-sm bg-warning text-dark h-100"><div class="card-body text-center py-4"><i class="fas fa-user-clock fa-2x mb-3 opacity-75"></i><h2 class="display-5 fw-bold mb-1">{{ pending_members_count }}</h2><p class="mb-0 opacity-75">Aprobaciones pendientes</p></div></div>
+        </div>
     </div>
+
+    <section class="card border-0 shadow-sm mb-5" aria-labelledby="metrics-title">
+      <div class="card-body p-4"><div class="d-flex justify-content-between align-items-center mb-3"><div><span class="text-uppercase text-warning fw-bold small">Últimos 30 días</span><h2 id="metrics-title" class="h4 fw-bold mb-0">Interés y participación</h2></div><span class="badge bg-light text-dark">Datos agregados, sin identificación personal</span></div>
+      <div class="row row-cols-1 row-cols-sm-3 g-3 text-center">
+        <div class="col"><div class="bg-light p-3"><strong class="fs-3 d-block">{{ metric_totals.search|default:0 }}</strong><span>Búsquedas</span></div></div>
+        <div class="col"><div class="bg-light p-3"><strong class="fs-3 d-block">{{ metric_totals.church_view|default:0 }}</strong><span>Iglesias consultadas</span></div></div>
+        <div class="col"><div class="bg-light p-3"><strong class="fs-3 d-block">{{ metric_totals.lesson_completed|default:0 }}</strong><span>Lecciones completadas</span></div></div>
+      </div></div>
+    </section>
 
     <!-- Pastores Table -->
     <div class="card border-0 shadow-sm">
@@ -70,7 +82,7 @@
                                 <th scope="col" class="border-0">Email</th>
                                 <th scope="col" class="border-0">Iglesia</th>
                                 <th scope="col" class="border-0 text-center">Estado</th>
-                                <th scope="col" class="border-0 text-end">Acciones</th>
+                                {% if is_general_leadership %}<th scope="col" class="border-0 text-end">Acciones</th>{% endif %}
                             </tr>
                         </thead>
                         <tbody>
@@ -98,7 +110,7 @@
                                         <i class="fas {% if pastor.is_apostle %}fa-crown{% elif pastor.is_superpastor %}fa-star{% else %}fa-user{% endif %} me-1"></i> {{ pastor.role_display }}
                                     </span>
                                 </td>
-                                <td class="text-end border-0">
+                                {% if is_general_leadership %}<td class="text-end border-0">
                                     <form method="post" class="d-inline">
                                         {% csrf_token %}
                                         <input type="hidden" name="pastor_id" value="{{ pastor.id }}">
@@ -115,7 +127,7 @@
                                             </button>
                                         {% endif %}
                                     </form>
-                                </td>
+                                </td>{% endif %}
                             </tr>
                             {% endfor %}
                         </tbody>

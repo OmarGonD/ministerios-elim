@@ -265,7 +265,7 @@
         <div class="entry-row">
             <div class="entry-thumb">
                 {% if entry.image %}
-                    <img src="{{ entry.image.file.url }}" alt="">
+                    <img src="{{ entry.image.file.url }}" alt="Imagen de {{ entry.title }}" loading="lazy">
                 {% else %}
                     <i class="fas fa-book"></i>
                 {% endif %}
@@ -304,7 +304,7 @@
         <div class="entry-row">
             <div class="entry-thumb">
                 {% if entry.image %}
-                    <img src="{{ entry.image.file.url }}" alt="">
+                    <img src="{{ entry.image.file.url }}" alt="Imagen de {{ entry.title }}" loading="lazy">
                 {% else %}
                     <i class="fas fa-book"></i>
                 {% endif %}
@@ -329,7 +329,7 @@
                 </div>
             </div>
             <div class="entry-actions">
-                <a href="{{ entry.url }}" class="btn btn-outline-dark btn-sm" target="_blank">
+                <a href="{{ entry.url }}" class="btn btn-outline-dark btn-sm" target="_blank" rel="noopener">
                     <i class="fas fa-eye me-1"></i> Ver
                 </a>
                 <a href="{% url 'doctrina:frontend_edit' entry.id %}" class="btn btn-dark btn-sm">

@@ -99,6 +99,42 @@
             border-radius: 50%;
         }
 
+        .lesson-progress-panel {
+            max-width: 760px;
+            margin: 2rem auto 0;
+            padding: 1.25rem 1.5rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            font-family: 'Inter', sans-serif;
+            text-align: left;
+        }
+
+        .lesson-progress-panel .progress {
+            height: .55rem;
+            background: var(--border-color);
+        }
+
+        .lesson-progress-panel .progress-bar {
+            background: var(--gold-accent);
+        }
+
+        .lesson-navigation-card {
+            display: block;
+            height: 100%;
+            padding: 1.25rem;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-color);
+            text-decoration: none;
+            transition: transform .2s ease, border-color .2s ease;
+        }
+
+        .lesson-navigation-card:hover {
+            color: var(--text-color);
+            transform: translateY(-3px);
+            border-color: var(--gold-accent);
+        }
+
         /* Apostle Stamp Refined */
         .apostle-stamp-elegant {
             margin: 2rem auto;
@@ -265,6 +301,32 @@
                 <span title="Tiempo de lectura estimado"><i class="far fa-clock me-2"></i> {{ page.body|reading_time }} min de lectura</span>
             </div>
 
+            <div class="lesson-progress-panel shadow-sm">
+                <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap mb-2">
+                    <div>
+                        <strong>Lección {{ lesson_position }} de {{ lesson_total }}</strong>
+                        {% if user.is_authenticated %}
+                        <span class="text-muted ms-2">{{ completed_count }} completada{{ completed_count|pluralize }}</span>
+                        {% endif %}
+                    </div>
+                    {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'doctrina:toggle_progress' page.id %}">
+                        {% csrf_token %}
+                        <button class="btn btn-sm {% if is_completed %}btn-success{% else %}btn-outline-dark{% endif %} rounded-pill px-3" type="submit">
+                            <i class="fas {% if is_completed %}fa-circle-check{% else %}fa-check{% endif %} me-1"></i>
+                            {% if is_completed %}Completada{% else %}Marcar como completada{% endif %}
+                        </button>
+                    </form>
+                    {% else %}
+                    <a href="{% url 'login' %}?next={{ page.url }}" class="small fw-bold text-decoration-none">Inicia sesión para guardar tu progreso</a>
+                    {% endif %}
+                </div>
+                <div class="progress" role="progressbar" aria-label="Progreso del nivel" aria-valuenow="{{ progress_percent }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" style="width: {{ progress_percent }}%"></div>
+                </div>
+                {% if user.is_authenticated %}<div class="small text-muted mt-2">{{ progress_percent }}% de este nivel completado</div>{% endif %}
+            </div>
+
             <!-- Admin Controls - Visible in Header -->
             {% if user.is_authenticated %}
                 {% if page.owner == user or user|is_apostle or user|is_superpastor or user|is_pastor %}
@@ -301,7 +363,7 @@
     <!-- Featured Image (Hero Style) -->
     {% if page.image and page.image_display_style == 'hero' %}
     <div class="container-fluid p-0 hero-image-wrap">
-        {% image page.image fill-1600x600 class="img-fluid w-100 shadow-sm" loading="lazy" %}
+        {% image page.image fill-1600x600 format-webp class="img-fluid w-100 shadow-sm" loading="lazy" %}
     </div>
     {% endif %}
 
@@ -320,7 +382,7 @@
                 <div class="entry-body-elegant rich-text">
                     {% if page.image and page.image_display_style == 'wrapped' %}
                     <div class="image-wrapped-container">
-                        {% image page.image width-800 class="img-fluid rounded shadow-sm" loading="lazy" %}
+                        {% image page.image width-800 format-webp class="img-fluid rounded shadow-sm" loading="lazy" %}
                     </div>
                     {% endif %}
                     {{ page.body|richtext }}
@@ -361,7 +423,7 @@
                                         {% if video_id %}
                                             <iframe src="https://www.youtube.com/embed/{{ video_id }}" title="{{ video.title|default:'Video de YouTube' }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                                         {% else %}
-                                            <a href="{{ video.url }}" target="_blank" class="d-flex align-items-center justify-content-center bg-dark text-white">
+                                            <a href="{{ video.url }}" target="_blank" rel="noopener" class="d-flex align-items-center justify-content-center bg-dark text-white">
                                                 <i class="fab fa-youtube fa-3x"></i>
                                             </a>
                                         {% endif %}
@@ -497,14 +559,37 @@
                     </div>
                 </div>
 
-                <!-- Back Navigation -->
-                <div class="text-center mt-5 mb-5 pt-5">
-                    {% if page.get_parent %}
-                    <a href="{% pageurl page.get_parent %}" class="btn btn-outline-gold rounded-pill px-5 py-3 fw-bold transition" style="border: 2px solid var(--gold-accent); color: var(--gold-accent);">
-                        <i class="fas fa-long-arrow-alt-left me-2"></i> Volver a {{ page.get_parent.title }}
-                    </a>
-                    {% endif %}
-                </div>
+                <!-- Lesson Navigation -->
+                <nav class="mt-5 mb-5 pt-4" aria-label="Navegación entre lecciones">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {% if previous_lesson %}
+                            <a href="{% pageurl previous_lesson %}" class="lesson-navigation-card">
+                                <small class="text-uppercase text-muted fw-bold"><i class="fas fa-arrow-left me-1"></i> Lección anterior</small>
+                                <div class="fw-bold mt-2">{{ previous_lesson.title }}</div>
+                            </a>
+                            {% else %}
+                            <a href="{% pageurl page.get_parent %}" class="lesson-navigation-card">
+                                <small class="text-uppercase text-muted fw-bold"><i class="fas fa-list me-1"></i> Ver índice</small>
+                                <div class="fw-bold mt-2">{{ page.get_parent.title }}</div>
+                            </a>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            {% if next_lesson %}
+                            <a href="{% pageurl next_lesson %}" class="lesson-navigation-card">
+                                <small class="text-uppercase text-muted fw-bold">Siguiente lección <i class="fas fa-arrow-right ms-1"></i></small>
+                                <div class="fw-bold mt-2">{{ next_lesson.title }}</div>
+                            </a>
+                            {% else %}
+                            <a href="{% pageurl page.get_parent.get_parent %}" class="lesson-navigation-card">
+                                <small class="text-uppercase text-muted fw-bold">Nivel completado</small>
+                                <div class="fw-bold mt-2">Explorar otros niveles <i class="fas fa-arrow-right ms-1"></i></div>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </nav>
 
                 <!-- Footer Audit -->
                 <footer class="modern-footer-stats">

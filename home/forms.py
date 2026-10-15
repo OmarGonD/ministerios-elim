@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.password_validation import validate_password
 import phonenumbers
 import unicodedata
 
@@ -57,11 +58,25 @@ class ExtendedUserCreationForm(forms.ModelForm):
     country = forms.CharField(label='País', required=True)
     password1 = forms.CharField(label='Contraseña', widget=forms.PasswordInput)
     password2 = forms.CharField(label='Repite la contraseña', widget=forms.PasswordInput)
+    privacy_accepted = forms.BooleanField(
+        label='Acepto la política de privacidad', required=True,
+        error_messages={'required': 'Debes aceptar la política de privacidad para crear una cuenta.'},
+    )
 
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name', 'last_name')
         # Note: Other fields (username_display, country, phone_number, etc.) are handled as extra form fields
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            if name == 'role':
+                field.widget.attrs['class'] = 'form-check-input'
+            elif name == 'privacy_accepted':
+                field.widget.attrs['class'] = 'form-check-input'
+            else:
+                field.widget.attrs['class'] = 'form-control'
 
     def clean(self):
         cleaned_data = super().clean()
@@ -73,6 +88,8 @@ class ExtendedUserCreationForm(forms.ModelForm):
         # Validate passwords match
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError('Las contraseñas no coinciden.')
+        if password1:
+            validate_password(password1)
 
         # Set username
         if username_display:

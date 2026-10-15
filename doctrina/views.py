@@ -4,13 +4,14 @@ from django.contrib import messages
 from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 from wagtail.models import Page
 from wagtail.images.models import Image
 from wagtail.documents.models import Document
 
 from .models import (
     DoctrinaBasicaPage, DoctrinaIntermediaPage, DoctrinaAvanzadaPage,
-    DoctrinaEntryPage, DoctrinaYouTubeVideo, DoctrinaDocument
+    DoctrinaEntryPage, DoctrinaProgress, DoctrinaYouTubeVideo, DoctrinaDocument
 )
 from .forms import DoctrinaEntryForm
 
@@ -51,6 +52,24 @@ def _user_can_edit_entry(user, entry):
         return True
     # Regular pastors can only edit their own entries
     return entry.owner == user
+
+
+@login_required
+@require_POST
+def toggle_progress(request, entry_id):
+    """Mark a doctrine lesson complete, or make it pending again."""
+    entry = get_object_or_404(DoctrinaEntryPage.objects.live(), pk=entry_id)
+    progress = DoctrinaProgress.objects.filter(user=request.user, page=entry)
+    if progress.exists():
+        progress.delete()
+        messages.info(request, 'La lección volvió a quedar pendiente.')
+    else:
+        DoctrinaProgress.objects.create(user=request.user, page=entry)
+        from home.analytics import record_metric
+        from home.models import EngagementMetric
+        record_metric(EngagementMetric.EVENT_LESSON_COMPLETED, entry.title)
+        messages.success(request, 'Lección marcada como completada.')
+    return redirect(entry.url)
 
 
 def _populate_entry_from_form(entry, form, user, image_file=None):

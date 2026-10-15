@@ -658,7 +658,7 @@
         let content = '';
         
         if (data.img) {
-            content += `<div class="text-center mb-3"><img src="${data.img}" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #d4af37;"></div>`;
+            content += `<div class="text-center mb-3"><img src="${data.img}" alt="Retrato de ${data.name || 'personaje bíblico'}" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #d4af37;"></div>`;
         }
         
         if (data.bio) content += `<p class="small">${data.bio}</p>`;

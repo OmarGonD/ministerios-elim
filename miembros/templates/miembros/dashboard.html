@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static wagtailimages_tags %}
+{% load static wagtailimages_tags wagtailcore_tags %}
 
 {% block extra_css %}
 <style>
@@ -135,6 +135,18 @@
         text-transform: uppercase;
         letter-spacing: 1px;
     }
+
+    .dashboard-section {
+        margin-top: 2.5rem;
+    }
+
+    @media (max-width: 767.98px) {
+        .dashboard-container { padding-top: 85px; }
+        .dashboard-header-card { padding: 1.5rem 1rem; margin-bottom: 1rem; }
+        .profile-section-card { padding: 1rem; margin-top: 0; }
+        .profile-img-styled, .placeholder-img { width: 88px; height: 88px; font-size: 2rem; }
+        .action-card { padding: 1rem .5rem; min-height: 140px; }
+    }
 </style>
 {% endblock %}
 
@@ -214,6 +226,26 @@
             </div>
         </div>
 
+        {% if is_member %}
+        <section class="dashboard-section" aria-labelledby="formation-title">
+            <div class="d-flex justify-content-between align-items-end mb-3">
+                <div><span class="small text-uppercase text-warning fw-bold">Mi formación</span><h2 id="formation-title" class="h4 fw-bold mb-0">Progreso de doctrina</h2></div>
+                <strong>{{ doctrine_progress }}%</strong>
+            </div>
+            <div class="progress mb-2" style="height: 12px;" role="progressbar" aria-valuenow="{{ doctrine_progress }}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar bg-warning" style="width: {{ doctrine_progress }}%"></div></div>
+            <p class="small text-muted">{{ doctrine_completed }} de {{ doctrine_total }} lecciones completadas.</p>
+        </section>
+        {% endif %}
+
+        <section class="dashboard-section" aria-labelledby="events-title">
+            <div class="d-flex justify-content-between align-items-center mb-3"><h2 id="events-title" class="h4 fw-bold mb-0">Próximos eventos</h2><a href="{% url 'iglesias:events_calendar' %}">Ver agenda</a></div>
+            <div class="row g-3">
+                {% for event in upcoming_events %}
+                <div class="col-md-4"><a href="{% pageurl event %}" class="action-card text-start"><span class="badge bg-warning text-dark mb-2">{{ event.date|date:"d M" }}</span><h3 class="h6 fw-bold">{{ event.title }}</h3><p class="small text-muted mb-0">{{ event.location }}</p></a></div>
+                {% empty %}<p class="text-muted">No hay actividades próximas.</p>{% endfor %}
+            </div>
+        </section>
+
         <!-- Quick Actions Grid -->
         <h5 class="mt-5 mb-4" style="font-family: 'Playfair Display', serif; color: var(--dash-navy); font-weight: 700;">Acciones Rápidas</h5>
         <div class="row g-4">
@@ -224,7 +256,7 @@
                 </a>
             </div>
             <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="300">
-                <a href="{% url 'doctrina:doctrina_basica' %}" class="action-card">
+                <a href="{% if doctrina_basica_page %}{% pageurl doctrina_basica_page %}{% else %}/{% endif %}" class="action-card">
                     <i class="fas fa-bible"></i>
                     <h6>Estudios<br>Básicos</h6>
                 </a>
@@ -243,6 +275,12 @@
                 </a>
             </div>
             {% endif %}
+            <div class="col-6 col-md-3" data-aos="zoom-in">
+                <a href="{% url 'iglesias:sermons_index' %}" class="action-card">
+                    <i class="fas fa-microphone-lines"></i>
+                    <h6>Predicaciones</h6>
+                </a>
+            </div>
             <div class="col-6 col-md-3" data-aos="zoom-in" data-aos-delay="600">
                 <a href="{% url 'miembros:profile' %}" class="action-card">
                     <i class="fas fa-cog"></i>

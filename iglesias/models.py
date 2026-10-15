@@ -1,4 +1,5 @@
 from django.db import models
+import re
 from django.conf import settings
 from django import forms
 
@@ -63,6 +64,27 @@ class IglesiaPage(Page):
     address = models.CharField("Dirección", max_length=255)
     phone = models.CharField("Teléfono", max_length=50, blank=True)
     email = models.EmailField("Correo electrónico", blank=True)
+    primary_language = models.CharField(
+        "Idioma principal",
+        max_length=10,
+        choices=[
+            ('es', 'Español'), ('en', 'English'), ('pt', 'Português'),
+            ('fr', 'Français'), ('other', 'Otro'),
+        ],
+        default='es',
+    )
+    latitude = models.DecimalField(
+        "Latitud", max_digits=9, decimal_places=6, null=True, blank=True,
+        help_text="Coordenada para mostrar la iglesia en el mapa público.",
+    )
+    longitude = models.DecimalField(
+        "Longitud", max_digits=9, decimal_places=6, null=True, blank=True,
+        help_text="Coordenada para mostrar la iglesia en el mapa público.",
+    )
+    is_verified = models.BooleanField(
+        "Información verificada", default=False,
+        help_text="Indica que horarios, dirección y datos de contacto fueron revisados.",
+    )
     
     # Hero/Branding
     # Uses the Page's built-in 'title' as the church name.
@@ -129,6 +151,10 @@ class IglesiaPage(Page):
             FieldPanel('address'),
             FieldPanel('phone'),
             FieldPanel('email'),
+            FieldPanel('primary_language'),
+            FieldPanel('latitude'),
+            FieldPanel('longitude'),
+            FieldPanel('is_verified'),
         ], heading="Información General"),
         
         FieldPanel('description'),
@@ -169,6 +195,20 @@ class IglesiaPage(Page):
         return country_page.country if country_page else None
 
     @property
+    def city(self):
+        return self.get_ancestors().type(CityIndexPage).specific().first()
+
+    @property
+    def whatsapp_url(self):
+        number = re.sub(r'\D', '', self.phone or '')
+        return f'https://wa.me/{number}' if number else ''
+
+    @property
+    def directions_url(self):
+        from urllib.parse import quote_plus
+        return f'https://www.google.com/maps/search/?api=1&query={quote_plus(self.address)}'
+
+    @property
     def live_sermon(self):
         """Returns the first live sermon if exists."""
         return self.sermons.filter(is_live=True).first()
@@ -180,6 +220,12 @@ class IglesiaPage(Page):
 
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
+        metric_key = f'metric_church_view_{self.pk}'
+        if not getattr(request, 'in_preview_panel', False) and not request.session.get(metric_key):
+            from home.analytics import record_metric
+            from home.models import EngagementMetric
+            record_metric(EngagementMetric.EVENT_CHURCH_VIEW, self.title)
+            request.session[metric_key] = True
         # Check permissions for edit button visibility in template
         if request.user.is_authenticated:
             context['can_edit'] = (
@@ -244,6 +290,18 @@ class Sermon(models.Model):
     iglesia = models.ForeignKey('IglesiaPage', on_delete=models.CASCADE, related_name='sermons')
     title = models.CharField('Título', max_length=255)
     youtube_url = models.URLField('URL de YouTube')
+    speaker = models.CharField('Predicador', max_length=150, blank=True)
+    topic = models.CharField('Tema', max_length=120, blank=True, db_index=True)
+    series = models.CharField('Serie', max_length=120, blank=True, db_index=True)
+    related_doctrine = models.ForeignKey(
+        'doctrina.DoctrinaEntryPage',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='related_sermons',
+        verbose_name='Doctrina relacionada',
+    )
+    preached_at = models.DateField('Fecha de predicación', null=True, blank=True)
     is_live = models.BooleanField('En Vivo', default=False)
     date_added = models.DateTimeField('Fecha de publicación', auto_now_add=True)
 
@@ -254,6 +312,17 @@ class Sermon(models.Model):
 
     def __str__(self):
         return f"{self.title} ({'Live' if self.is_live else 'Recorded'})"
+
+    @property
+    def youtube_id(self):
+        """Extract a YouTube video id without making a network request."""
+        if not self.youtube_url:
+            return ''
+        match = re.search(
+            r'(?:v=|youtu\.be/|embed/|shorts/)([A-Za-z0-9_-]{11})',
+            self.youtube_url,
+        )
+        return match.group(1) if match else ''
 
 # PreachMaterial model for PPTs and related documents
 class PreachMaterial(models.Model):

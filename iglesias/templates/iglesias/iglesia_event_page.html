@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block structured_data %}
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Event","name":"{{ page.title|escapejs }}","startDate":"{{ page.date|date:'c' }}","eventAttendanceMode":"https://schema.org/OfflineEventAttendanceMode","eventStatus":"https://schema.org/EventScheduled","location":{"@type":"Place","name":"{{ page.location|escapejs }}","address":"{{ page.get_parent.specific.address|escapejs }}"},"url":"{{ page.full_url|escapejs }}"}</script>
+{% endblock %}
+
+{% block content %}
+<main class="container py-5" style="margin-top: 80px;">
+    <a href="{% pageurl page.get_parent %}" class="btn btn-outline-secondary mb-4">Volver a la iglesia</a>
+    <article>
+        <p class="text-muted">{{ page.get_category_display }}</p>
+        <h1>{{ page.title }}</h1>
+        <p>{{ page.date|date:"d F Y, H:i" }} · {{ page.location }}</p>
+        {% if page.image %}
+            {% image page.image width-1000 format-webp class="img-fluid mb-4" loading="lazy" %}
+        {% endif %}
+        {{ page.description|richtext }}
+    </article>
+</main>
+{% endblock %}

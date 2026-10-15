@@ -6,11 +6,9 @@
  * @param {Object} params 
  */
 function elimTrackEvent(eventName, params = {}) {
-    if (typeof gtag === 'function') {
-        gtag('event', eventName, params);
-    } else {
-        console.warn('Analytics (gtag) not loaded. Event:', eventName, params);
-    }
+    // Intentionally local-only. Aggregate server metrics are recorded on
+    // completed searches, church visits and doctrine progress without user IDs.
+    return { eventName, params };
 }
 
 // --- Utility Functions ---
@@ -188,15 +186,36 @@ function initSearchModal() {
 
                 if (data.results && data.results.length > 0) {
                     if (suggestionsList) {
-                        suggestionsList.innerHTML = data.results.map(item => `
-                        <a href="${item.url}" class="search-suggestion-item">
-                            ${item.image ? `<img src="${item.image}" alt="">` : '<div class="suggestion-icon"><i class="fas fa-file-alt"></i></div>'}
-                            <div class="suggestion-details">
-                                <div class="suggestion-title">${item.title}</div>
-                                <div class="suggestion-meta">${item.content_type}</div>
-                            </div>
-                        </a>
-                    `).join('');
+                        suggestionsList.replaceChildren();
+                        data.results.forEach(item => {
+                            const link = document.createElement('a');
+                            link.href = item.url;
+                            link.className = 'search-suggestion-item';
+                            if (item.image) {
+                                const img = document.createElement('img');
+                                img.src = item.image;
+                                img.alt = '';
+                                img.loading = 'lazy';
+                                link.appendChild(img);
+                            } else {
+                                const icon = document.createElement('div');
+                                icon.className = 'suggestion-icon';
+                                icon.setAttribute('aria-hidden', 'true');
+                                icon.textContent = '›';
+                                link.appendChild(icon);
+                            }
+                            const details = document.createElement('div');
+                            details.className = 'suggestion-details';
+                            const title = document.createElement('div');
+                            title.className = 'suggestion-title';
+                            title.textContent = item.title;
+                            const meta = document.createElement('div');
+                            meta.className = 'suggestion-meta';
+                            meta.textContent = item.type_label;
+                            details.append(title, meta);
+                            link.appendChild(details);
+                            suggestionsList.appendChild(link);
+                        });
                     }
                 } else {
                     if (noResults) noResults.style.display = 'block';
@@ -257,26 +276,11 @@ async function initVerse(fallbackVerses) {
         }, 300);
     }
 
-    // Try to get dynamic verse from API
-    try {
-        // Using bible-api.com (check their docs for specific Spanish translations if needed)
-        // Here we attempt a common Spanish random verse endpoint or similar
-        const response = await fetch('https://bible-api.com/random?translation=rvr1960');
-        if (!response.ok) throw new Error('API request failed');
-
-        const data = await response.json();
-        if (data && data.text && data.reference) {
-            setVerse(data.text.trim(), data.reference);
-            return;
-        }
-    } catch (error) {
-        console.warn('Verse API failed, using fallback:', error);
-    }
-
-    // Fallback if API fails or no Spanish support
+    // Select locally so the footer works offline and sends no visitor data to a third party.
     if (fallbackVerses && fallbackVerses.length > 0) {
-        const randomVerse = fallbackVerses[Math.floor(Math.random() * fallbackVerses.length)];
-        setVerse(randomVerse.text, randomVerse.ref);
+        const dayNumber = Math.floor(Date.now() / 86400000);
+        const verse = fallbackVerses[dayNumber % fallbackVerses.length];
+        setVerse(verse.text, verse.ref);
     }
 }
 

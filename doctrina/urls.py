@@ -4,6 +4,7 @@ from . import views
 app_name = 'doctrina'
 
 urlpatterns = [
+    path('progreso/<int:entry_id>/', views.toggle_progress, name='toggle_progress'),
     # Legacy: redirect to Wagtail admin (kept for backward compat)
     path('crear/<str:section>/', views.create_doctrina_entry, name='create_entry'),
 

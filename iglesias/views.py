@@ -1,10 +1,23 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import IglesiaForm
-from .models import Iglesia, IglesiaPage, CountryIndexPage, IglesiaEventPage, Sermon, PreachMaterial
+from .models import (
+    CityIndexPage, Iglesia, IglesiaPage, CountryIndexPage, IglesiaEventPage,
+    Sermon, PreachMaterial,
+)
 from django.core.paginator import Paginator
+from django.db.models import Q, Sum
 from django.contrib import messages
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 from wagtail.models import Page
+
+
+def _upload_is_valid(upload, extensions, max_mb):
+    if not upload:
+        return True
+    extension = upload.name.rsplit('.', 1)[-1].lower() if '.' in upload.name else ''
+    return extension in extensions and upload.size <= max_mb * 1024 * 1024
 
 
 @login_required
@@ -14,36 +27,130 @@ def my_iglesias(request):
 
 
 def iglesias_index(request):
-    """Public list of all iglesias with optional country filter."""
-    qs = IglesiaPage.objects.live().order_by('-first_published_at')
+    """Public church finder with search, location and language filters."""
+    qs = IglesiaPage.objects.live().select_related('owner').order_by('title')
+    search_query = request.GET.get('q', '').strip()
+    selected_country_code = request.GET.get('country', '').strip().upper()
+    selected_city_id = request.GET.get('city', '').strip()
+    selected_language = request.GET.get('language', '').strip()
+
+    if search_query:
+        qs = qs.filter(Q(title__icontains=search_query) | Q(address__icontains=search_query))
     
-    selected_country_code = request.GET.get('country')
     if selected_country_code:
-        # Filter by finding the Country Page and getting its descendants
-        # We need to find the CountryIndexPage with this country code
-        try:
-           # CountryField stores code like 'MX', 'PE'
-           # The template sends the country code? 
-           # Wait, previous view sent values_list('country', flat=True) which for CountryField might be the code.
-           # Let's assume code.
-           country_page = CountryIndexPage.objects.live().filter(country=selected_country_code).first()
-           if country_page:
-               qs = qs.descendant_of(country_page)
-        except Exception:
-            pass
+        country_page = CountryIndexPage.objects.live().filter(country=selected_country_code).first()
+        qs = qs.descendant_of(country_page) if country_page else qs.none()
+
+    if selected_city_id.isdigit():
+        city_page = CityIndexPage.objects.live().filter(pk=int(selected_city_id)).first()
+        qs = qs.descendant_of(city_page) if city_page else qs.none()
+
+    if selected_language:
+        qs = qs.filter(primary_language=selected_language)
 
     paginator = Paginator(qs, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Get list of countries that have churches
-    # We can get all live CountryIndexPages
-    countries = CountryIndexPage.objects.live()
+    countries = CountryIndexPage.objects.live().order_by('title')
+    cities = CityIndexPage.objects.live().order_by('title')
+    if selected_country_code:
+        country_page = countries.filter(country=selected_country_code).first()
+        cities = cities.descendant_of(country_page) if country_page else cities.none()
+
+    map_churches = []
+    for church in qs.filter(latitude__isnull=False, longitude__isnull=False):
+        map_churches.append({
+            'title': church.title,
+            'address': church.address,
+            'latitude': float(church.latitude),
+            'longitude': float(church.longitude),
+            'url': church.get_url(request=request),
+            'city': church.city.title if church.city else '',
+        })
     
     return render(request, 'iglesias/list.html', {
-        'page_obj': page_obj, 
-        'countries': countries, 
-        'selected_country': selected_country_code
+        'page_obj': page_obj,
+        'countries': countries,
+        'cities': cities,
+        'map_churches': map_churches,
+        'language_choices': IglesiaPage._meta.get_field('primary_language').choices,
+        'search_query': search_query,
+        'selected_country': selected_country_code,
+        'selected_city': selected_city_id,
+        'selected_language': selected_language,
+        'result_count': paginator.count,
+    })
+
+
+def events_calendar(request):
+    """Public calendar of upcoming events across all churches."""
+    events = IglesiaEventPage.objects.live().filter(date__gte=timezone.now()).order_by('date')
+    churches = IglesiaPage.objects.live().order_by('title')
+    church_id = request.GET.get('church', '').strip()
+    category = request.GET.get('category', '').strip()
+    month = request.GET.get('month', '').strip()
+
+    if church_id.isdigit():
+        church = churches.filter(pk=int(church_id)).first()
+        events = events.descendant_of(church) if church else events.none()
+    if category:
+        events = events.filter(category=category)
+    if month:
+        try:
+            year, month_number = (int(part) for part in month.split('-', 1))
+            events = events.filter(date__year=year, date__month=month_number)
+        except (TypeError, ValueError):
+            month = ''
+
+    page_obj = Paginator(events, 12).get_page(request.GET.get('page'))
+    return render(request, 'iglesias/events_calendar.html', {
+        'page_obj': page_obj,
+        'churches': churches,
+        'categories': IglesiaEventPage.CATEGORY_CHOICES,
+        'selected_church': church_id,
+        'selected_category': category,
+        'selected_month': month,
+    })
+
+
+def sermons_index(request):
+    """Public, filterable catalogue of YouTube sermons."""
+    sermons = Sermon.objects.select_related('iglesia', 'related_doctrine').order_by(
+        '-is_live', '-preached_at', '-date_added'
+    )
+    query = request.GET.get('q', '').strip()
+    speaker = request.GET.get('speaker', '').strip()
+    church_id = request.GET.get('church', '').strip()
+    topic = request.GET.get('topic', '').strip()
+    series = request.GET.get('series', '').strip()
+
+    if query:
+        sermons = sermons.filter(
+            Q(title__icontains=query) | Q(speaker__icontains=query) |
+            Q(topic__icontains=query) | Q(series__icontains=query)
+        )
+    if speaker:
+        sermons = sermons.filter(speaker=speaker)
+    if church_id.isdigit():
+        sermons = sermons.filter(iglesia_id=int(church_id))
+    if topic:
+        sermons = sermons.filter(topic=topic)
+    if series:
+        sermons = sermons.filter(series=series)
+
+    page_obj = Paginator(sermons, 12).get_page(request.GET.get('page'))
+    return render(request, 'iglesias/sermons_list.html', {
+        'page_obj': page_obj,
+        'churches': IglesiaPage.objects.live().order_by('title'),
+        'topics': Sermon.objects.exclude(topic='').values_list('topic', flat=True).distinct().order_by('topic'),
+        'speakers': Sermon.objects.exclude(speaker='').values_list('speaker', flat=True).distinct().order_by('speaker'),
+        'series_options': Sermon.objects.exclude(series='').values_list('series', flat=True).distinct().order_by('series'),
+        'search_query': query,
+        'selected_speaker': speaker,
+        'selected_church': church_id,
+        'selected_topic': topic,
+        'selected_series': series,
     })
 
 
@@ -152,7 +259,9 @@ def pastor_dashboard(request):
     sermons = Sermon.objects.filter(iglesia=iglesia).order_by('-date_added')
     preach_materials = PreachMaterial.objects.filter(iglesia=iglesia).order_by('-uploaded_at')
 
-    events = IglesiaEventPage.objects.child_of(iglesia).live().order_by('date')
+    events = IglesiaEventPage.objects.child_of(iglesia).live().filter(
+        date__gte=timezone.now()
+    ).order_by('date')
     
     return render(request, 'iglesias/pastor_dashboard.html', {
         'iglesia': iglesia,
@@ -160,6 +269,8 @@ def pastor_dashboard(request):
         'active_members': active_members,
         'ayudas': ayudas,
         'events': events,
+        'sermons': sermons,
+        'preach_materials': preach_materials,
         'is_pastor': is_pastor,
         'is_delegated': is_delegated,
     })
@@ -188,6 +299,9 @@ def create_event(request):
         description = request.POST.get('description')
         category = request.POST.get('category', 'general') # Default to general
         image_file = request.FILES.get('image')
+        if not _upload_is_valid(image_file, {'jpg', 'jpeg', 'png', 'webp'}, 8):
+            messages.error(request, 'La imagen debe ser JPG, PNG o WebP y pesar como máximo 8 MB.')
+            return redirect('iglesias:create_event')
         
         # Create Page Programmatically
         new_event = IglesiaEventPage(
@@ -233,18 +347,33 @@ def create_sermon(request):
     if request.method == 'POST':
         title = request.POST.get('title')
         youtube_url = request.POST.get('youtube_url')
+        speaker = request.POST.get('speaker', '').strip()
+        topic = request.POST.get('topic', '').strip()
+        series = request.POST.get('series', '').strip()
+        preached_at = request.POST.get('preached_at') or None
+        doctrine_id = request.POST.get('related_doctrine')
         is_live = request.POST.get('is_live') == 'on'
         Sermon.objects.create(
             iglesia=iglesia,
             title=title,
             youtube_url=youtube_url,
+            speaker=speaker,
+            topic=topic,
+            series=series,
+            preached_at=preached_at,
+            related_doctrine_id=doctrine_id or None,
             is_live=is_live,
         )
         messages.success(request, "Predicación publicada exitosamente.")
         return redirect('iglesias:pastor_dashboard')
-    return render(request, 'iglesias/sermon_form.html', {'iglesia': iglesia})
+    from doctrina.models import DoctrinaEntryPage
+    return render(request, 'iglesias/sermon_form.html', {
+        'iglesia': iglesia,
+        'doctrine_entries': DoctrinaEntryPage.objects.live().order_by('title'),
+    })
 
 @login_required
+@require_POST
 def delete_sermon(request, pk):
     sermon = get_object_or_404(Sermon, pk=pk)
     iglesia = sermon.iglesia
@@ -276,6 +405,12 @@ def create_preach_material(request):
         ppt_file = request.FILES.get('ppt_file')
         extra_file = request.FILES.get('extra_file')
         youtube_links = request.POST.get('youtube_links')
+        if not ppt_file or not _upload_is_valid(ppt_file, {'ppt', 'pptx'}, 20):
+            messages.error(request, 'La presentación debe ser PPT/PPTX y pesar como máximo 20 MB.')
+            return redirect('iglesias:create_preach_material')
+        if not _upload_is_valid(extra_file, {'pdf', 'doc', 'docx', 'txt', 'ppt', 'pptx', 'xls', 'xlsx'}, 20):
+            messages.error(request, 'El archivo adicional tiene un formato no permitido o supera 20 MB.')
+            return redirect('iglesias:create_preach_material')
         PreachMaterial.objects.create(
             iglesia=iglesia,
             title=title,
@@ -301,10 +436,17 @@ def edit_preach_material(request, pk):
         material.title = request.POST.get('title')
         material.category = request.POST.get('category')
         material.description = request.POST.get('description')
-        if request.FILES.get('ppt_file'):
-            material.ppt_file = request.FILES.get('ppt_file')
-        if request.FILES.get('extra_file'):
-            material.extra_file = request.FILES.get('extra_file')
+        new_ppt = request.FILES.get('ppt_file')
+        new_extra = request.FILES.get('extra_file')
+        if not _upload_is_valid(new_ppt, {'ppt', 'pptx'}, 20) or not _upload_is_valid(
+            new_extra, {'pdf', 'doc', 'docx', 'txt', 'ppt', 'pptx', 'xls', 'xlsx'}, 20
+        ):
+            messages.error(request, 'El archivo tiene un formato no permitido o supera 20 MB.')
+            return redirect('iglesias:edit_preach_material', pk=material.pk)
+        if new_ppt:
+            material.ppt_file = new_ppt
+        if new_extra:
+            material.extra_file = new_extra
         material.youtube_links = request.POST.get('youtube_links')
         material.save()
         messages.success(request, "Material actualizado.")
@@ -312,6 +454,7 @@ def edit_preach_material(request, pk):
     return render(request, 'iglesias/preach_material_form.html', {'material': material, 'iglesia': iglesia})
 
 @login_required
+@require_POST
 def delete_preach_material(request, pk):
     material = get_object_or_404(PreachMaterial, pk=pk)
     iglesia = material.iglesia
@@ -352,12 +495,12 @@ def apostol_dashboard(request):
     """
     # Check if user is an Apostol
     profile = getattr(request.user, 'pastores_profile', None)
-    if not profile or not profile.is_apostle:
-        messages.error(request, "Acceso denegado. Solo los apóstoles pueden acceder a este panel.")
+    if not profile or not (profile.is_apostle or profile.is_superpastor):
+        messages.error(request, "Acceso denegado. Este panel es para supervisores y liderazgo general.")
         return redirect('home')
     
     # Handle upgrade/demote actions
-    if request.method == 'POST':
+    if request.method == 'POST' and profile.is_apostle:
         pastor_id = request.POST.get('pastor_id')
         action = request.POST.get('action')
         
@@ -378,16 +521,45 @@ def apostol_dashboard(request):
         return redirect('iglesias:apostol_dashboard')
     
     # Get all Pastores Elim (excluding self)
-    pastores = UserProfile.objects.filter(role=UserProfile.ROLE_PASTOR).exclude(user=request.user).order_by('-is_superpastor', 'user__first_name')
+    pastores = UserProfile.objects.filter(role=UserProfile.ROLE_PASTOR).exclude(user=request.user)
+    if profile.is_superpastor and not profile.is_apostle:
+        pastores = pastores.filter(supervisor=profile)
+    pastores = pastores.select_related('user', 'iglesia').order_by('-is_superpastor', 'user__first_name')
     
     # Get counts
     total_pastores = pastores.count()
     superpastores_count = pastores.filter(is_superpastor=True).count()
+    church_ids = list(pastores.exclude(iglesia=None).values_list('iglesia_id', flat=True))
+    if profile.iglesia_id:
+        church_ids.append(profile.iglesia_id)
+    churches = IglesiaPage.objects.live().filter(pk__in=church_ids)
+    upcoming_events_count = sum(
+        IglesiaEventPage.objects.live().descendant_of(church).filter(date__gte=timezone.now()).count()
+        for church in churches
+    )
+    pending_members_count = MemberProfile.objects.filter(
+        iglesia_id__in=church_ids, is_approved_member=False
+    ).count()
+    sermon_count = Sermon.objects.filter(iglesia_id__in=church_ids).count()
+    from datetime import timedelta
+    from home.models import EngagementMetric
+    metric_totals = {
+        row['event_type']: row['total']
+        for row in EngagementMetric.objects.filter(
+            date__gte=timezone.localdate() - timedelta(days=30)
+        ).values('event_type').annotate(total=Sum('count'))
+    }
     
     return render(request, 'iglesias/apostol_dashboard.html', {
         'pastores': pastores,
         'total_pastores': total_pastores,
         'superpastores_count': superpastores_count,
+        'church_count': churches.count(),
+        'upcoming_events_count': upcoming_events_count,
+        'pending_members_count': pending_members_count,
+        'sermon_count': sermon_count,
+        'is_general_leadership': profile.is_apostle,
+        'metric_totals': metric_totals,
     })
 
 

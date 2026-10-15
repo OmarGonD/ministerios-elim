@@ -105,6 +105,8 @@ def reading_time(html_content):
     words = len(re.findall(r'\w+', text))
     # Average reading speed: 200 words per minute
     minutes = round(words / 200)
+    return max(1, minutes)
+
 @register.filter
 def get_youtube_id(url):
     """

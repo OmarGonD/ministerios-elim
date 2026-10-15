@@ -1,17 +1,8 @@
 {% load static wagtailcore_tags wagtailuserbar user_extras %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
     <head>
-        <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-6H7XS25BJN"></script>
-        <script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-
-          gtag('config', 'G-6H7XS25BJN');
-        </script>
         <meta charset="utf-8" />
         <title>
             {% block title %}
@@ -28,9 +19,8 @@
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-        {% if page.search_description %}
-        <meta name="description" content="{{ page.search_description }}" />
-        {% endif %}
+        <meta name="description" content="{% if page.search_description %}{{ page.search_description }}{% else %}Ministerios Elim: iglesias, formación doctrinal, eventos y predicaciones.{% endif %}" />
+        <link rel="canonical" href="{% if page.full_url %}{{ page.full_url }}{% else %}{{ request.build_absolute_uri }}{% endif %}">
 
         <!-- Open Graph / Facebook -->
         <meta property="og:type" content="website">
@@ -45,6 +35,8 @@
         <meta property="twitter:title" content="{% block twitter_title %}{% if page.seo_title %}{{ page.seo_title }}{% else %}{{ page.title }}{% endif %}{% endblock %}">
         <meta property="twitter:description" content="{% block twitter_description %}{{ page.search_description }}{% endblock %}">
         <meta property="twitter:image" content="{% block twitter_image %}{% endblock %}">
+        <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Ministerios Elim","url":"{{ request.scheme }}://{{ request.get_host }}","logo":"{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo-elim.png' %}"}</script>
+        {% block structured_data %}{% endblock %}
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="referrer" content="strict-origin-when-cross-origin">
 
@@ -65,6 +57,7 @@
     </head>
 
     <body class="{% block body_class %}{% endblock %}">
+        <a class="skip-link" href="#main-content">Saltar al contenido principal</a>
         {% load cache %}
         
         {% cache 600 navbar request.user.username request.path %}
@@ -114,8 +107,13 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'iglesias:index' %}"><i class="fas fa-church me-1"></i> Iglesias</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'iglesias:materiales_index' %}"><i class="fas fa-file-download me-1"></i> Materiales</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="resourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-calendar-check me-1"></i> Recursos</a>
+                            <ul class="dropdown-menu" aria-labelledby="resourcesDropdown">
+                                <li><a class="dropdown-item" href="{% url 'iglesias:events_calendar' %}"><i class="far fa-calendar me-2"></i>Eventos</a></li>
+                                <li><a class="dropdown-item" href="{% url 'iglesias:sermons_index' %}"><i class="fas fa-microphone-lines me-2"></i>Predicaciones</a></li>
+                                <li><a class="dropdown-item" href="{% url 'iglesias:materiales_index' %}"><i class="fas fa-file-download me-2"></i>Materiales</a></li>
+                            </ul>
                         </li>
                     </ul>
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
@@ -164,9 +162,9 @@
                                 {% endif %}
                                 
                                 {# Dashboard links based on user role #}
-                                {% if request.user|is_apostle %}
+                                {% if request.user|is_apostle or request.user|is_superpastor %}
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item fw-bold text-primary" href="{% url 'iglesias:apostol_dashboard' %}"><i class="fas fa-crown me-2 text-warning"></i>Panel del Apóstol</a></li>
+                                <li><a class="dropdown-item fw-bold text-primary" href="{% url 'iglesias:apostol_dashboard' %}"><i class="fas fa-chart-line me-2 text-warning"></i>Panel de liderazgo</a></li>
                                 {% elif request.user|is_pastor_elim %}
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item fw-bold text-primary" href="{% url 'iglesias:pastor_dashboard' %}"><i class="fas fa-user-tie me-2"></i>Panel Pastoral</a></li>
@@ -211,7 +209,7 @@
                 <form action="{% url 'search' %}" method="get" class="search-modal-form">
                     <div class="search-input-wrapper">
                         <i class="fas fa-search search-input-icon"></i>
-                        <input type="text" name="query" id="searchInput" class="search-modal-input" placeholder="Buscar doctrina, iglesias, foros..." autocomplete="off" required>
+                        <input type="search" name="query" id="searchInput" class="search-modal-input" placeholder="Buscar iglesias, doctrina, eventos..." autocomplete="off" aria-label="Buscar en todo el sitio" required>
                         <span class="search-input-hint">ESC para cerrar</span>
                     </div>
                     <div class="search-categories">
@@ -219,6 +217,8 @@
                         <a href="/doctrina/" class="search-category-tag"><i class="fas fa-book me-1"></i>Doctrina</a>
                         <a href="{% url 'iglesias:index' %}" class="search-category-tag"><i class="fas fa-church me-1"></i>Iglesias</a>
                         <a href="{% url 'foros:forum_list' %}" class="search-category-tag"><i class="fas fa-comments me-1"></i>Foros</a>
+                        <a href="{% url 'iglesias:events_calendar' %}" class="search-category-tag"><i class="fas fa-calendar me-1"></i>Eventos</a>
+                        <a href="{% url 'iglesias:sermons_index' %}" class="search-category-tag"><i class="fas fa-microphone-lines me-1"></i>Predicaciones</a>
                     </div>
                     
                     <div id="searchSuggestions" class="search-suggestions-container mt-4" style="display:none;">
@@ -335,6 +335,10 @@
                         <label class="form-check-label" for="role_visitante">Solo soy visitante</label>
                       </div>
                     </div>
+                  </div>
+                  <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" name="privacy_accepted" id="id_privacy_accepted" required>
+                    <label class="form-check-label" for="id_privacy_accepted">Acepto la <a href="{% url 'privacy' %}" target="_blank" rel="noopener">política de privacidad</a>.</label>
                   </div>
                   <button type="submit" class="btn w-100" style="background: var(--gold-gradient); color: #000; font-weight: 700; border-radius: 0; padding: 12px; margin-bottom: 1.5rem; border: none; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);">Registrarme</button>
                 </form>
@@ -547,7 +551,8 @@
 
         {% wagtailuserbar %}
 
-        {% block content %}{% endblock %}
+        {% if messages %}<div class="position-fixed top-0 start-50 translate-middle-x mt-5 pt-4" style="z-index:1090;max-width:680px;width:calc(100% - 2rem)" aria-live="polite">{% for message in messages %}<div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show shadow" role="status">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button></div>{% endfor %}</div>{% endif %}
+        <div id="main-content" tabindex="-1">{% block content %}{% endblock %}</div>
 
         {% cache 600 footer %}
         <!-- Global Footer -->
@@ -574,6 +579,7 @@
                 <div class="opacity-75">
                     <p class="mb-1">&copy; 2024 <strong>Iglesia de Cristo Elim</strong>. Todos los derechos reservados.</p>
                     <p class="small text-white-50">Fundamentados en la Palabra, guiados por el Espíritu.</p>
+                    <p class="small"><a href="{% url 'privacy' %}" class="text-white-50">Privacidad</a> · <a href="{% url 'sitemap' %}" class="text-white-50">Mapa del sitio</a></p>
                 </div>
             </div>
         </footer>
@@ -601,9 +607,6 @@
                 initVerse(fallbackVerses);
             });
         </script>
-        {# Global javascript #}
-        <script type="text/javascript" src="{% static 'js/mysite.js' %}"></script>
-
         {% block extra_js %}
         {# Override this in templates to add extra javascript #}
         {% endblock %}
@@ -613,10 +616,20 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
       AOS.init({
+        disable: window.matchMedia('(max-width: 767px)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches,
         duration: 800,
         once: true,
         offset: 100,
         easing: 'ease-out-cubic',
+      });
+
+      document.querySelectorAll('#navbarSupportedContent a:not(.dropdown-toggle)').forEach(function(link) {
+        link.addEventListener('click', function() {
+          const menu = document.getElementById('navbarSupportedContent');
+          if (menu && menu.classList.contains('show')) {
+            bootstrap.Collapse.getOrCreateInstance(menu).hide();
+          }
+        });
       });
     </script>
     </body>

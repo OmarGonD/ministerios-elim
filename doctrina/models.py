@@ -38,6 +38,23 @@ class DoctrinaBasePage(Page):
     search_fields = Page.search_fields + [
         index.SearchField('introduction'),
     ]
+
+    def get_context(self, request):
+        context = super().get_context(request)
+        lessons = list(
+            DoctrinaEntryPage.objects.live().child_of(self).order_by('path')
+        ) if self.pk else []
+        context['lesson_count'] = len(lessons)
+        context['completed_count'] = 0
+        context['progress_percent'] = 0
+        if request.user.is_authenticated and lessons:
+            lesson_ids = [lesson.pk for lesson in lessons]
+            completed = DoctrinaProgress.objects.filter(
+                user=request.user, page_id__in=lesson_ids,
+            ).count()
+            context['completed_count'] = completed
+            context['progress_percent'] = round(completed * 100 / len(lessons))
+        return context
     
     class Meta:
         abstract = True
@@ -380,6 +397,17 @@ class DoctrinaEntryPage(Page):
     def get_context(self, request):
         context = super().get_context(request)
         context['comments'] = self.comments.filter(is_public=True)
+        siblings = list(
+            DoctrinaEntryPage.objects.live().child_of(self.get_parent()).order_by('path')
+        )
+        current_index = next((i for i, lesson in enumerate(siblings) if lesson.pk == self.pk), 0)
+        context['lesson_position'] = current_index + 1
+        context['lesson_total'] = len(siblings)
+        context['previous_lesson'] = siblings[current_index - 1] if current_index > 0 else None
+        context['next_lesson'] = siblings[current_index + 1] if current_index + 1 < len(siblings) else None
+        context['is_completed'] = False
+        context['completed_count'] = 0
+        context['progress_percent'] = 0
         
         if request.user.is_authenticated:
             # Import form here to avoid circular dependencies if defined in same file
@@ -389,6 +417,14 @@ class DoctrinaEntryPage(Page):
             # Let's assume I'll put it in forms.py as planned.
             from .forms import DoctrinaCommentForm
             context['comment_form'] = DoctrinaCommentForm()
+            lesson_ids = [lesson.pk for lesson in siblings]
+            completed_ids = set(DoctrinaProgress.objects.filter(
+                user=request.user, page_id__in=lesson_ids,
+            ).values_list('page_id', flat=True))
+            context['is_completed'] = self.pk in completed_ids
+            context['completed_count'] = len(completed_ids)
+            if siblings:
+                context['progress_percent'] = round(len(completed_ids) * 100 / len(siblings))
             
         return context
 
@@ -414,3 +450,26 @@ class DoctrinaEntryPage(Page):
                 return redirect(f'/login/?next={self.url}')
 
         return super().serve(request)
+
+
+class DoctrinaProgress(models.Model):
+    """A member's completed doctrine lessons."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='doctrina_progress',
+    )
+    page = models.ForeignKey(
+        DoctrinaEntryPage, on_delete=models.CASCADE,
+        related_name='completion_records',
+    )
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'page'], name='unique_doctrina_progress_user_page',
+            ),
+        ]
+        ordering = ['completed_at']
+        verbose_name = 'Progreso de doctrina'
+        verbose_name_plural = 'Progreso de doctrina'

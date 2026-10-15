@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block title %}Próximos eventos{% endblock %}
+{% block content %}
+<main class="content-with-navbar py-5">
+  <div class="container">
+    <div class="row align-items-end mb-4 g-3">
+      <div class="col-lg-7">
+        <span class="text-uppercase text-warning fw-bold small">Agenda Elim</span>
+        <h1 class="display-5 fw-bold mb-2">Próximos eventos</h1>
+        <p class="lead text-muted mb-0">Encuentra reuniones y actividades de las iglesias de la red.</p>
+      </div>
+      <div class="col-lg-5 text-lg-end">
+        <a href="{% url 'iglesias:sermons_index' %}" class="btn btn-outline-dark">Ver predicaciones</a>
+      </div>
+    </div>
+
+    <form method="get" class="filter-panel row g-3 mb-5" aria-label="Filtros de eventos">
+      <div class="col-md-5">
+        <label for="event-church" class="form-label fw-semibold">Iglesia</label>
+        <select id="event-church" name="church" class="form-select">
+          <option value="">Todas las iglesias</option>
+          {% for church in churches %}<option value="{{ church.pk }}" {% if selected_church == church.pk|stringformat:'s' %}selected{% endif %}>{{ church.title }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label for="event-category" class="form-label fw-semibold">Categoría</label>
+        <select id="event-category" name="category" class="form-select">
+          <option value="">Todas</option>
+          {% for value, label in categories %}<option value="{{ value }}" {% if selected_category == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label for="event-month" class="form-label fw-semibold">Mes</label>
+        <input id="event-month" type="month" name="month" value="{{ selected_month }}" class="form-control">
+      </div>
+      <div class="col-md-2 d-grid align-self-end">
+        <button class="btn btn-dark" type="submit">Filtrar</button>
+      </div>
+    </form>
+
+    <div class="row g-4">
+      {% for event in page_obj %}
+      <div class="col-md-6 col-xl-4">
+        <article class="card h-100 border-0 shadow-sm event-card">
+          {% if event.image %}{% image event.image fill-400x225 format-webp as event_small %}{% image event.image fill-800x450 format-webp as event_large %}<img src="{{ event_small.url }}" srcset="{{ event_small.url }} 400w, {{ event_large.url }} 800w" sizes="(max-width: 767px) 100vw, 33vw" class="card-img-top" loading="lazy" width="800" height="450" alt="{{ event.title }}">{% else %}<div class="event-placeholder"><i class="fas fa-calendar-days"></i></div>{% endif %}
+          <div class="card-body p-4">
+            <div class="d-flex gap-3 mb-3">
+              <div class="event-date text-center"><strong>{{ event.date|date:"d" }}</strong><span>{{ event.date|date:"M" }}</span></div>
+              <div>
+                <span class="badge bg-light text-dark mb-2">{{ event.get_category_display }}</span>
+                <h2 class="h5 fw-bold mb-1">{{ event.title }}</h2>
+                <p class="small text-muted mb-0">{{ event.get_parent.specific.title }}</p>
+              </div>
+            </div>
+            <p class="small mb-1"><i class="far fa-clock me-2 text-warning"></i>{{ event.date|date:"H:i" }}</p>
+            <p class="small mb-3"><i class="fas fa-location-dot me-2 text-warning"></i>{{ event.location }}</p>
+            <a href="{% pageurl event %}" class="stretched-link fw-semibold text-dark">Ver detalles</a>
+          </div>
+        </article>
+      </div>
+      {% empty %}
+      <div class="col-12"><div class="empty-state"><i class="far fa-calendar-xmark"></i><h2 class="h4">No hay eventos con estos filtros</h2><p>Prueba otro mes o consulta todas las iglesias.</p></div></div>
+      {% endfor %}
+    </div>
+    {% include "iglesias/includes/filter_pagination.html" with page_obj=page_obj %}
+  </div>
+</main>
+{% endblock %}

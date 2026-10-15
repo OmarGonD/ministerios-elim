@@ -11,6 +11,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.conf import settings
+from django.utils.http import url_has_allowed_host_and_scheme
 
 def register(request):
     if request.method == 'POST':
@@ -74,6 +75,10 @@ def register(request):
                 
                 # Store the referer for potential future use
                 referer = request.META.get('HTTP_REFERER')
+                if referer and not url_has_allowed_host_and_scheme(
+                    referer, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+                ):
+                    referer = None
                 if referer:
                     request.session['post_registration_redirect'] = referer
                 
@@ -116,6 +121,10 @@ def login_view(request):
             
             # Get the redirect URL from POST data or session
             redirect_url = request.POST.get('next') or request.session.get('next') or '/'
+            if not url_has_allowed_host_and_scheme(
+                redirect_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+            ):
+                redirect_url = '/'
             
             # Clear the session next parameter
             if 'next' in request.session:

@@ -1,31 +1,27 @@
 {% extends "base.html" %}
+{% block title %}Crear cuenta{% endblock %}
 {% block content %}
-<div class="elim-main-content" style="max-width:400px;margin:2rem auto;">
-    <h2>Registrarse con Email</h2>
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            {{ form.username.label_tag }}
-            {{ form.username }}
-        </div>
-        <div class="mb-3">
-            {{ form.email.label_tag }}
-            {{ form.email }}
-        </div>
-        <div class="mb-3">
-            {{ form.password1.label_tag }}
-            {{ form.password1 }}
-        </div>
-        <div class="mb-3">
-            {{ form.password2.label_tag }}
-            {{ form.password2 }}
-        </div>
-        <div class="mb-3">
-            <label class="form-label">¿Cuál es tu rol?</label>
-            {{ form.role }}
-            <div class="form-text">Selecciona si eres pastor de Elim o de otro ministerio para recibir comunicaciones diferenciadas.</div>
-        </div>
-    <button type="submit" class="elim-btn elim-btn--centered">Registrarse</button>
+<main class="content-with-navbar py-5"><div class="container" style="max-width:620px">
+  <div class="card border-0 shadow-sm"><div class="card-body p-4 p-md-5">
+    <h1 class="h2 fw-bold">Crear una cuenta</h1>
+    <p class="text-muted">Únete a la comunidad de Ministerios Elim.</p>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+      {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+      {% for field in form.visible_fields %}
+      <div class="mb-3 {% if field.name == 'privacy_accepted' %}form-check{% endif %}">
+        {% if field.name == 'privacy_accepted' %}
+          {{ field }} <label for="{{ field.id_for_label }}" class="form-check-label">Acepto la <a href="{% url 'privacy' %}" target="_blank" rel="noopener">política de privacidad</a>.</label>
+        {% else %}
+          <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>{{ field }}
+        {% endif %}
+        {% if field.errors %}<div class="text-danger small">{{ field.errors }}</div>{% endif %}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-dark w-100">Registrarme</button>
     </form>
-</div>
+  </div></div>
+</div></main>
 {% endblock %}

@@ -1,137 +1,50 @@
-from django.core.management.base import BaseCommand
-from django.contrib.contenttypes.models import ContentType
+from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 from wagtail.models import Page, Site
+
 from home.models import HomePage
 
 
 class Command(BaseCommand):
-    help = 'Replace the default Wagtail homepage with a HomePage instance'
+    help = 'Configure the default site to use a HomePage without deleting pages'
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            '--title',
-            type=str,
-            default='Home',
-            help='Title for the new HomePage (default: Home)',
-        )
-        parser.add_argument(
-            '--slug',
-            type=str,
-            default='home',
-            help='Slug for the new HomePage (default: home)',
-        )
+        parser.add_argument('--title', default='Ministerios Elim')
+        parser.add_argument('--slug', default='home')
 
+    @transaction.atomic
     def handle(self, *args, **options):
-        title = options.get('title', 'Home')
-        slug = options.get('slug', 'home')
-
-        # Get the root page (ID 1)
-        try:
-            root_page = Page.objects.get(id=1)
-        except Page.DoesNotExist:
-            self.stdout.write(
-                self.style.ERROR('Root page (ID 1) not found!')
-            )
+        site = Site.objects.filter(is_default_site=True).first()
+        if site and isinstance(site.root_page.specific, HomePage):
+            self.stdout.write(self.style.SUCCESS('La portada de Ministerios Elim ya está configurada.'))
             return
 
-        # Find existing homepage (usually ID 2, but check all children of root)
-        existing_homepage = root_page.get_children().first()
-        site = None
-        
-        if existing_homepage:
-            self.stdout.write(
-                f'Found existing homepage: "{existing_homepage.title}" (ID: {existing_homepage.id})'
-            )
-            
-            # Get the site that uses this page as root
-            site = Site.objects.filter(root_page=existing_homepage).first()
-            
-            # Delete the existing homepage
-            self.stdout.write('Deleting existing homepage...')
-            existing_homepage.delete()
-            self.stdout.write(
-                self.style.SUCCESS('Existing homepage deleted successfully')
-            )
-            
-            # Refresh root page from database to get updated tree structure
-            root_page.refresh_from_db()
-        else:
-            self.stdout.write('No existing homepage found under root')
-            site = Site.objects.filter(is_default_site=True).first()
+        parent = site.root_page.get_parent() if site else Page.get_first_root_node()
+        if parent is None:
+            raise CommandError('No se encontró una página raíz donde crear la portada.')
 
-        # Get or create HomePage content type
-        homepage_content_type, created = ContentType.objects.get_or_create(
-            model="homepage",
-            app_label="home"
-        )
+        homepage = HomePage.objects.child_of(parent).first()
+        if homepage is None:
+            slug = options['slug']
+            suffix = 2
+            while parent.get_children().filter(slug=slug).exists():
+                slug = f"{options['slug']}-{suffix}"
+                suffix += 1
+            homepage = parent.add_child(instance=HomePage(
+                title=options['title'], slug=slug,
+            ))
+            homepage.save_revision().publish()
+        elif not homepage.live:
+            homepage.save_revision().publish()
 
-        # Create new HomePage using Wagtail's proper method
-        self.stdout.write(f'Creating new HomePage with title "{title}"...')
-        
-        # Calculate the path for the new page
-        root_path = root_page.path
-        # Check if there are any existing children
-        existing_children = root_page.get_children()
-        if existing_children.exists():
-            # Get the last child's path and increment
-            last_child = existing_children.order_by('-path').first()
-            last_path_num = int(last_child.path[-4:])
-            new_path_num = last_path_num + 1
-            new_path = f"{root_path}{str(new_path_num).zfill(4)}"
-        else:
-            # First child - use 0001
-            new_path = f"{root_path}0001"
-        
-        # Create the HomePage with all required fields
-        homepage = HomePage(
-            title=title,
-            slug=slug,
-            content_type=homepage_content_type,
-            path=new_path,
-            depth=root_page.depth + 1,
-            url_path=f"/{slug}/",
-            numchild=0,
-        )
-        homepage.save()
-        
-        # Update root page's numchild
-        root_page.numchild = root_page.get_children().count()
-        root_page.save(update_fields=['numchild'])
-        
-        # Save and publish
-        revision = homepage.save_revision()
-        revision.publish()
-        
-        self.stdout.write(
-            self.style.SUCCESS(
-                f'Successfully created HomePage "{title}" (ID: {homepage.id})'
-            )
-        )
-
-        # Update the site to point to the new homepage
         if site:
             site.root_page = homepage
-            site.save()
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f'Updated site "{site.hostname}" to use new HomePage as root'
-                )
-            )
+            site.save(update_fields=['root_page'])
         else:
-            # Create a new site if none exists
-            site = Site.objects.create(
-                hostname="localhost",
-                root_page=homepage,
-                is_default_site=True
-            )
-            self.stdout.write(
-                self.style.SUCCESS('Created new default site')
+            Site.objects.create(
+                hostname='localhost', root_page=homepage, is_default_site=True,
             )
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                '\nHomePage replacement complete!'
-                f'\n  Visit: http://127.0.0.1:8000/'
-            )
-        )
-
+        self.stdout.write(self.style.SUCCESS(
+            f'Portada configurada: {homepage.title}. Las páginas existentes se conservaron.'
+        ))

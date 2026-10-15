@@ -1,0 +1,17 @@
+name: Portability
+on: [push, pull_request]
+jobs:
+  django:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python dev.py setup
+      - run: python dev.py manage check
+      - run: python dev.py manage test --noinput

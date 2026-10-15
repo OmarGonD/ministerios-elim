@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Forum, Topic, Post, Comment
+from .models import Forum, Topic, Post, Comment, ForumReport, ForumPreference
 
 
 @admin.register(Forum)
@@ -38,3 +38,17 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ('post', 'created_by', 'created_at', 'is_public')
     list_filter = ('is_public', 'created_at')
     search_fields = ('body', 'created_by__username')
+
+
+@admin.register(ForumReport)
+class ForumReportAdmin(admin.ModelAdmin):
+    list_display = ('post', 'reported_by', 'reason', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    actions = ['mark_reviewed']
+
+    @admin.action(description='Marcar reportes como atendidos')
+    def mark_reviewed(self, request, queryset):
+        queryset.update(status=ForumReport.STATUS_REVIEWED)
+
+
+admin.site.register(ForumPreference)
